@@ -5,11 +5,9 @@ async-timeout
 asyncio
 datetime
 disputils
-asyncpg
 Pillow
 PyNaCl
 requests
 topggpy==1.4.0
-betterstatcord.py
 redis
 motor
