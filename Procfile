@@ -1,1 +1,1 @@
-worker: python stfubot/bot.py
+worker: python singularitybot/bot.py
