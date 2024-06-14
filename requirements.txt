@@ -9,7 +9,6 @@ Pillow
 PyNaCl
 requests
 topggpy
-redis
-redis.asyncio
+redis==5.0.6
 motor
 -e .
