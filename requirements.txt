@@ -10,5 +10,6 @@ PyNaCl
 requests
 topggpy
 redis
+redis.asyncio
 motor
 -e .
