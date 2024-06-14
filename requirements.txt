@@ -1,4 +1,4 @@
-disnake==2.7.0
+disnake
 numpy
 dnspython
 async-timeout
@@ -8,6 +8,7 @@ disputils
 Pillow
 PyNaCl
 requests
-topggpy==1.4.0
+topggpy
 redis
 motor
+-e .
