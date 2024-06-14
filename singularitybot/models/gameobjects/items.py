@@ -3,7 +3,7 @@ import json
 from singularitybot.models.gameobjects.itemabilities import item_specials
 
 with open(
-    "/home/sam/programation/singularity-master/singularitybot/data/templates/items.json", "r", encoding="utf-8"
+    "singularitybot/data/templates/items.json", "r", encoding="utf-8"
 ) as item:
     item_file = json.load(item)["items"]
 
