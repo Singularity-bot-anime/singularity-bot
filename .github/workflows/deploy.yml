@@ -19,5 +19,14 @@ jobs:
             ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
             dokku-host: 'singularityapp.online'
             app-name: 'singularity'
-            git-push-flags: --force
+            git-push-flags: --force --depth=0
             remote-branch: main
+    name: Send Discord notification on failure
+    if: failure()
+    uses: appleboy/discord-action@master
+    with:
+      webhook_id: ${{ secrets.WEBHOOK_ID }}
+      webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+      color: "#eb4034"
+      username: "GitHub Build Bot"
+      message: "Build failed for ${{ github.repository }} on commit ${{ github.sha }}. Check the GitHub Actions log for more details."
