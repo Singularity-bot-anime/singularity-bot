@@ -122,7 +122,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
         channel = await self.fetch_channel(data['channel_id'])
         if channel:
             message = await channel.fetch_message(data["message_id"])
-            await message.fetch()
             embed = data["embed"] 
             if data["view"]["type"] == "FightUi":
                 watcher_characters = [character_from_dict(s) for s in data["view"]["watcher_characters"]]

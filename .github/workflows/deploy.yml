@@ -1,4 +1,5 @@
-name: Deploy dokku
+---
+name: 'deploy'
 
 on:
   push:
@@ -7,15 +8,15 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - name: Cloning...
-        uses: actions/checkout@master
+      - name: Cloning repo
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Dokku
+
+      - name: Push to dokku
         uses: dokku/github-action@master
         with:
+          git_remote_url: 'ssh://dokku@singularityapp.online:22/singularity'
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          git_remote_url: "ssh://dokku@singularityapp.online/singularity"
-          git_push_flags: "--force"

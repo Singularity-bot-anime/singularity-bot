@@ -10,5 +10,5 @@ PyNaCl
 requests
 topggpy
 redis==5.0.6
-motor
+motor==3.4.0
 -e .
