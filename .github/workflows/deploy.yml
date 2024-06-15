@@ -20,7 +20,7 @@ jobs:
             ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
             dokku-host: 'singularityapp.online'
             app-name: 'singularity'
-            git-push-flags: --force --depth=0
+            git-push-flags: --force
             remote-branch: main
             
       - name: Send Discord notification on failure
