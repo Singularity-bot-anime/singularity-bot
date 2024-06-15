@@ -22,7 +22,17 @@ jobs:
             app-name: 'singularity'
             git-push-flags: --force
             remote-branch: main
-            
+
+      - name: Send Discord notification on success
+        if: success()
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          color: "#34eb4f"
+          username: "GitHub Build Bot"
+          message: "Build succeeded for ${{ github.repository }} on commit ${{ github.sha }}. Commit message: ${{ github.event.head_commit.message }}. Good job!"
+
       - name: Send Discord notification on failure
         if: failure()
         uses: appleboy/discord-action@master
@@ -31,4 +41,4 @@ jobs:
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
           color: "#eb4034"
           username: "GitHub Build Bot"
-          message: "Build failed for ${{ github.repository }} on commit ${{ github.sha }}. Check the GitHub Actions log for more details."
+          message: "Build failed for ${{ github.repository }} on commit ${{ github.sha }}. Commit message: ${{ github.event.head_commit.message }}. Check the GitHub Actions log for more details."
