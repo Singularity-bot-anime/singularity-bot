@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      
+        with:
+          fetch-depth: 0
       - id: deploy
         name: Deploy to dokku
         uses: idoberko2/dokku-deploy-github-action@v1
