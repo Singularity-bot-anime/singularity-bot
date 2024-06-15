@@ -19,5 +19,5 @@ jobs:
             ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
             dokku-host: 'singularityapp.online'
             app-name: 'singularity'
-            git_push_flags: '--force'
+            git-push-flags: --force
             remote-branch: main
