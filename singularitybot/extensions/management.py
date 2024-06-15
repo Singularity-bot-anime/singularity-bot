@@ -41,8 +41,9 @@ class management(commands.Cog):
     async def show(self, Interaction: disnake.ApplicationCommandInteraction):
         User = await self.singularitybot.database.get_user_info(Interaction.author.id)
         if User.main_characters == []:
-            
-            await Interaction.send(url="https://media.singularityapp.online/images/assets/nomain.jpg", ephemeral=True)
+            embed = disnake.Embed(color=disnake.Color.dark_purple())
+            embed.set_image(url="https://media.singularityapp.online/images/assets/nomain.jpg")
+            await Interaction.send(embed=embed, ephemeral=True)
         else:
             # make an embed
             embed = disnake.Embed(
