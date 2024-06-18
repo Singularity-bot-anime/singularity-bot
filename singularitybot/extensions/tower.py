@@ -32,8 +32,8 @@ from singularitybot.globals.emojis import CustomEmoji
 class Tower(commands.Cog):
     def __init__(self, singularitybot: SingularityBot):
         self.singularitybot = singularitybot
-        with open("singularitybot/data/static/tower.json", "r") as item:
-            self.tower_file = json.load(item)["towers"]
+        #with open("singularitybot/data/static/tower.json", "r") as item:
+            #self.tower_file = json.load(item)["towers"]
 
     @commands.slash_command(
         name="tower", description="Enter towers to farm items and new character !"
