@@ -231,7 +231,7 @@ class Database:
 
     async def find_suitable_shop(
         self, item_to_find: Item, user_shop_id: str
-    ) -> Tuple[Shop, int]:
+    ) -> tuple[Shop, int]:
         """This fonction finds a shop with the right item
 
         Args:
