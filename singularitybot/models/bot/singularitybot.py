@@ -37,7 +37,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
         self.database: Database = Database(loop)
         with open("singularitybot/data/templates/characters.json", "r") as item:
             self.character_file: dict = json.load(item)["characters"]
-    
+        self.bot_init = False
     async def refresh_msg(self, msg: disnake.Message) -> disnake.Message:
         """This function just refreshes a message."""
         old_msg = msg

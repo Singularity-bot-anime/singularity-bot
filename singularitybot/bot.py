@@ -62,10 +62,16 @@ for file in main_extension:
 @Client.event
 async def on_shard_ready(shard_id: int):
     Client.shard_id = shard_id
-    Client.start_fight_listeners()
-    if shard_id == 0:
-        Client.start_fight_handler()
-        Client.start_matchmaking()
+    # We start the matchmaking and handler if it was not started
+    # If not we skip if
+    if not Client.bot_init:
+        Client.start_fight_listeners()
+        # Only one fight handler need to be started
+        # This will propably need to be more scalable
+        if shard_id == 0:
+            Client.start_fight_handler()
+            Client.start_matchmaking()
+        Client.bot_init = True
     print(f"Shard id:{shard_id} is ready")
 
 

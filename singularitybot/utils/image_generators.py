@@ -90,7 +90,7 @@ async def get_profile_image(user:User) -> disnake.File:
 
 async def origins_tower_image(user: disnake.User, stage: int) -> disnake.File:
     try:
-        image = Image.open("stfubot/data/image/tower_1.png")
+        image = Image.open("so/data/image/tower_1.png")
         # create object for drawing
         AVATAR_SIZE = 128
 
@@ -259,7 +259,7 @@ tower_images = {
 # this returns a image used for fight
 async def get_win_image(user1: disnake.User) -> disnake.File:
     try:
-        image = Image.open("singularitybot/data/assets/fight_win_image.png")
+        image = Image.open("singularitybot/data/assets/tower_1.png")
         # create object for drawing
         AVATAR_SIZE = 128
         # get both avatars
