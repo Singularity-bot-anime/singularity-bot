@@ -5,11 +5,11 @@ from typing import List, TYPE_CHECKING
 
 # It's for typehint
 if TYPE_CHECKING:
-    from stfubot.models.database.maindatabase import Database
-    from stfubot.models.database.user import User
+    from singularitybot.models.database.maindatabase import Database
+    from singularitybot.models.database.user import User
 
 
-from stfubot.models.gameobjects.items import Item, item_from_dict
+from singularitybot.models.gameobjects.items import Item, item_from_dict
 
 
 class Shop:
@@ -31,10 +31,10 @@ class Shop:
     async def buy(self, index: int, buyer: "User"):
         item = self.items.pop(index)
         price = self.prices.pop(index)
-        buyer.coins -= price
+        buyer.fragments -= price
         buyer.items.append(item)
         owner = await self.database.get_user_info(self.owner)
-        owner.coins += price
+        owner.fragments += price
         await buyer.update()
         await owner.update()
         await self.update()
