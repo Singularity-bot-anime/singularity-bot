@@ -186,7 +186,7 @@ class Character:
         for effect in self.effects:
             if effect.duration <= 0:
                 continue
-            if effect.type == EffectType.POISON:
+            if effect.type in [EffectType.POISON,EffectType.BLEED,EffectType.BURN]:
                 self.current_hp -= effect.value
             elif effect.type == EffectType.WEAKEN:
                 self.armor *= effect.value
@@ -197,7 +197,11 @@ class Character:
                 self.current_hp += effect.value
             elif effect.type == EffectType.SLOW:
                 self.current_speed -= effect.value
+            elif effect.type == EffectType.HEALTHBOOST and not effect.used:
+                self.current_hp += effect.value
             effect.duration -= 1
+            if not effect.used:
+                effect.used = True
         # cleanup effect that have ended
         self.effects = [e for e in self.effects if e.duration > 0]
         # add to the special

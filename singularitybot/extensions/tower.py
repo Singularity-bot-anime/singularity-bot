@@ -6,7 +6,7 @@ import asyncio
 from disnake.ext import commands
 
 # ui
-from singularitybot.ui.pve.tower_select import TowerSelectDropdown
+#from singularitybot.ui.pve.tower_select import TowerSelectDropdown
 from singularitybot.ui.confirmation import Confirm
 from singularitybot.ui.place_holder import PlaceHolder
 
@@ -46,10 +46,10 @@ class Tower(commands.Cog):
 
         # Check entry cost
 
-        entry = f"{ENTRYCOST}{CustomEmoji.COIN}"
-        balance = f"{user.coins}{CustomEmoji.COIN}"
+        entry = f"{ENTRYCOST}{CustomEmoji.FRAGMENTS}"
+        balance = f"{user.coins}{CustomEmoji.FRAGMENTS}"
         embed = disnake.Embed(
-            title=translation["tower"]["1"].format(entry, balance),
+            title="Do you want to enter the tower ? an Entry cost: {}, you have {}".format(entry, balance),
             color=disnake.Color.blue(),
         )
         embed.set_image(url=TOWERURL)
@@ -175,18 +175,16 @@ class Tower(commands.Cog):
         embed.set_image(url=TOWERURL)
         await Interaction.channel.send(embed=embed)
 
-    """
     @commands.slash_command(
         name="test", description="Enter towers to farm items and stands !"
     )
     @database_check()
     async def test(self, Interaction: disnake.ApplicationCommandInteraction):
-        for i in range(1, 6):
-            file = await tower_images["3"](Interaction.author, i)
+        for i in range(1, 9):
+            file = await tower_images["1"](Interaction.author, i)
             embed = disnake.Embed(color=disnake.Color.blue())
             embed.set_image(file=file)
             await Interaction.send(embed=embed)
-    """
 
 
 def setup(singularitybot: SingularityBot):

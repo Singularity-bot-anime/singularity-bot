@@ -88,9 +88,9 @@ async def get_profile_image(user:User) -> disnake.File:
 
     
 
-async def get_part_3_tower_image(user: disnake.User, stage: int) -> disnake.File:
+async def origins_tower_image(user: disnake.User, stage: int) -> disnake.File:
     try:
-        image = Image.open("stfubot/data/image/towertemplate_part3.png")
+        image = Image.open("stfubot/data/image/tower_1.png")
         # create object for drawing
         AVATAR_SIZE = 128
 
@@ -99,28 +99,30 @@ async def get_part_3_tower_image(user: disnake.User, stage: int) -> disnake.File
         buffer_avatar1 = io.BytesIO(await avatar1.read())
         avatar_image1 = Image.open(buffer_avatar1)
         # create a 200s*200 round display_avatar
-        avatar_image1 = avatar_image1.resize((200, 200))
+        avatar_image1 = avatar_image1.resize((AVATAR_SIZE, AVATAR_SIZE))
         # make the image a circle
 
-        circle_image = Image.new("L", (200, 200))
+        circle_image = Image.new("L", (AVATAR_SIZE, AVATAR_SIZE))
         circle_draw = ImageDraw.Draw(circle_image)
-        circle_draw.ellipse((0, 0, 200, 200), fill=255)
+        circle_draw.ellipse((0, 0, AVATAR_SIZE, AVATAR_SIZE), fill=255)
         # stage
         if stage == 1:
-            pos = (177, 10)
+            pos = (814,1598)
         if stage == 2:
-            pos = (151, 65)
+            pos = (814,1379)
         if stage == 3:
-            pos = (86, 60)
+            pos = (814,1158)
         if stage == 4:
-            pos = (57, 156)
+            pos = (814,940)
         if stage == 5:
-            pos = (124, 178)
+            pos = (814,715)
         if stage == 6:
-            pos = (215, 225)
+            pos = (814,496)
+        if stage == 7:
+            pos = (814,277)
+        if stage == 8:
+            pos = (814,60)
         pos = list(pos)
-        pos[0] = int(3.5 * pos[0])
-        pos[1] = int(3.5 * pos[1])
         # paste the result
         image.paste(avatar_image1, pos, circle_image)
         # create buffer
@@ -249,7 +251,7 @@ async def get_tower_victory_image(user: disnake.User) -> disnake.File:
 
 # easier to retrive programmatically
 tower_images = {
-    "1": get_part_3_tower_image,
+    "1": origins_tower_image,
     "2": get_part_4_tower_image,
     "3": get_part_5_tower_image,
 }

@@ -16,6 +16,9 @@ Emoji = {
     "REGENERATION": "<:slowed:1096245941788483614>",
     "DAMAGEUP":"<:damageboost:1097094159451557999>",
     "SLOW": "<:slowed:993988645520412702>",
+    "BURN":"🔥",
+    "BLEED":"🩸",
+    "HEALTHBOOST":"💚"
 }
 
 
@@ -26,6 +29,9 @@ class EffectType(Enum):
     REGENERATION = "REGENERATION"
     SLOW = "SLOW"
     DAMAGEUP= "DAMAGEUP"
+    BURN="BURN"
+    BLEED="BLEED"
+    HEALTHBOOST="HEALTHBOOST"
 
 
 class Effect:
@@ -39,5 +45,6 @@ class Effect:
         self.type: EffectType = type
         self.duration: int = duration
         self.value: int = value
+        self.used: bool = False
         self.emoji: disnake.PartialEmoji = Emoji[self.type.name]
         self.sender: Optional["Character"] = sender

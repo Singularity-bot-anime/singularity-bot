@@ -353,7 +353,7 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
                 await interaction.edit_original_message(view=view)""" 
 
 async def wait_for_ranked_stop(database:Database,user_id:int):
-    """This coroutine as 2 role, start a fight and wait for it's result
+    """This coroutine wait for a ranked match to end
 
     Args:
         database (Database): an instance of the class database
