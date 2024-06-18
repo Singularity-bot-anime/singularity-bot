@@ -43,7 +43,8 @@ main_extension = {
     "extensions.items",
     "extensions.management",
     "extensions.fight",
-    "extensions.wormhole"
+    "extensions.wormhole",
+    "extensions.tower"
 }
 
 
