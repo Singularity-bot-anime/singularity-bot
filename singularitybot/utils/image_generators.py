@@ -90,7 +90,7 @@ async def get_profile_image(user:User) -> disnake.File:
 
 async def origins_tower_image(user: disnake.User, stage: int) -> disnake.File:
     try:
-        image = Image.open("so/data/image/tower_1.png")
+        image = Image.open("singularitybot/data/image/tower_1.png")
         # create object for drawing
         AVATAR_SIZE = 128
 
