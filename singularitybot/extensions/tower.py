@@ -12,7 +12,7 @@ from singularitybot.ui.place_holder import PlaceHolder
 
 # utils
 from singularitybot.utils.decorators import database_check
-from singularitybot.utils.fight_logic import fight_instance
+#from singularitybot.utils.fight_logic import fight_instance
 from singularitybot.utils.functions import wait_for
 from singularitybot.utils.image_generators import tower_images
 
@@ -22,7 +22,7 @@ from singularitybot.models.gameobjects.ia import Ia
 from singularitybot.models.gameobjects.items import item_from_dict, get_item_from_template
 from singularitybot.globals.variables import (
     PLAYER_XPGAINS,
-    STAND_XPGAINS,
+    CHARACTER_XPGAINS,
     ENTRYCOST,
     TOWERURL,
 )
