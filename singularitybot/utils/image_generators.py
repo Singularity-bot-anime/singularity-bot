@@ -132,8 +132,9 @@ async def origins_tower_image(user: disnake.User, stage: int) -> disnake.File:
         # move to beginning of buffer so `send()` it will read from beginning
         buffer_output.seek(0)
         file = disnake.File(buffer_output, "myimage.png")
-    except:
+    except Exception as e:
         file = get_error_file()
+        raise(e)
     return file
 
 
