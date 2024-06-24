@@ -192,7 +192,7 @@ def add_to_available_storage(user: User, character: "Character", skip_main:bool=
         user.character_storage.append(character)
         return "Character storage"
     if len(user.pcharacter_storage) < 25 and user.is_donator():
-        user.pcharacter_storage.append(stand)
+        user.pcharacter_storage.append(character)
         return "Premium Character storage"
     return False
 

@@ -24,7 +24,7 @@ specials["1"] = choji_special
 def ebisu_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
     lowest_health_ally = min(allied_characters, key=lambda ally: ally.current_hp)
-    heal_amount = int(0.05 * lowest_health_ally.base_hp * character.current_critical)
+    heal_amount = int(0.05 * lowest_health_ally.base_hp + character.current_critical)
     regeneration_effect = Effect(EffectType.REGENERATION, duration=3, value=heal_amount/3,sender=character)
     lowest_health_ally.effects.append(regeneration_effect)
     message = f"{character.name} heals {lowest_health_ally.name} for {heal_amount} in 3 turn"
@@ -197,8 +197,8 @@ specials["18"] = tsunade_special
 def hiruzen_sarutobi_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
     enemy = random.choice(enemy_characters)
-    if ennemy_character.current_hp > character.current_hp:
-        ennemy_character.current_hp /= 2
+    if enemy.current_hp > character.current_hp:
+        enemy.current_hp /= 2
     else:    
         enemy.current_hp = character.current_hp
     message = f"{character.name} drops {enemy.name}'s health to his own."
