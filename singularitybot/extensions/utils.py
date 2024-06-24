@@ -19,7 +19,7 @@ class Utils(commands.Cog):
         #reload
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        profile_image_file = await get_profile_image(user)
+        profile_image_file = await get_profile_image(user,self.singularitybot)
         
         await Interaction.send(file=profile_image_file)
 

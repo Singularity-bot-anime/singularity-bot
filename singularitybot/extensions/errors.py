@@ -72,12 +72,6 @@ class ErrorHandle(commands.Cog):
         # ignore ctx commands
         if isinstance(Interaction, commands.Context):
             return
-        # call update to prevent cache hickups
-        if await self.singularitybot.database.guild_in_database(
-            Interaction.guild.id
-        ) and await self.singularitybot.database.user_in_database(Interaction.author.id):
-            user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-            await user.update()
         translation = await self.singularitybot.database.get_interaction_lang(Interaction)
         # get the command where the error occurred
         command = Interaction.application_command

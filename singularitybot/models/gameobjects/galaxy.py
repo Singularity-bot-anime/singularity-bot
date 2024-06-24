@@ -15,8 +15,8 @@ from singularitybot.models.gameobjects.items import Item, item_from_dict
 
 class GalaxyRank(int, Enum):
     BOSS = 0
-    BLACKHOLE = 1
-    STAR = 2
+    STAR = 1
+    STARDUST = 2
 
 
 class Galaxy:

@@ -22,10 +22,20 @@ def item_special_boiler_plate(character:"character",allied_character:List["chara
 
 """
 
-
+def explosive_tag(
+    character: "Character", allied_character: List["Character"], ennemy_character: List["Character"]
+) -> tuple:
+    multiplier = 30
+    valid_character = [i for i in ennemy_character if i.is_alive()]
+    if len(valid_character) != 0:
+        target = random.choice(valid_character)
+        target.current_hp -= multiplier
+        message = f"｢{character.name}｣'s Sheer heart attack explode on {target.name} for {multiplier} damage"
+    message = f"Sheer heart attack schearch for ennemies"
+    return message
 
 
 
 item_specials = {
-
+    "4":explosive_tag
 }

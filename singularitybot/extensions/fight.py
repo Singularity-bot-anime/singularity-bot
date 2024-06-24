@@ -57,11 +57,7 @@ class fight(commands.Cog):
         user_1 = await self.singularitybot.database.get_user_info(ennemy.id)
         user_2 = await self.singularitybot.database.get_user_info(Interaction.author.id)
 
-        user_1.energy -= 1
-        user_2.energy -= 1
-
-        await user_1.update()
-        await user_2.update()
+        
 
         # create the match trough the handler
         players = [Interaction.author.id,ennemy.id]
@@ -72,6 +68,11 @@ class fight(commands.Cog):
         winner,combat_log = await wait_for_fight_end(self.singularitybot.database,match_request)
         
         # cleanup & end
+        user_1.energy -= 1
+        user_2.energy -= 1
+
+        await user_1.update()
+        await user_2.update()
         winner = await self.singularitybot.fetch_user(int(winner.id))
         file_= await get_win_image(winner)
         win_embed = disnake.Embed(color=disnake.Colour.dark_purple())
@@ -97,7 +98,7 @@ class fight(commands.Cog):
         )
 
         # Add to matchmaking queue
-        await self.singularitybot.database.cache.publish(MATCHMAKING_QUEUE, match_request)
+        await self.singularitybot.database.publish(MATCHMAKING_QUEUE, match_request)
 
         match_found = await wait_for_match(self.singularitybot.database, interaction)
 

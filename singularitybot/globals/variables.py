@@ -4,7 +4,7 @@ import asyncio
 
 WORMHOLEURL = "https://media1.tenor.com/m/xQ24GQOIYZAAAAAd/space.gif"
 TOWERURL = "https://storage.stfurequiem.com/randomAsset/tower.png"
-GANGURL = "https://storage.stfurequiem.com/randomAsset/gang_default.jpg"
+GANGURL = "https://media1.tenor.com/m/-fG6_QSIjZAAAAAC/amicreeper-galaxy.gif"
 
 # Bot loop
 
@@ -56,38 +56,11 @@ SHOPCREATIONCOST = 3000
 ITEMTYPE = [
     "damage",
     "utility",
-    "stand",
-    "part3chips",
-    "part4chips",
-    "part5chips",
     "misc",
 ]
 ITEMBYTYPE = {
-    "damage": [{"id": 1}, {"id": 5}],
-    "utility": [{"id": 6}, {"id": 7}],
-    "part3chips": [{"id": 9}, {"id": 10}, {"id": 11}, {"id": 12}, {"id": 14}],
-    "part4chips": [
-        {"id": 17},
-        {"id": 18},
-        {"id": 19},
-        {"id": 20},
-        {"id": 21},
-        {"id": 22},
-        {"id": 23},
-    ],
-    "part5chips": [
-        {"id": 24},
-        {"id": 25},
-        {"id": 26},
-        {"id": 27},
-        {"id": 28},
-        {"id": 29},
-        {"id": 30},
-        {"id": 31},
-        {"id": 32},
-    ],
-    "stand": [{"id": 2}, {"id": 8}],
-    "misc": [{"id": 3}, {"id": 13}],
+    "damage": [{"id": 1}, {"id": 4}],
+    "utility": [{"id": 2}, {"id": 3}],
 }
 
 # Gang

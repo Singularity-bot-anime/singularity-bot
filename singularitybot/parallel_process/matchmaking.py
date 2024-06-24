@@ -16,7 +16,7 @@ database: Database = Database(LOOP)
 MATCHMAKING_QUEUE = "matchmaking_requests"
 async def main():
     requests = asyncio.Queue()
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
 
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(MATCHMAKING_QUEUE)

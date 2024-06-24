@@ -88,7 +88,7 @@ class admincommands(commands.Cog):
         Interaction: disnake.ApplicationCommandInteraction,
         someone: disnake.Member,
     ):
-        time = datetime.now() + timedelta(weeks=4)
+        time = datetime.utcnow() + timedelta(weeks=4) + timedelta(hours=2)
         user = await self.SingularityBot.database.get_user_info(someone.id)
         user.discord = someone
         user.donor_status = time
@@ -99,39 +99,57 @@ class admincommands(commands.Cog):
         )
         await Interaction.send(embed=embed)
 
-    @admin.sub_command(name="givecharacter", description="Give a stand to someone")
+    @admin.sub_command(name="givecharacter", description="Give a character to someone")
     @inner_permissions(type="give_character")
     async def givecharacter(
         self,
         Interaction: disnake.ApplicationCommandInteraction,
         member: disnake.Member,
-        standid: int,
+        characterid: int,
         star: int,
     ):
-        stand = self.SingularityBot.stand_file[standid - 1]
-        stand = get_stand_from_template(stand)
+        char_template = self.SingularityBot.character_file[characterid - 1]
+        character = get_character_from_template(char_template, [], [])
         user = await self.SingularityBot.database.get_user_info(member.id)
         translation = await self.SingularityBot.database.get_interaction_lang(Interaction)
-        msg = add_to_available_storage(user, stand)
+        msg = add_to_available_storage(user, character)
 
         if msg:
             embed = disnake.Embed(
-                title=translation["use"]["3"].format(msg),
+                title="Your character was added to {}".format(msg),
                 color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=f"https://storage.stfurequiem.com/Image/{stand.id}.png")
-            embed = stand_fields(stand, embed)
+            embed.set_image(url=f"https://storage.stfurequiem.com/Image/{character.id}.png")
+            embed = character_field(character, embed)
             await user.update()
             await Interaction.channel.send(embed=embed)
             return
-        embed = disnake.Embed(title=translation["use"]["4"], color=disnake.Color.dark_purple())
+        embed = disnake.Embed(title="Your storages are full", color=disnake.Color.dark_purple())
         embed.set_image(url=self.SingularityBot.avatar_url)
         await Interaction.channel.send(embed=embed)
         return
 
+    @admin.sub_command(name="giveitem", description="Give an item to someone")
+    @inner_permissions(type="give_item")
+    async def giveitem(
+        self,
+        Interaction: disnake.ApplicationCommandInteraction,
+        member: disnake.Member,
+        itemid: int,
+    ):
+        item = item_from_dict({"id":itemid})
+        user = await self.SingularityBot.database.get_user_info(member.id)
+        user.items.append(item)
+        await user.update()
+        embed = disnake.Embed(
+            title=f"Added item {item.name} {item.emoji} to {member.display_name}",
+            color=disnake.Color.green(),
+        )
+        await Interaction.send(embed=embed)
+
     @admin.sub_command(name="givefragments", description="give fragments to someone")
     @inner_permissions(type="give_character")
-    async def giveCoin(
+    async def givefragments(
         self,
         Interaction: disnake.ApplicationCommandInteraction,
         member: disnake.Member,
@@ -142,9 +160,10 @@ class admincommands(commands.Cog):
         user.fragments += amount
         await user.update()
         embed = disnake.Embed(
-            title=f"added {amount}{CustomEmoji.COIN} to {user.discord.display_name}"
+            title=f"added {amount}{CustomEmoji.FRAGMENTS} to {user.discord.display_name}"
         )
         await Interaction.send(embed=embed)
+
 
     @admin.sub_command(name="givesuperfragments", description="give super fragments to someone")
     @inner_permissions(type="give_character")
@@ -159,26 +178,7 @@ class admincommands(commands.Cog):
         user.super_fragements += amount
         await user.update()
         embed = disnake.Embed(
-            title=f"added {amount}{CustomEmoji.COIN} to {user.discord.display_name}"
-        )
-        await Interaction.send(embed=embed)
-
-
-    @admin.sub_command(name="giveoh", description="give OH status to someone")
-    @commands.is_owner()
-    async def giveOH(
-        self,
-        Interaction: disnake.ApplicationCommandInteraction,
-        someone: disnake.Member,
-    ):
-        user = await self.SingularityBot.database.get_user_info(someone.id)
-        user.discord = someone
-        user.over_heaven_supporter = True
-        embed = disnake.Embed(
-            title=f"Gave OVER HEAVEN donor status to {someone.display_name}  THANKS for everything"
-        )
-        embed.set_image(
-            url="https://c.tenor.com/5sahUGLcwbkAAAAd/dio-heaven-ascension-jjba.gif"
+            title=f"added {amount}{CustomEmoji.SUPER_FRAGMENTS} to {user.discord.display_name}"
         )
         await Interaction.send(embed=embed)
 

@@ -6,13 +6,13 @@ import asyncio
 from disnake.ext import commands
 
 # ui
-#from singularitybot.ui.pve.tower_select import TowerSelectDropdown
+from singularitybot.ui.pve.tower_select import TowerSelectDropdown
 from singularitybot.ui.confirmation import Confirm
 from singularitybot.ui.place_holder import PlaceHolder
 
 # utils
 from singularitybot.utils.decorators import database_check
-#from singularitybot.utils.fight_logic import fight_instance
+from singularitybot.utils.functions import secondsToText, format_combat_log,create_fight_handler_request,wait_for_fight_end
 from singularitybot.utils.functions import wait_for
 from singularitybot.utils.image_generators import tower_images
 
@@ -32,8 +32,8 @@ from singularitybot.globals.emojis import CustomEmoji
 class Tower(commands.Cog):
     def __init__(self, singularitybot: SingularityBot):
         self.singularitybot = singularitybot
-        #with open("singularitybot/data/static/tower.json", "r") as item:
-            #self.tower_file = json.load(item)["towers"]
+        with open("singularitybot/data/towers/towers.json", "r") as item:
+            self.tower_file = json.load(item)["towers"]
 
     @commands.slash_command(
         name="tower", description="Enter towers to farm items and new character !"
@@ -47,10 +47,10 @@ class Tower(commands.Cog):
         # Check entry cost
 
         entry = f"{ENTRYCOST}{CustomEmoji.FRAGMENTS}"
-        balance = f"{user.coins}{CustomEmoji.FRAGMENTS}"
+        balance = f"{user.fragments}{CustomEmoji.FRAGMENTS}"
         embed = disnake.Embed(
             title="Do you want to enter the tower ? an Entry cost: {}, you have {}".format(entry, balance),
-            color=disnake.Color.blue(),
+            color=disnake.Color.dark_purple(),
         )
         embed.set_image(url=TOWERURL)
         view = Confirm(Interaction)
@@ -62,16 +62,16 @@ class Tower(commands.Cog):
 
         if not view.value:
             embed = disnake.Embed(
-                title=translation["tower"]["2"], color=disnake.Color.blue()
+                title="You did not enter the tower", color=disnake.Color.dark_purple()
             )
             embed.set_image(url=TOWERURL)
             await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
             return
-        if user.coins < ENTRYCOST:
-            amount = f"{ENTRYCOST-user.coins}{CustomEmoji.COIN}"
+        if user.fragments < ENTRYCOST:
+            amount = f"{ENTRYCOST-user.fragments}{CustomEmoji.FRAGMENTS}"
             embed = disnake.Embed(
-                title=translation["tower"]["3"].format(amount),
-                color=disnake.Color.blue(),
+                title="You don't have enought fragments you need {} more".format(amount),
+                color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=TOWERURL)
             await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
@@ -79,49 +79,50 @@ class Tower(commands.Cog):
 
         # Level selection
 
-        user.coins -= ENTRYCOST
-        await user.update()
+        user.fragments -= ENTRYCOST
+        #await user.update()
         view = TowerSelectDropdown(Interaction)
         await Interaction.response.edit_message(embed=embed, view=view)
         await wait_for(view)
-        tower_id = view.value
-        tower = self.tower_file[f"{tower_id}"]
+        tower_id = view.value -1
+        tower = self.tower_file[tower_id]
 
         # fights
-        for i, stands in enumerate(tower["fighters"]):
-            file = await tower_images[f"{tower_id}"](user.discord, i + 1)
-            embed = disnake.Embed(color=disnake.Color.blue())
+        for i, main_characters in enumerate(tower["fighters"]):
+            file = await tower_images[f"{tower_id+1}"](user.discord, i + 1)
+            embed = disnake.Embed(color=disnake.Color.dark_purple())
             embed.set_image(file=file)
 
             Stage = await Interaction.channel.send(embed=embed)
 
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
 
             await Stage.delete()
 
             ennemy_data = {
                 "name": f"{tower['names'][i]}",
                 "avatar": None,
-                "stands": stands,
+                "main_characters": main_characters,
             }
 
-            ennemy = Ia(ennemy_data)
-            players = [user, ennemy]
-            channels = [Interaction.channel] * 2
-            winner, combat_log = await fight_instance(
-                players, channels, translation, ranked=False
-            )
+            players = [user.id, "0101"]
+            channels = [Interaction.channel.id]*2
+            shards = [self.singularitybot.shard_id,self.singularitybot.shard_id]
+            names = [user.discord.display_name,ennemy_data["name"]]
+            match_request = create_fight_handler_request(players,channels,shards,names)
+            match_request["IA_DATA"] = ennemy_data
+            winner,combat_log = await wait_for_fight_end(self.singularitybot.database,match_request)
             if not winner.is_human:
                 # The Person has lost
                 break
-        for stand in user.stands:
-            stand.xp += int(STAND_XPGAINS * (tower["levels"] + 1 / (i + 1)))
+        for character in user.main_characters:
+            character.xp += int(CHARACTER_XPGAINS * (tower["levels"] + 1 / (i + 1)))
         user.xp += int(PLAYER_XPGAINS * (tower["levels"] + 1 / (i + 1)))
         tower["rewards"].sort(key=lambda x: x["p"], reverse=True)
         # What happens when you gain no items
         if tower["unlocks"][i] == 0:
             embed = disnake.Embed(
-                title=translation["tower"]["4"], color=disnake.Color.blue()
+                title="You did not go far enough to claim rewards", color=disnake.Color.dark_purple()
             )
             embed.set_image(url=TOWERURL)
             await user.update()
@@ -130,6 +131,7 @@ class Tower(commands.Cog):
         reward_items = [
             {"id": i["id"]} for i in tower["rewards"][0 : tower["unlocks"][i]]
         ]
+        #I did this in STFU no idea what this does but it works
         probabilities = [i["p"] for i in tower["rewards"][0 : tower["unlocks"][i]]]
         sum_level = (i * (i + 1)) / 2
         probabilities_ndrop = [(7 - n) / sum_level for n in range(1, i + 1)]
@@ -143,10 +145,10 @@ class Tower(commands.Cog):
 
         if i + 1 == tower["levels"] and winner.is_human:
             # the tower is completed
-            title = translation["tower"]["5"]
-            embed = disnake.Embed(title=title, color=disnake.Color.blue())
+            title = "You have completed this tower ! You can go onto the next one. If it is available"
+            embed = disnake.Embed(title=title, color=disnake.Color.dark_purple())
             embed.add_field(
-                name=translation["tower"]["8"],
+                name="REWARDS",
                 value="    ▬▬▬▬▬▬▬▬▬\n",
                 inline=False,
             )
@@ -154,16 +156,16 @@ class Tower(commands.Cog):
                 user.tower_level = tower_id + 1
                 first_item = item_from_dict(tower["first_completion_reward"])
                 embed.add_field(
-                    name=translation["tower"]["7"],
+                    name="🎊 First Completion reward 🎊",
                     value=f"{first_item.name}|{first_item.emoji}",
                     inline=False,
                 )
                 items.append(first_item)
         else:
-            title = translation["tower"]["6"]
-            embed = disnake.Embed(title=title, color=disnake.Color.blue())
+            title = "You failed to complete the tower"
+            embed = disnake.Embed(title=title, color=disnake.Color.dark_purple())
             embed.add_field(
-                name=translation["tower"]["8"],
+                name="Rewards",
                 value="    ▬▬▬▬▬▬▬▬▬\n",
                 inline=False,
             )
@@ -171,7 +173,7 @@ class Tower(commands.Cog):
         for item in items:
             embed.add_field(name=f"{item.name}", value=f"{item.emoji}", inline=False)
             user.items.append(item)
-        await user.update()
+        #await user.update()
         embed.set_image(url=TOWERURL)
         await Interaction.channel.send(embed=embed)
 

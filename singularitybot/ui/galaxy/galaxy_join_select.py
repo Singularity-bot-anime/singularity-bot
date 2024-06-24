@@ -1,55 +1,44 @@
 import disnake
-import json
 
-from singularitybot.globals.emojis import CustomEmoji
+from typing import List
 
-# drop downelement class
+from singularitybot.models.gameobjects.galaxy import Galaxy
+
+# drop down element class
 class Dropdown(disnake.ui.Select):
     def __init__(
         self,
+        galaxies: List[Galaxy],
         lang: str = "en",
     ):
-        with open("singularitybot/data/towers/towers.json", "r") as item:
-            tower_file = json.load(item)["towers"]
+        self.galaxies = galaxies
         self.lang = lang
-        self.emojiNumbers = [
-            CustomEmoji.ONE,
-            CustomEmoji.TWO,
-            CustomEmoji.THREE,
-            CustomEmoji.FOUR,
-            CustomEmoji.FIVE,
-            CustomEmoji.SIX,
-        ]
-
-        self.towers = tower_file
-
         options = [
             disnake.SelectOption(
-                label=f"{tower['name']}",
-                description=f"levels:{tower['levels']}",
-                emoji=self.emojiNumbers[i],
-                value=(i + 1),
+                label=f"{galaxy.name}",
+                emoji="🏡",
+                value=i,
             )
-            for i, tower in enumerate(self.towers)
+            for i, galaxy in enumerate(galaxies)
         ]
         super().__init__(
-            placeholder="Select a tower",
+            placeholder="Select a galaxy",
             options=options,
         )
 
     async def callback(self, interaction: disnake.MessageInteraction):
         # get the stand index
         index = int(self.values[0])
-        v: TowerSelectDropdown = self.view
+        v: GalaxySelectDropdown = self.view
         # get the message initial content
 
         view = disnake.ui.View()
         view.add_item(
             disnake.ui.Button(
-                label=f"You have selected {self.towers[index - 1]['name']}",
+                label=f"You have selected {self.galaxies[index].name}",
                 disabled=True,
                 style=disnake.ButtonStyle.blurple,
-                emoji=self.emojiNumbers[index - 1],
+                emoji="✅",
             )
         )
         self.interaction = interaction
@@ -58,18 +47,19 @@ class Dropdown(disnake.ui.Select):
         v.stop()
 
 
-class TowerSelectDropdown(disnake.ui.View):
+class GalaxySelectDropdown(disnake.ui.View):
     def __init__(
         self,
         interaction: disnake.Interaction,
+        galaxies: List[Galaxy],
         lang: str = "en",
         timeout: float = 180,
     ):
         super().__init__(timeout=timeout)
-        self.value = None
+        self.value: int = None
         self.interaction = interaction
         # Adds the dropdown to our view object.
-        self.add_item(Dropdown(lang=lang))
+        self.add_item(Dropdown(galaxies, lang=lang))
 
     async def interaction_check(self, interaction: disnake.MessageInteraction):
         # check if the author is the one who pressed the

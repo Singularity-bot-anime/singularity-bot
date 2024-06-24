@@ -21,7 +21,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
         super().__init__(
             max_messages=1000000,
             loop=loop,
-            command_sync_flags=commands.CommandSyncFlags().all(),
             reload=debug
         )
         self.developers = [
@@ -37,6 +36,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
         self.database: Database = Database(loop)
         with open("singularitybot/data/templates/characters.json", "r") as item:
             self.character_file: dict = json.load(item)["characters"]
+        self.avatar_url = "https://media.singularityapp.online/images/assets/pfpsister.png"
         self.bot_init = False
     async def refresh_msg(self, msg: disnake.Message) -> disnake.Message:
         """This function just refreshes a message."""
@@ -77,7 +77,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
         print("Started actions handler shard: ",self.shard_id)
         requests = asyncio.Queue()
         asyncio.create_task(self.process_redis_message(requests))
-        redis_con = Redis(connection_pool=self.database.cache.redis_pool)
+        redis_con = Redis(connection_pool=self.database.redis_pool)
         async with redis_con.pubsub() as pubsub:
             await pubsub.subscribe(channel_name)
             while True:
@@ -106,7 +106,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             embed = data["embed"]
             message = await channel.send(embed=embed)
             response = {'messages': message.id, 'fight_id': data['fight_id']}
-            await self.database.cache.publish(f"{data['fight_id']}_message_response", response)
+            await self.database.publish(f"{data['fight_id']}_message_response", response)
 
     async def handle_edit(self, data: dict):
         channel = await self.fetch_channel(data['channel_id'])
@@ -116,7 +116,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             embed.set_image(url=data["url"])
             await message.edit(embed=embed)
             response = {'message_id': message.id, 'fight_id': data['fight_id']}
-            await self.database.cache.publish(f"{data['fight_id']}_edit_response", response)
+            await self.database.publish(f"{data['fight_id']}_edit_response", response)
 
     async def handle_edit_ui(self, data: dict):
         channel = await self.fetch_channel(data['channel_id'])
@@ -124,8 +124,8 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             message = await channel.fetch_message(data["message_id"])
             embed = data["embed"] 
             if data["view"]["type"] == "FightUi":
-                watcher_characters = [character_from_dict(s) for s in data["view"]["watcher_characters"]]
-                player_characters = [character_from_dict(s) for s in data["view"]["player_characters"]]
+                watcher_characters = data["view"]["watcher_characters"]
+                player_characters = data["view"]["player_characters"]
                 view = FightUi(int(data["view"]["user_id"]),watcher_characters,player_characters)
                 await message.edit(embed=embed, view=view)
                 await wait_for(view)
@@ -133,7 +133,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
                 view = PlaceHolder()
                 await message.edit(embed=embed, view=view)
             response = {'message_id': message.id, 'fight_id': data['fight_id'],"value":view.value}
-            await self.database.cache.publish(f"{data['fight_id']}_ui_response", response)
+            await self.database.publish(f"{data['fight_id']}_ui_response", response)
 
     async def handle_delete(self, data: dict):
         channel = await self.fetch_channel(data['channel_id'])
@@ -141,4 +141,4 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             message = await channel.fetch_message(data["message_id"])
             await message.delete()
             response = {'message_id': message.id, 'fight_id': data['fight_id']}
-            await self.database.cache.publish(f"{data['fight_id']}_delete_response",response)
+            await self.database.publish(f"{data['fight_id']}_delete_response",response)

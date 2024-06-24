@@ -52,11 +52,31 @@ class Banners(commands.Cog):
         # Create embeds for each banner
         banner_embeds = []
         for banner in enabled_banners:
-            embed = disnake.Embed(title=banner["name"], description=f"Draw odds | {CustomEmoji.R_R}:80% {CustomEmoji.R_SR}:15% {CustomEmoji.R_SSR}:4% {CustomEmoji.R_UR}:1% | cost: {banner['cost']}{CustomEmoji.SUPER_FRAGMENTS}",color=disnake.Color.dark_purple())
+            embed = disnake.Embed(
+                title=banner["name"],
+                description=f"Draw odds | {CustomEmoji.R_R}:80% {CustomEmoji.R_SR}:15% {CustomEmoji.R_SSR}:4% {CustomEmoji.R_UR}:1% | cost: {banner['cost']}{CustomEmoji.SUPER_FRAGMENTS}",
+                color=disnake.Color.dark_purple()
+            )
             embed.set_image(url=f"https://media.singularityapp.online/images/banners/banner_{banner['id']}.jpg")
+
+            character_list = []
             for ids in banner["cards"]:
-                character = get_character_from_template(self.singularitybot.character_file[ids-1],[],[])
-                embed.add_field(name=f"{character.name}",value=f"{converter[character.rarity]}")
+                character = get_character_from_template(self.singularitybot.character_file[ids - 1], [], [])
+                character_list.append(f"{character.name}: {converter[character.rarity]}")
+
+            # Group characters into fields of up to 1024 characters
+            current_field_content = ""
+            for character_info in character_list:
+                if len(current_field_content) + len(character_info) + 1 > 1024:
+                    embed.add_field(name="▬▬▬▬▬▬▬▬▬", value=current_field_content, inline=True)
+                    current_field_content = character_info + "\n"
+                else:
+                    current_field_content += character_info + "\n"
+
+            # Add any remaining characters to a final field
+            if current_field_content:
+                embed.add_field(name="▬▬▬▬▬▬▬▬▬", value=current_field_content, inline=True)
+
             banner_embeds.append(embed)
 
         if len(banner_embeds) == 1:

@@ -36,6 +36,7 @@ class User:
             character_from_dict(s) for s in data["main_characters"]
         ]
         self.galaxy_id: Optional[str] = data["galaxy_id"]
+        self.shop_id : Optional[str] = data["shop_id"]
         self.character_storage: List[Character] = [
             character_from_dict(s) for s in data["character_storage"]
         ]
@@ -72,7 +73,6 @@ class User:
         self.early_supporter: bool = data["early_supporter"]
         self.discord: Optional[Union[disnake.User, disnake.Member]] = None
         self.message: Optional[disnake.Message] = None
-        self.level: int = min(self.xp // USRXPTOLEVEL, 100)
         self.is_human = True  # used in fight to determine who is human
 
     async def update(self) -> None:
@@ -96,6 +96,7 @@ class User:
         """
         self.data["main_characters"] = [s.to_dict() for s in self.main_characters]
         self.data["galaxy_id"] = self.galaxy_id
+        self.data["shop_id"] = self.shop_id
         self.data["character_storage"] = [s.to_dict() for s in self.character_storage]
         self.data["pcharacter_storage"] = [s.to_dict() for s in self.pcharacter_storage]
         self.data["items"] = [s.to_dict() for s in self.items]
@@ -131,6 +132,7 @@ def create_user(user_id: str):
     data = {
         "_id": user_id,
         "galaxy_id": None,
+        "shop_id":None,
         "main_characters": [],
         "character_storage": [],
         "pcharacter_storage": [],

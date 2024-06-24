@@ -7,6 +7,7 @@ from discord.ext import commands
 
 from singularitybot.models.database.maindatabase import Database
 from singularitybot.globals.variables import LOOP
+from singularitybot.models.gameobjects.galaxy import GalaxyRank
 
 
 def energy_check():
@@ -96,23 +97,40 @@ def database_check():
 
     return commands.check(check)
 
+def shop_check():
+    database = Database(LOOP)
 
-"""
+    async def check(Interaction: disnake.ApplicationCommandInteraction) -> bool:
+        user = await database.get_user_info(Interaction.author.id)
+        # Shop does no exists
+        if user.shop_id == None:
+            embed = disnake.Embed(
+                title="You have no created a shop",
+                color=disnake.Color.red(),
+            )
+            embed.set_image(
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
+            )
+            await Interaction.send(embed=embed)
+            return False
+        return True
 
-def gang_check():
+    return commands.check(check)
+
+def galaxy_check():
     database = Database(LOOP)
 
     async def check(Interaction: disnake.ApplicationCommandInteraction) -> bool:
         user = await database.get_user_info(Interaction.author.id)
         translation = await database.get_interaction_lang(Interaction)
         # gang does no exists
-        if user.gang_id == None:
+        if user.galaxy_id == None:
             embed = disnake.Embed(
-                title=translation["error_meesages"]["gang_not_created"],
+                title="You are not a part of a gang",
                 color=disnake.Color.red(),
             )
             embed.set_image(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
             await Interaction.send(embed=embed)
             return False
@@ -121,40 +139,36 @@ def gang_check():
     return commands.check(check)
 
 
-def gang_rank_check(minimum_rank: GangRank = GangRank.SOLDIER):
-    """ """Checks whether the user as a sufficient rank in their gang to use the command
-    can be used to replace `gang_check`
+def galaxy_rank_check(minimum_rank: GalaxyRank = GalaxyRank.STARDUST):
+    """ Checks whether the user as a sufficient rank in their Galaxy to use the command
+    can be used to replace `Galaxy_check`
 
     Args:
-        minimum_rank (GangRank, optional): rank to use the command Defaults to GangRank.SOLDIER.
-    """ """
+        minimum_rank (GalaxyRank, optional): rank to use the command Defaults to GalaxyRank.SOLDIER.
+    """
     database = Database(LOOP)
 
     async def check(Interaction: disnake.ApplicationCommandInteraction) -> bool:
         user = await database.get_user_info(Interaction.author.id)
-        translation = await database.get_interaction_lang(Interaction)
 
         # gang does no exists
-        if user.gang_id == None:
+        if user.galaxy_id == None:
             embed = disnake.Embed(
-                title=translation["error_meesages"]["gang_not_created"],
+                title="You are not a part of a gang",
                 color=disnake.Color.red(),
             )
             embed.set_image(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
             await Interaction.send(embed=embed)
 
             return False
 
-        gang = await database.get_gang_info(user.gang_id)
-        rank = gang.ranks[user.id]
+        galaxy = await database.get_galaxy_info(user.gang_id)
+        rank = galaxy.ranks[user.id]
         return rank <= minimum_rank
 
     return commands.check(check)
-
-"""
-
 
 def inner_permissions(type: str = "give_character"):
     """Allow to check if a user is allowed to use a command based on our own perssion levels
@@ -188,7 +202,7 @@ def inner_permissions(type: str = "give_character"):
                 color=disnake.Colour.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
             await Interaction.send(embed=embed)
             return False
@@ -199,18 +213,18 @@ def inner_permissions(type: str = "give_character"):
                 color=disnake.Colour.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
             await Interaction.send(embed=embed)
             return False
-        if type == "give_character" and not Interaction.author.id in give_stand:
+        if type == "give_character" and not Interaction.author.id in give_character:
             embed = disnake.Embed(
                 title="An error has occurred",
                 description="This command is at least moderator only",
                 color=disnake.Colour.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
             await Interaction.send(embed=embed)
             return False

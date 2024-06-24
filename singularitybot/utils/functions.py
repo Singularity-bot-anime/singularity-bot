@@ -294,9 +294,9 @@ async def wait_for_fight_end(database:Database,match_request:dict):
     """
     id = match_request["match_id"]
     # send the request to the fight handler
-    await database.cache.create_fight(match_request)
+    await database.create_fight(match_request)
     
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
     async with redis_con.pubsub() as pubsub:
     #Wait for the fight to end and it's results
         await pubsub.subscribe(f"{id}_stop")
@@ -329,7 +329,7 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
         bool: True if a match was found, False if the user canceled.
     """
     channel_name = f"{interaction.author.id}_match_found"
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
 
     #view = Cancel(interaction)
     await interaction.edit_original_message(content="Searching for an opponent... (Click to cancel)")
@@ -363,9 +363,9 @@ async def wait_for_ranked_stop(database:Database,user_id:int):
         tupple: a tupple with the result of the fight
     """
     # send the request to the fight handler
-    await database.cache.create_fight(match_request)
+    await database.create_fight(match_request)
     
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
     async with redis_con.pubsub() as pubsub:
     #Wait for the fight to end and it's results
         await pubsub.subscribe(f"{user_id}_ranked_stop")

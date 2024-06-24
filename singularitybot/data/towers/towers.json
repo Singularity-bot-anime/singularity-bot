@@ -1,0 +1,56 @@
+{
+    "towers":[
+        {
+            "name": "origins",
+            "names":["Rag tag team","3 Usefull characters","Strenght of the younth","A team of kage","seeing double","Allways together","Team 10","A better team 7"],
+            "levels": 8,
+            "fighters":[
+                [
+                    { "id": 1, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 2, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 3, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }
+                ],
+                [
+                    { "id": 7, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 7, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 7, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }
+                ],
+                [
+                    { "id": 11, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 15, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }                    
+                ],
+                [
+                    { "id": 18, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 19, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 21, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }
+                ],
+                [
+                    { "id": 20, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 20, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 20, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }
+                ],
+                [
+                    { "id": 12, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 23, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }
+                ],
+                [
+                    { "id": 1, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 4, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 16, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }
+                ],
+                [
+                    { "id": 22, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 24, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] },
+                    { "id": 25, "xp": 100, "types":[],"qualities":[],"awaken": 1, "items": [{ "id": 1 }] }
+                ]
+            ],
+            "unlocks":[0,0,0,0,1,1,1,2],
+            "rewards": [
+                { "id": 3, "p": 0.3 },
+                { "id": 2, "p": 0.3 },
+                { "id": 1, "p": 0.4 }
+                ],
+            "first_completion_reward": { "id": 4 }
+        }
+    ]
+}

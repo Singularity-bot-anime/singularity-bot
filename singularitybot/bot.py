@@ -5,8 +5,15 @@ import asyncio
 from singularitybot.models.bot.singularitybot import SingularityBot
 from disnake.ext import commands
 
+
+# Run localy
+import sys
+if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)):
+    from dotenv import load_dotenv
+
+    load_dotenv()
 LOOP = asyncio.get_event_loop()
-TOKEN = os.environ["DISCORD_KEY_SINGULARITY"]
+TOKEN = os.environ["TOKEN"]
 
 textart = """
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -44,7 +51,9 @@ main_extension = {
     "extensions.management",
     "extensions.fight",
     "extensions.wormhole",
-    "extensions.tower"
+    "extensions.tower",
+    "extensions.galaxy",
+    "extensions.shop"
 }
 
 

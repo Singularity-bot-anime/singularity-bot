@@ -1,62 +1,57 @@
 import disnake
 
-
 from disnake.ext import commands
 
-from stfubot.globals.variables import GANGCREATIONCOST, GANGURL
+from singularitybot.globals.variables import GANGCREATIONCOST, GANGURL
 
 # ui
-from stfubot.ui.storage.ChooseDonor import ChooseStorage
-from stfubot.ui.StandSelect import StandSelectDropdown
-from stfubot.ui.confirmation import Confirm
-from stfubot.ui.place_holder import PlaceHolder
-from stfubot.ui.gang.gang_creation_prompt import GangModal
-from stfubot.ui.gang.gang_join_select import GangSelectDropdown
+from singularitybot.ui.storage.ChooseDonor import ChooseStorage
+from singularitybot.ui.CharacterSelect import CharacterSelectDropdown
+from singularitybot.ui.confirmation import Confirm
+from singularitybot.ui.place_holder import PlaceHolder
+from singularitybot.ui.galaxy.galaxy_creation_prompt import GalaxyModal
+from singularitybot.ui.galaxy.galaxy_join_select import GalaxySelectDropdown
 
 # utils
-from stfubot.utils.decorators import database_check, gang_check, gang_rank_check
-from stfubot.utils.fight_logic import fight_instance
-from stfubot.utils.functions import wait_for, add_to_available_storage, is_url_image
+from singularitybot.utils.decorators import database_check, galaxy_check, galaxy_rank_check
+from singularitybot.utils.functions import wait_for, add_to_available_storage, is_url_image
 
-# stfu model
-from stfubot.models.bot.stfubot import StfuBot
-from stfubot.globals.emojis import CustomEmoji
-from stfubot.models.gameobjects.gang import GangRank
+# singularitybot model
+from singularitybot.models.bot.singularitybot import SingularityBot
+from singularitybot.globals.emojis import CustomEmoji
+from singularitybot.models.gameobjects.galaxy import Galaxy, GalaxyRank
 
+class Galaxies(commands.Cog):
+    def __init__(self, singularitybot: SingularityBot):
+        self.singularitybot = singularitybot
 
-class Gangs(commands.Cog):
-    def __init__(self, stfubot: StfuBot):
-        self.stfubot = stfubot
-
-    # GANG MAIN COMMANDS
-    @commands.slash_command(name="gang", description="Gangs related commands")
+    # GALAXY MAIN COMMANDS
+    @commands.slash_command(name="galaxy", description="Galaxies related commands")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
-    async def gang(self, Interaction: disnake.CommandInteraction):
+    async def galaxy(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @gang.sub_command(name="create", description="Create a new gang")
+    @galaxy.sub_command(name="create", description="Create a new galaxy")
     async def create(self, Interaction: disnake.CommandInteraction):
-
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        entry = f"{GANGCREATIONCOST}{CustomEmoji.COIN}"
-        balance = f"{user.coins}{CustomEmoji.COIN}"
+        entry = f"{GANGCREATIONCOST}{CustomEmoji.FRAGMENTS}"
+        balance = f"{user.fragments}{CustomEmoji.FRAGMENTS}"
 
-        if not user.gang_id is None:
+        if not user.galaxy_id is None:
             embed = disnake.Embed(
-                title=translation["gang_create"]["1"].format(entry, balance),
-                color=disnake.Color.blue(),
+                title="You already have a galaxy, leave your galaxy to create a new one!",
+                color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=GANGURL)
             await Interaction.send(embed=embed)
             return
 
         embed = disnake.Embed(
-            title=translation["gang_create"]["2"].format(entry, balance),
-            color=disnake.Color.blue(),
+            title=f"You need to pay {entry} to create a new galaxy, you have: {balance}",
+            color=disnake.Color.dark_purple(),
         )
         embed.set_image(url=GANGURL)
         view = Confirm(Interaction)
@@ -68,201 +63,198 @@ class Gangs(commands.Cog):
 
         if not view.value:
             embed = disnake.Embed(
-                title=translation["gang_create"]["3"], color=disnake.Color.blue()
+                title="You can create a galaxy anytime!", color=disnake.Color.dark_purple()
             )
             embed.set_image(url=GANGURL)
             await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
             return
 
-        if user.coins < GANGCREATIONCOST:
-            amount = f"{GANGCREATIONCOST-user.coins}{CustomEmoji.COIN}"
+        if user.fragments < GANGCREATIONCOST:
+            amount = f"{GANGCREATIONCOST - user.fragments}{CustomEmoji.FRAGMENTS}"
             embed = disnake.Embed(
-                title=translation["gang_create"]["4"].format(amount),
-                color=disnake.Color.blue(),
+                title=f"You don't have enough money, you need {amount} to create a galaxy",
+                color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=GANGURL)
             await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
             return
 
-        user.coins -= GANGCREATIONCOST
-        modal = GangModal(translation)
+        user.fragments -= GANGCREATIONCOST
+        modal = GalaxyModal()
         await Interaction.response.send_modal(modal=modal)  # type: ignore
-        modal_inter: disnake.ModalInteraction = await self.stfubot.wait_for(
+        modal_inter: disnake.ModalInteraction = await self.singularitybot.wait_for(
             "modal_submit",
-            check=lambda i: i.custom_id == "create_gang"
+            check=lambda i: i.custom_id == "create_galaxy"
             and i.author.id == Interaction.author.id,
             timeout=300,
         )
 
-        gang_name = modal_inter.text_values["gang_name"]
-        gang_motd = modal_inter.text_values["gang_motd"]
-        gang_motto = modal_inter.text_values["gang_motto"]
+        galaxy_name = modal_inter.text_values["galaxy_name"]
+        galaxy_motd = modal_inter.text_values["galaxy_motd"]
+        galaxy_motto = modal_inter.text_values["galaxy_motto"]
 
-        user.gang_id = await self.stfubot.database.add_gang(
-            user.id, gang_name, gang_motd, gang_motto
+        user.galaxy_id = await self.singularitybot.database.add_galaxy(
+            user.id, galaxy_name, galaxy_motd, galaxy_motto
         )
         await user.update()
 
-    @gang.sub_command(name="join", description="join a new gang")
+    @galaxy.sub_command(name="join", description="Join a new galaxy")
     async def join(self, Interaction: disnake.CommandInteraction):
-
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        if not user.gang_id is None:
+        if not user.galaxy_id is None:
             embed = disnake.Embed(
-                title=translation["gang_join"]["1"],
-                color=disnake.Color.blue(),
+                title="You already have a galaxy, leave your galaxy to join a new one",
+                color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=GANGURL)
             await Interaction.send(embed=embed)
             return
 
-        gangs = [
-            await self.stfubot.database.get_gang_info(i) for i in user.gang_invites
+        galaxies = [
+            await self.singularitybot.database.get_galaxy_info(i) for i in user.galaxies_invites
         ]
 
-        if len(gangs) == 0:
+        if len(galaxies) == 0:
             embed = disnake.Embed(
-                title=translation["gang_join"]["2"],
-                color=disnake.Color.blue(),
+                title="You have no galaxy invites, ask the leader or a member to invite you",
+                color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=GANGURL)
             await Interaction.send(embed=embed)
             return
         embed = disnake.Embed(
-            title=translation["gang_join"]["3"],
-            color=disnake.Color.blue(),
+            title="Select a galaxy",
+            color=disnake.Color.dark_purple(),
         )
-        view = GangSelectDropdown(Interaction, gangs)
+        view = GalaxySelectDropdown(Interaction, galaxies)
         await Interaction.send(embed=embed, view=view)
         await wait_for(view)
 
-        gang = gangs[view.value]
+        galaxy = galaxies[view.value]
 
         embed = disnake.Embed(
-            title=translation["gang_join"]["4"].format(gang.name),
-            color=disnake.Color.blue(),
+            title=f"You joined {galaxy.name}",
+            color=disnake.Color.dark_purple(),
         )
-        gang.users.append(user.id)
-        gang.ranks[user.id] = GangRank.SOLDIER.value
-        user.gang_id = gang.id
-        user.gang_invites = []
+        galaxy.users.append(user.id)
+        galaxy.ranks[user.id] = GalaxyRank.STARDUST.value
+        user.galaxy_id = galaxy.id
+        user.galaxies_invites = []
 
-        await gang.update()
+        await galaxy.update()
         await user.update()
 
         await Interaction.send(embed=embed)
 
-    @gang_check()
-    @gang.sub_command(name="show", description="show your gang info's")
+    @galaxy_check()
+    @galaxy.sub_command(name="show", description="Show your galaxy info")
     async def show(self, Interaction: disnake.CommandInteraction):
-
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
         member_names = []
-        for member in gang.users:
-            name: str = self.stfubot.api.get_user_detail(int(member))["username"]
-            member_names.append(name)
-        ranks = [GangRank.BOSS, GangRank.CAPOREGIME, GangRank.SOLDIER]
+        for member_id in galaxy.users:
+            member = await self.singularitybot.get_or_fetch_user(int(member_id))
+            member_names.append(member.name if member else "Unknown User")
+
+        ranks = [GalaxyRank.BOSS, GalaxyRank.STAR, GalaxyRank.STARDUST]
 
         embed = disnake.Embed(
-            title=gang.name, description=gang.motto, color=disnake.Color.blue()
+            title=galaxy.name, description=galaxy.motto, color=disnake.Color.dark_purple()
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         embed.add_field(
             name="`MOTD`",
-            value=gang.motd,
+            value=galaxy.motd,
             inline=False,
         )
         embed.add_field(
-            name=translation["gang_show"]["1"].format(len(gang.users)),
+            name=f"`Members: {len(galaxy.users)}`",
             value=f"\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
             inline=False,
         )
-        for i, u in enumerate(gang.users):
+        for i, u in enumerate(galaxy.users):
             embed.add_field(
                 name=f"`{member_names[i]}`",
-                value=f"rank:{ranks[gang.ranks[u]].name}",
+                value=f"rank:{ranks[galaxy.ranks[u]].name}",
                 inline=True,
             )
 
-        if len(gang.stands) == 0:
+        if len(galaxy.characters) == 0:
             embed.add_field(
-                name=translation["gang_show"]["2"],
+                name="`Guarding Characters`",
                 value=f"`None`\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
                 inline=False,
             )
         else:
             embed.add_field(
-                name=translation["gang_show"]["2"],
+                name="`Guarding Characters`",
                 value=f"\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
                 inline=False,
             )
-            for stand in gang.stands:
-                stars = "⭐" * stand.stars + "🌟" * stand.ascension
+            for character in galaxy.characters:
+                stars = "⭐" * character.stars + "🌟" * character.ascension
                 embed.add_field(
-                    name=f"`｢{stand.name}｣`|`{stars}`",
-                    value=f"{translation['gang_show']['3']}`{stand.level}`",
+                    name=f"`｢{character.name}｣`|`{stars}`",
+                    value=f"`Level: {character.level}`",
                     inline=True,
                 )
         embed.add_field(
-            name=translation["profile"]["2"],
+            name="`Statistics`",
             value=f"\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
             inline=False,
         )
         embed.add_field(
-            name=translation["gang_show"]["5"],
-            value=f"`{gang.vault}`|{CustomEmoji.COIN}\n",
+            name="vault",
+            value=f"`{galaxy.vault}`|{CustomEmoji.FRAGMENTS}\n",
         )
         embed.add_field(
-            name=translation["gang_show"]["4"],
-            value=f"`{gang.war_elo}`|🏆\n",
+            name="elo",
+            value=f"`{galaxy.war_elo}`|🏆\n",
         )
 
         await Interaction.send(embed=embed)
 
-    # STAND GUARD MANAGEMENT
-    @gang_rank_check(minimum_rank=GangRank.BOSS)
-    @gang.sub_command_group(name="stand")
-    async def stand(self, Interaction: disnake.CommandInteraction):
+    # CHARACTER GUARD MANAGEMENT
+    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
+    @galaxy.sub_command_group(name="character")
+    async def character(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @gang_check()
-    @stand.sub_command(name="add", description="add a stand to guard your gang")
+    @galaxy_check()
+    @character.sub_command(name="add", description="Add a character to guard your galaxy")
     async def add(self, Interaction: disnake.CommandInteraction):
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if gang.stands == 3:
+        if galaxy.characters == 3:
             embed = disnake.Embed(
-                title=translation["gang_stand_add"]["1"], color=disnake.Color.blue()
+                title="You cannot add anymore characters to defend your galaxy",
+                color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        if len(user.stand_storage) == 0 and len(user.pstand_storage) == 0:
+        if len(user.character_storage) == 0 and len(user.pcharacter_storage) == 0:
             embed = disnake.Embed(
-                title=translation["error_meesages"]["empty_storages"],
-                color=disnake.Color.blue(),
+                title="Your storage is empty",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        storage = user.stand_storage
+        storage = user.character_storage
         premium = False
         if user.is_donator():
             embed = disnake.Embed(
-                title=translation["ui"]["1"], color=disnake.Color.blue()
+                title="Choose your storage", color=disnake.Color.dark_purple()
             )
             view = ChooseStorage(Interaction)
             await Interaction.send(embed=embed, view=view)
@@ -270,197 +262,194 @@ class Gangs(commands.Cog):
             Interaction = view.interaction  # type: ignore
             if not view.value:
                 premium = True
-                storage = user.pstand_storage
+                storage = user.pcharacter_storage
 
         if len(storage) == 0:
             embed = disnake.Embed(
-                title=translation["error_meesages"]["empty_storages"],
-                color=disnake.Color.blue(),
+                title="Your storage is empty",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        view = StandSelectDropdown(Interaction, storage)
+        view = CharacterSelectDropdown(Interaction, storage)
         embed = disnake.Embed(
-            title=translation["gang_stand_add"]["2"], color=disnake.Color.blue()
+            title="Select a character to protect your galaxy", color=disnake.Color.dark_purple()
         )
         await Interaction.send(embed=embed, view=view)
         await wait_for(view)
-        stand = storage.pop(view.value)  # type: ignore
-        gang.stands.append(stand)
+        character = storage.pop(view.value)  # type: ignore
+        galaxy.characters.append(character)
 
         if premium:
-            user.pstand_storage = storage
+            user.pcharacter_storage = storage
         else:
-            user.stand_storage = storage
+            user.character_storage = storage
 
         embed = disnake.Embed(
-            title=translation["gang_stand_add"]["3"].format(stand.name),
-            color=disnake.Color.blue(),
+            title=f"{character.name} will now be defending your galaxy",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         await user.update()
-        await gang.update()
+        await galaxy.update()
         await Interaction.channel.send(embed=embed)
 
-    @gang_check()
-    @stand.sub_command(
-        name="remove", description="remove a stand from guarding your guild"
+    @galaxy_check()
+    @character.sub_command(
+        name="remove", description="Remove a character from guarding your galaxy"
     )
     async def remove(self, Interaction: disnake.ApplicationCommandInteraction):
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if len(gang.stands) == 0:
+        if len(galaxy.characters) == 0:
             embed = disnake.Embed(
-                title=translation["error_meesages"]["empty_storages"],
-                color=disnake.Color.blue(),
+                title="Your storage is empty",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        view = StandSelectDropdown(Interaction, gang.stands)
+        view = CharacterSelectDropdown(Interaction, galaxy.characters)
         embed = disnake.Embed(
-            title=translation["gang_stand_remove"]["1"], color=disnake.Color.blue()
+            title="Select a character to remove", color=disnake.Color.dark_purple()
         )
         await Interaction.send(embed=embed, view=view)
         await wait_for(view)
-        stand = gang.stands.pop(view.value)  # type: ignore
-        msg = add_to_available_storage(user, stand, skip_main=True)
+        character = galaxy.characters.pop(view.value)  # type: ignore
+        msg = add_to_available_storage(user, character, skip_main=True)
         if not msg:
             embed = disnake.Embed(
-                title=translation["use"]["4"], color=disnake.Color.blue()
+                title="There is no available storage space, use `/character remove` to free up some space, or donate!",
+                color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
         await user.update()
-        await gang.update()
+        await galaxy.update()
         embed = disnake.Embed(
-            title=translation["use"]["3"].format(msg), color=disnake.Color.blue()
+            title=f"The character was stored in: {msg}", color=disnake.Color.dark_purple()
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         await Interaction.send(embed=embed)
 
     # MEMBER MANAGEMENT
-    @gang_check()
-    @gang.sub_command_group(name="manage")
+    @galaxy_check()
+    @galaxy.sub_command_group(name="manage")
     async def manage(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @gang_rank_check(minimum_rank=GangRank.CAPOREGIME)
-    @manage.sub_command(name="invite", description="invite someone into your gang")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.STAR)
+    @manage.sub_command(name="invite", description="Invite someone into your galaxy")
     async def invite(self, Interaction: disnake.CommandInteraction, user: disnake.User):
         User = user
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        user2 = await self.stfubot.database.get_user_info(User.id)
+        user2 = await self.singularitybot.database.get_user_info(User.id)
         user2.discord = User
 
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
-        if user2.gang_id != None:
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+        if user2.galaxy_id != None:
             embed = disnake.Embed(
-                title=translation["gang_invite"]["1"], color=disnake.Color.blue()
+                title="This user is already in a galaxy", color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        if gang.id in user2.gang_invites:
+        if galaxy.id in user2.galaxies_invites:
             embed = disnake.Embed(
-                title=translation["gang_invite"]["2"], color=disnake.Color.blue()
+                title="This user has already been invited to join the galaxy", color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
         embed = disnake.Embed(
-            title=translation["gang_invite"]["3"].format(user2.discord.name, gang.name),
-            color=disnake.Color.blue(),
+            title=f"You invited {user2.discord.name} to {galaxy.name}",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_image(url=gang.image_url)
-        user2.gang_invites.append(gang.id)
+        embed.set_image(url=galaxy.image_url)
+        user2.galaxies_invites.append(galaxy.id)
         await user2.update()
         await Interaction.send(embed=embed)
 
-    @gang_rank_check(minimum_rank=GangRank.CAPOREGIME)
-    @manage.sub_command(name="kick", description="Kick someone from your gang")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.STAR)
+    @manage.sub_command(name="kick", description="Kick someone from your galaxy")
     async def kick(
         self, Interaction: disnake.CommandInteraction, offender: disnake.User
     ):
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        user2 = await self.stfubot.database.get_user_info(offender.id)
+        user2 = await self.singularitybot.database.get_user_info(offender.id)
         user2.discord = offender
 
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if not (user2.id in gang.users):
+        if not (user2.id in galaxy.users):
             embed = disnake.Embed(
-                title=translation["gang_kick"]["1"], color=disnake.Color.blue()
+                title="This user is not in your galaxy", color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        rank1 = gang.ranks[user.id]
-        rank2 = gang.ranks[user2.id]
+        rank1 = galaxy.ranks[user.id]
+        rank2 = galaxy.ranks[user2.id]
         if rank1 >= rank2:
             embed = disnake.Embed(
-                title=translation["gang_kick"]["2"], color=disnake.Color.blue()
+                title="You have no permission to kick this user", color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        user2.gang_id = None
-        del gang.ranks[user2.id]
-        gang.users.remove(user2.id)
+        user2.galaxy_id = None
+        del galaxy.ranks[user2.id]
+        galaxy.users.remove(user2.id)
 
-        await gang.update()
+        await galaxy.update()
         await user2.update()
         embed = disnake.Embed(
-            title=translation["gang_kick"]["3"].format(user2.discord.name, gang.name),
-            color=disnake.Color.blue(),
+            title=f"{user2.discord.name} was kicked from {galaxy.name}",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         await Interaction.send(embed=embed)
 
-    @gang_rank_check(minimum_rank=GangRank.BOSS)
-    @manage.sub_command(name="promote", description="Promote a user of your gang")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
+    @manage.sub_command(name="promote", description="Promote a user of your galaxy")
     async def promote(
         self, Interaction: disnake.CommandInteraction, member: disnake.User
     ):
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
         User = member
-        user2 = await self.stfubot.database.get_user_info(User.id)
+        user2 = await self.singularitybot.database.get_user_info(User.id)
         user2.discord = User
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if not (user2.id in gang.users) or user2.gang_id != None:
+        if  user2.galaxy_id == None or user2.galaxy_id != galaxy.id or not (user2.id in galaxy.users):
             embed = disnake.Embed(
-                title=translation["gang_kick"]["1"], color=disnake.Color.blue()
+                title="This user is not in your galaxy", color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        rank = gang.ranks[user2.id]
-        if rank == GangRank.CAPOREGIME:
+        rank = galaxy.ranks[user2.id]
+        if rank == GalaxyRank.STAR:
             embed = disnake.Embed(
-                title=translation["gang_promote"]["1"].format(user2.discord.name),
-                color=disnake.Color.blue(),
+                title=f"You are about to make {user2.discord.name} the galaxy boss, are you sure?",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             view = Confirm(Interaction)
             await Interaction.send(embed=embed, view=view)
             await wait_for(view)
@@ -468,76 +457,71 @@ class Gangs(commands.Cog):
 
             if not view.value:
                 embed = disnake.Embed(
-                    title=translation["gang_promote"]["2"].format(user2.discord.name),
-                    color=disnake.Color.blue(),
+                    title=f"{user2.discord.name} was not made the galaxy leader",
+                    color=disnake.Color.dark_purple(),
                 )
-                embed.set_image(url=gang.image_url)
+                embed.set_image(url=galaxy.image_url)
                 await Interaction.send(embed=embed)
                 return
-            gang.ranks[user2.id], gang.ranks[user.id] = (
-                gang.ranks[user.id],
-                gang.ranks[user2.id],
+            galaxy.ranks[user2.id], galaxy.ranks[user.id] = (
+                galaxy.ranks[user.id],
+                galaxy.ranks[user2.id],
             )
             embed = disnake.Embed(
-                title=translation["gang_promote"]["3"].format(user2.discord.name),
-                color=disnake.Color.blue(),
+                title=f"{user2.discord.name} was made the new galaxy leader",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        gang.ranks[user2.id] = GangRank.CAPOREGIME.value
-        await gang.update()
+        galaxy.ranks[user2.id] = GalaxyRank.STAR.value
+        await galaxy.update()
         embed = disnake.Embed(
-            title=translation["gang_promote"]["4"].format(
-                user2.discord.name, GangRank.CAPOREGIME.name
-            ),
-            color=disnake.Color.blue(),
+            title=f"You have promoted {user2.discord.name} to {GalaxyRank.STAR.name}",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         await Interaction.send(embed=embed)
 
-    @gang_rank_check(minimum_rank=GangRank.BOSS)
-    @manage.sub_command(name="demote", description="demote a user of your gang")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
+    @manage.sub_command(name="demote", description="Demote a user of your galaxy")
     async def demote(
         self, Interaction: disnake.CommandInteraction, member: disnake.User
     ):
         User = member
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
 
-        user2 = await self.stfubot.database.get_user_info(User.id)
+        user2 = await self.singularitybot.database.get_user_info(User.id)
         user2.discord = User
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if not (user2.id in gang.users) or user2.gang_id != None:
+        if not (user2.id in galaxy.users) or user2.galaxy_id != None:
             embed = disnake.Embed(
-                title=translation["gang_kick"]["1"], color=disnake.Color.blue()
+                title="This user is not in your galaxy", color=disnake.Color.dark_purple()
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        rank = gang.ranks[user2.id]
+        rank = galaxy.ranks[user2.id]
 
-        if rank == GangRank.SOLDIER:
+        if rank == GalaxyRank.STARDUST:
             pass
 
-        gang.ranks[user2.id] = GangRank.SOLDIER.value
-        await gang.update()
+        galaxy.ranks[user2.id] = GalaxyRank.STARDUST.value
+        await galaxy.update()
         embed = disnake.Embed(
-            title=translation["gang_promote"]["4"].format(
-                user2.discord.name, GangRank.CAPOREGIME.value
-            ),
-            color=disnake.Color.blue(),
+            title=f"You have demoted {user2.discord.name} to {GalaxyRank.STARDUST.value}",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         await Interaction.send(embed=embed)
 
-    @gang_rank_check(minimum_rank=GangRank.BOSS)
-    @manage.sub_command(name="changeimage", description="change your gang image")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
+    @manage.sub_command(name="changeimage", description="Change your galaxy image")
     async def changeimage(self, Interaction: disnake.CommandInteraction, url: str):
         if is_url_image(url) == False:
             embed = disnake.Embed(
@@ -547,134 +531,130 @@ class Gangs(commands.Cog):
             )
             await Interaction.send(embed=embed)
             return
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
-        gang.image_url = url
-        await gang.update()
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+        galaxy.image_url = url
+        await galaxy.update()
         embed = disnake.Embed(
-            title=translation["gang_changeimage"]["1"], color=disnake.Color.blue()
+            title="Your galaxy's image was changed", color=disnake.Color.dark_purple()
         )
         embed.set_image(url=url)
         await Interaction.send(embed=embed)
 
-    # VAUT MANAGEMENT
-    @gang_check()
-    @gang.sub_command_group(name="vault")
+    # VAULT MANAGEMENT
+    @galaxy_check()
+    @galaxy.sub_command_group(name="vault")
     async def vault(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @gang_check()
-    @vault.sub_command(name="deposit", description="deposit money into your gang vault")
+    @galaxy_check()
+    @vault.sub_command(name="deposit", description="Deposit money into your galaxy vault")
     async def deposit(self, Interaction: disnake.CommandInteraction, ammount: int):
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if ammount > user.coins:
+        if ammount > user.fragments:
             embed = disnake.Embed(
-                title=translation["error_meesages"]["not_enough_money"],
-                color=disnake.Color.blue(),
+                title="You don't have enough money",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        gang.vault += ammount
-        user.coins -= ammount
+        galaxy.vault += ammount
+        user.fragments -= ammount
 
-        ammount_str = f"{ammount}{CustomEmoji.COIN}"
+        ammount_str = f"{ammount}{CustomEmoji.FRAGMENTS}"
 
-        await gang.update()
+        await galaxy.update()
         await user.update()
 
         embed = disnake.Embed(
-            title=translation["gang_deposit"]["1"].format(ammount_str),
-            color=disnake.Color.blue(),
+            title=f"{ammount_str} was added to the galaxy vault",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         await Interaction.send(embed=embed)
 
-    @gang_rank_check(minimum_rank=GangRank.BOSS)
-    @vault.sub_command(name="pay", description="pay someone in your gang")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
+    @vault.sub_command(name="pay", description="Pay someone in your galaxy")
     async def pay(
         self,
         Interaction: disnake.CommandInteraction,
         member: disnake.User,
         ammount: int,
     ):
-
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user = await self.stfubot.database.get_user_info(Interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        user2 = await self.stfubot.database.get_user_info(member.id)
+        user2 = await self.singularitybot.database.get_user_info(member.id)
         user2.discord = member
 
-        gang = await self.stfubot.database.get_gang_info(user.gang_id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if ammount > gang.vault:
+        if ammount > galaxy.vault:
             embed = disnake.Embed(
-                title=translation["error_meesages"]["not_enough_money"],
-                color=disnake.Color.blue(),
+                title="You don't have enough money",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=gang.image_url)
+            embed.set_image(url=galaxy.image_url)
             await Interaction.send(embed=embed)
             return
 
-        gang.vault -= ammount
-        user2.coins += ammount
+        galaxy.vault -= ammount
+        user2.fragments += ammount
 
-        ammount_str = f"{ammount}{CustomEmoji.COIN}"
+        ammount_str = f"{ammount}{CustomEmoji.FRAGMENTS}"
 
-        await gang.update()
+        await galaxy.update()
         await user2.update()
 
         embed = disnake.Embed(
-            title=translation["gang_pay"]["1"].format(ammount_str, user2.discord.name),
-            color=disnake.Color.blue(),
+            title=f"{ammount_str} was removed from the vault, {user2.discord.name} was paid!",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_image(url=gang.image_url)
+        embed.set_image(url=galaxy.image_url)
         await Interaction.send(embed=embed)
 
     """ TODO finish this lol
     # WAR COMMANDS
-    @gang_check()
-    @gang.sub_command_group(name="war")
+    @galaxy_check()
+    @galaxy.sub_command_group(name="war")
     async def war(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @gang_rank_check(minimum_rank=GangRank.BOSS)
-    @war.sub_command(name="begin", description="begin looking for a gang war")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
+    @war.sub_command(name="begin", description="Begin looking for a galaxy war")
     async def begin(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @war.sub_command(name="fight", description="fight in your gang war")
+    @war.sub_command(name="fight", description="Fight in your galaxy war")
     async def fight(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @war.sub_command(name="result", description="show the result of your last gang war")
+    @war.sub_command(name="result", description="Show the result of your last galaxy war")
     async def result(self, Interaction: disnake.CommandInteraction):
         pass
 
     # RAID
 
-    @gang.sub_command_group(name="raid")
+    @galaxy.sub_command_group(name="raid")
     async def raid(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @gang_rank_check(minimum_rank=GangRank.BOSS)
-    @raid.sub_command(name="start", description="Start a gang raid")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
+    @raid.sub_command(name="start", description="Start a galaxy raid")
     async def start(self, Interaction: disnake.CommandInteraction):
         pass
 
-    @raid.sub_command(name="participate", description="fight in a gang raid")
+    @raid.sub_command(name="participate", description="Fight in a galaxy raid")
     async def participate(self, Interaction: disnake.CommandInteraction):
         pass
     """
 
 
-def setup(stfubot: StfuBot):
-    stfubot.add_cog(Gangs(stfubot))
+def setup(singularitybot: SingularityBot):
+    singularitybot.add_cog(Galaxies(singularitybot))

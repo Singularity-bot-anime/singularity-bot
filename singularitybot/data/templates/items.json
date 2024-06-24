@@ -3,7 +3,7 @@
         {
             "id": 1,
             "name": "kunai",
-            "price": "3000",
+            "price": 3000,
             "emoji": "🔪",
             "bonus_hp": 0,
             "bonus_damage": 20,
@@ -18,7 +18,7 @@
         {
             "id": 2,
             "name": "Substitution Jutsu Logs",
-            "price": "3000",
+            "price": 3000,
             "emoji": "🪵",
             "bonus_hp": 0,
             "bonus_damage": 0,
@@ -33,7 +33,7 @@
         {
             "id": 3,
             "name": "Anku mask",
-            "price": "3000",
+            "price": 3000,
             "emoji": "🎭",
             "bonus_hp": 0,
             "bonus_damage": 0,
@@ -43,6 +43,21 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": true,
+            "turn_for_ability": 0
+        },
+        {
+            "id": 4,
+            "name": "Explosive Tag",
+            "price": null,
+            "emoji": "🎭",
+            "bonus_hp": 0,
+            "bonus_damage": 0,
+            "bonus_speed": 0,
+            "bonus_critical": 0,
+            "bonus_armor":0,
+            "is_equipable": true,
+            "is_active": true,
+            "prurchasable": false,
             "turn_for_ability": 0
         }
     ]

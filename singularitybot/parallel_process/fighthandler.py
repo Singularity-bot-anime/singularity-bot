@@ -54,17 +54,15 @@ async def create_match(match_request: Dict):
         fight_id=match_request['match_id']
     ) )
 
-
 async def reader(channel: redis.client.PubSub,requests:asyncio.Queue):
     while True:
         message = await channel.get_message(ignore_subscribe_messages=True)
         if message is not None:
             await requests.put(message)
 
-
 async def main_loop():
     requests = asyncio.Queue()
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
     async with redis_con.pubsub() as pubsub:
         # Handle the match creation request
         await pubsub.subscribe(MATCH_QUEUE)
@@ -76,7 +74,7 @@ async def main_loop():
             await create_match(request)
 
 async def stop_fight(fight_id:uuid.UUID,winner_id:int,combat_log:list[str]):
-    await database.cache.publish(f'{fight_id}_stop', {
+    await database.publish(f'{fight_id}_stop', {
         'fight_id':fight_id,
         'winner':winner_id,
         'combat_log':combat_log
@@ -89,7 +87,7 @@ async def stop_rank(database: Database, user_id: int,winner_id:int,combat_log:li
         database (Database): The database instance.
         user_id (int): The ID of the user to stop ranking.
     """
-    await database.cache.publish(f"{user_id}_ranked_stop", {
+    await database.publish(f"{user_id}_ranked_stop", {
         'user_id':user_id,
         'winner':winner_id,
         'combat_log':combat_log
@@ -98,7 +96,7 @@ async def stop_rank(database: Database, user_id: int,winner_id:int,combat_log:li
 
 # Function to edit message on a specific shard
 async def edit_ui(message: int,shard:int,channel_id:int, embed: disnake.Embed, view: dict,fight_id:uuid.UUID)->Union[list[int],int]:
-    await database.cache.publish(f'shard-{shard}', {
+    await database.publish(f'shard-{shard}', {
         'action': 'edit_ui',
         'channel_id':channel_id,
         'message_id': message,
@@ -106,7 +104,7 @@ async def edit_ui(message: int,shard:int,channel_id:int, embed: disnake.Embed, v
         'view': view,
         'fight_id':fight_id
     })
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
     async with redis_con.pubsub() as pubsub:
     # Wait for the response
         await pubsub.subscribe(f"{fight_id}_ui_response")
@@ -117,13 +115,13 @@ async def edit_ui(message: int,shard:int,channel_id:int, embed: disnake.Embed, v
     return pickle.loads(message["data"])["value"]
 
 async def edit(messages: List[int],shards:list[int],channels:List[int] ,embed: disnake.Embed,url:str,fight_id:uuid.UUID):
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
     if channels[0] == channels[1]:
         shards = set(shards)
         channels = set(channels)
     async with redis_con.pubsub() as pubsub:
         for message,shard,channel_id in zip(messages,shards,channels):
-            await database.cache.publish(f'shard-{shard}', {
+            await database.publish(f'shard-{shard}', {
                 'action': 'edit',
                 'channel_id': channel_id,
                 'message_id' :message ,
@@ -143,11 +141,11 @@ async def send_all(embed: disnake.Embed, channels: List[int],shards:list[int], f
     if channels[0] == channels[1]:
         shards = set(shards)
         channels = set(channels)
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(f"{fight_id}_message_response")
         for channel_id,shard in zip(channels,shards):
-            await database.cache.publish(f'shard-{shard}', {
+            await database.publish(f'shard-{shard}', {
                 'action': 'send',
                 'embed': embed,
                 'channel_id': channel_id,
@@ -165,14 +163,14 @@ async def send_all(embed: disnake.Embed, channels: List[int],shards:list[int], f
     return messages[0],messages[1]
 
 async def delete_all(messages: List[int],shards:list[int],channels:list[int],fight_id:uuid.UUID):
-    redis_con = Redis(connection_pool=database.cache.redis_pool)
+    redis_con = Redis(connection_pool=database.redis_pool)
     if channels[0] == channels[1]:
         shards = set(shards)
         channels = set(channels)
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(f"{fight_id}_delete_response")
         for message,shard,channel_id in zip(messages,shards,channels):
-            await database.cache.publish(f'shard-{shard}', {
+            await database.publish(f'shard-{shard}', {
                 'action': 'delete',
                 'channel_id':channel_id,
                 'message_id': message,
@@ -208,6 +206,7 @@ async def fight_loop(
         # Set up some fight variables
         combat_log = []
         turn = 0
+        king_crimson = False
         # Determine who starts first
         start_1 = sum([i.current_speed for i in fighters[0].main_characters])
         start_2 = sum([i.current_speed for i in fighters[1].main_characters])
@@ -225,6 +224,7 @@ async def fight_loop(
         for character in players[1].main_characters:
             character.special_meter += 1
         # Game loop
+        
         while game(players[0].main_characters, players[1].main_characters):
             player = players[turn % 2]
             watcher = players[(turn + 1) % 2]
@@ -234,7 +234,7 @@ async def fight_loop(
                 if character.is_alive() and not character.is_stunned():
                     embed = disnake.Embed(
                         title="Fight",
-                        description=f"Turn f{names[turn%2]}",
+                        description=f"Turn `{names[turn%2]}`",
                         color=disnake.Color.dark_purple(),
                     )
                     status = get_character_status(character)
@@ -300,8 +300,8 @@ async def fight_loop(
                     embed = disnake.Embed(
                         title=info_message, color=disnake.Color.dark_purple()
                     )
-
-                    await edit(messages_2,shards,channels, embed,f"https://media.singularityapp.online/images/cards/{character.id}.png",fight_id)
+                    url=f"https://media.singularityapp.online/images/cards/{character.id}.png"  
+                    await edit(messages_2,shards,channels, embed,url,fight_id)
                 if character.is_alive() and not (character.is_stunned()) and character.as_special():
                     payload, message = character.special(player.main_characters, watcher.main_characters)
                     if payload["is_a_special"]:
@@ -310,11 +310,10 @@ async def fight_loop(
                             "turn {} Special Used".format(turn + 1) + ", " + message
                         )
                         embed = disnake.Embed(title=message, color=disnake.Color.dark_purple())
-                        embed.set_image(
-                            url=f"https://storage.stfurequiem.com/special/{character.id}.gif"
-                        )
-                        await edit(messages_2,shards, embed)
+                        url=f"https://storage.stfurequiem.com/special/{character.id}.gif"
+                        await edit(messages_2,shards,channels, embed,url,fight_id)
                         await asyncio.sleep(1)
+                        king_crimson |= payload["king_crimson"]
                 if character.is_alive():
                     for item in character.items:
                         if item.as_special():
@@ -336,7 +335,14 @@ async def fight_loop(
                                 await asyncio.sleep(0.5)
             for character in player.main_characters + watcher.main_characters:
                 character.end_turn()
-            turn += 1
+            turn_amount = 1
+            if king_crimson:
+                # We set this to 2 so we don't change parity
+                # Effectivly skipping a turn
+                turn_amount = 2
+                # Disable the effect afterward
+                king_crimson = False
+            turn += turn_amount
         await delete_all(messages_1,shards,channels,fight_id)
         await delete_all(messages_2,shards,channels,fight_id)
         if not ranked:
@@ -361,8 +367,8 @@ async def fight_loop(
             looser.global_elo = 0
         await winner.update()
         await looser.update()
-        await stop_fight(fight_id,win(players).id,combat_log)
-        return win(players), combat_log
+        await stop_rank(fight_id,win(players).id,combat_log)
+        return 
     except Exception as error:
         if ranked:
             error_traceback = "".join(
@@ -383,8 +389,8 @@ def view_to_dict_fight(type:str,user_id:int,watcher_characters:list[Character],p
         return {
             'type':type  ,
             'user_id':user_id,
-            'watcher_characters': [char.to_dict() for char in watcher_characters],
-            'player_characters': [char.to_dict() for char in player_characters],
+            'watcher_characters': watcher_characters,
+            'player_characters': player_characters,
         }
 
 

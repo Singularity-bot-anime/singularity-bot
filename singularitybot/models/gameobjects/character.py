@@ -199,6 +199,8 @@ class Character:
                 self.current_speed -= effect.value
             elif effect.type == EffectType.HEALTHBOOST and not effect.used:
                 self.current_hp += effect.value
+            elif effect.type == EffectType.DAMAGEUP and not effect.used:
+                self.current_damage += effect.value
             effect.duration -= 1
             if not effect.used:
                 effect.used = True
