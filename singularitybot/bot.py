@@ -13,7 +13,7 @@ if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_pre
 
     load_dotenv()
 LOOP = asyncio.get_event_loop()
-TOKEN = os.environ["TOKEN"]
+TOKEN = os.environ["DISCORD_KEY_SINGULARITY"]
 
 textart = """
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
