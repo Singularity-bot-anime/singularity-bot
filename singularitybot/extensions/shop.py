@@ -119,7 +119,7 @@ class Shop(commands.Cog):
         await wait_for(view)
         index = view.value
         item = sellables.pop(index)
-        users.items.remove(sellables)
+        user.items.remove(sellables)
         price = item.price  # Assuming intrinsic_value is the sell price
 
         shop.sell(item, price)
