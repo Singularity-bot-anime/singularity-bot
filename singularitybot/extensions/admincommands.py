@@ -56,7 +56,7 @@ class admincommands(commands.Cog):
             1086875022808854528,
         ],
     )
-    @inner_permissions()
+    @inner_permissions(type="give_character")
     async def emojis(self, Interaction: disnake.ApplicationCommandInteraction):
         # Create an embed to display emojis and IDs
         embed = disnake.Embed(title="Emoji IDs", color=disnake.Color.blue())
@@ -111,7 +111,6 @@ class admincommands(commands.Cog):
         char_template = self.SingularityBot.character_file[characterid - 1]
         character = get_character_from_template(char_template, [], [])
         user = await self.SingularityBot.database.get_user_info(member.id)
-        translation = await self.SingularityBot.database.get_interaction_lang(Interaction)
         msg = add_to_available_storage(user, character)
 
         if msg:
@@ -119,7 +118,7 @@ class admincommands(commands.Cog):
                 title="Your character was added to {}".format(msg),
                 color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=f"https://storage.stfurequiem.com/Image/{character.id}.png")
+            embed.set_image(url=f"https://media.singularityapp.online/images/cards/{character.id}.png")
             embed = character_field(character, embed)
             await user.update()
             await Interaction.channel.send(embed=embed)

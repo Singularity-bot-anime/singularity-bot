@@ -2,6 +2,7 @@ import disnake
 from disnake.ext import commands
 import json
 import random
+import asyncio
 from singularitybot.utils.decorators import database_check
 from singularitybot.utils.functions import wait_for,add_to_available_storage
 from singularitybot.models.bot.singularitybot import SingularityBot
@@ -54,7 +55,7 @@ class Banners(commands.Cog):
         for banner in enabled_banners:
             embed = disnake.Embed(
                 title=banner["name"],
-                description=f"Draw odds | {CustomEmoji.R_R}:80% {CustomEmoji.R_SR}:15% {CustomEmoji.R_SSR}:4% {CustomEmoji.R_UR}:1% | cost: {banner['cost']}{CustomEmoji.SUPER_FRAGMENTS}",
+                description=f"Draw odds | {CustomEmoji.R_R}:80% {CustomEmoji.R_SR}:15% {CustomEmoji.R_SSR}:4% {CustomEmoji.R_UR}:1% | cost: {banner['cost']}{CustomEmoji.SUPER_FRAGMENTS}| pity:{user.pity}/100",
                 color=disnake.Color.dark_purple()
             )
             embed.set_image(url=f"https://media.singularityapp.online/images/banners/banner_{banner['id']}.jpg")
@@ -121,6 +122,7 @@ class Banners(commands.Cog):
         
         user.super_fragements -= 1
         drawn_characters = []
+        pulled_rarities=[]
         draw_embed = disnake.Embed(title="Drawn Characters",color=disnake.Color.dark_purple())
         for _ in range(10):
             char_template,types,qualities = self.generate_character_data(banner,user)
@@ -130,14 +132,20 @@ class Banners(commands.Cog):
                 typequal+=f"{_t.emoji} {_q.emoji}\n"
             draw_embed.add_field(name=f"{character.name}{converter[character.rarity]}",value=typequal)
             msg = add_to_available_storage(user,character,skip_main=True)
+            pulled_rarities.append(character.rarity)
             if not msg:
                 embed = disnake.Embed(title=f"Your character storage is full ! you need at least 10 free slots",color=disnake.Color.dark_purple())
                 await Interaction.send(embed=embed)
                 return
                 
             user.pity += 1
-        
-        await user.update()
+        await Interaction.response.defer()
+        #await user.update()
+        pulled_rarities.sort(key=rarity_prio)
+        embed = disnake.Embed(color=disnake.Color.dark_purple())
+        embed.set_image(url=f"https://media.singularityapp.online/images/animations/{pulled_rarities[0]}.png")
+        await Interaction.send(embed=embed)
+        await asyncio.sleep(4)
         await Interaction.send(embed=draw_embed)
 
     def generate_character_data(self,banner:dict,user:User):
@@ -191,6 +199,9 @@ class Banners(commands.Cog):
         return character_template,pulled_types,pulled_qualities
         
 
+def rarity_prio(rarity):
+    i = ["R","SR","SSR","UR","LR"].index(rarity)
+    return [4,3,2,1,0][i]
 
 
 

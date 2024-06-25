@@ -362,8 +362,6 @@ async def wait_for_ranked_stop(database:Database,user_id:int):
     Returns:
         tupple: a tupple with the result of the fight
     """
-    # send the request to the fight handler
-    await database.create_fight(match_request)
     
     redis_con = Redis(connection_pool=database.redis_pool)
     async with redis_con.pubsub() as pubsub:

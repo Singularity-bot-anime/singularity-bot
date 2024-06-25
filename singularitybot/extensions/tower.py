@@ -173,7 +173,7 @@ class Tower(commands.Cog):
         for item in items:
             embed.add_field(name=f"{item.name}", value=f"{item.emoji}", inline=False)
             user.items.append(item)
-        #await user.update()
+        await user.update()
         embed.set_image(url=TOWERURL)
         await Interaction.channel.send(embed=embed)
 

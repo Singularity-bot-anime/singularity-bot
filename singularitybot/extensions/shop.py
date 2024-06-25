@@ -113,11 +113,13 @@ class Shop(commands.Cog):
             return
         embed = disnake.Embed(title="Select an item to sell in your shop.")
         embed.set_image(url=shop.image_url)
-        view = ItemSelectDropdown(Interaction, user.items)
+        sellables = [i for i in user.items if i.prurchasable]
+        view = ItemSelectDropdown(Interaction,sellables)
         await Interaction.send(embed=embed, view=view)
         await wait_for(view)
         index = view.value
-        item = user.items.pop(index)
+        item = sellables.pop(index)
+        users.items.remove(sellables)
         price = item.price  # Assuming intrinsic_value is the sell price
 
         shop.sell(item, price)

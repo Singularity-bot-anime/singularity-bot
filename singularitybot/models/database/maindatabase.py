@@ -4,6 +4,11 @@ import pickle
 import random
 import datetime
 import disnake
+import aiohttp
+import io
+
+from PIL import Image, ImageDraw,ImageFont
+
 from typing import Union, List, Dict, Callable, Any
 from redis.asyncio import Redis, ConnectionPool
 from singularitybot.models.database.user import User, create_user
@@ -11,6 +16,15 @@ from singularitybot.models.database.guild import Guild, create_guild
 from singularitybot.models.gameobjects.shop import Shop, create_shop
 from singularitybot.models.gameobjects.items import Item
 from singularitybot.models.gameobjects.galaxy import Galaxy, create_galaxy
+
+
+# Run localy
+import sys
+if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)):
+    print("LOCAL URL LOAD")
+    from dotenv import load_dotenv
+    load_dotenv()
+
 
 REDIS_URL = os.environ["REDIS_URL"]
 
@@ -301,7 +315,29 @@ class Database:
                 "traceback": traceback,
             }
             await conn.hset("logs", str(date), pickle.dumps(log))
+    async def cache_image(self, key: str, image_data: bytes):
+        async with await self.get_redis_connection() as conn:
+            await conn.set(key, image_data)
 
+    async def get_cached_image(self, key: str) -> bytes:
+        async with await self.get_redis_connection() as conn:
+            return await conn.get(key)
+
+    async def get_character_image(self, character_id: int) -> Image:
+        key = f"character_image:{character_id}"
+        cached_image = await self.get_cached_image(key)
+        if cached_image:
+            return Image.open(io.BytesIO(cached_image))
+        else:
+            url = f"https://media.singularityapp.online/images/cards/{character_id}.png"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        image_data = await response.read()
+                        await self.cache_image(key, image_data)
+                        return Image.open(io.BytesIO(image_data))
+                    else:
+                        raise ValueError("Failed to fetch image")
 async def add_field(
     pool: ConnectionPool,
     collection: str,

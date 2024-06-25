@@ -10,85 +10,59 @@ def get_error_file() -> disnake.File:
     return disnake.File("singularitybot/data/assets/errorloading.jpg")
 
 
-async def get_profile_image(user:User,client) -> disnake.File:
-    #try:
+async def get_profile_image(user: User, client) -> disnake.File:
+    try:
         image = Image.open("singularitybot/data/assets/profile_template.png")
-        # create object for drawing
         AVATAR_SIZE = 128
 
-        # get both avatars
-        avatar1 = user.discord.display_avatar.with_format("jpg").with_size(AVATAR_SIZE)
-        buffer_avatar1 = io.BytesIO(await avatar1.read())
-        avatar_image1 = Image.open(buffer_avatar1)
-        # create a 200s*200 round display_avatar
-        avatar_image1 = avatar_image1.resize((200, 200))
-        # make the image a circle
-
-        circle_image = Image.new("L", (200, 200))
-        circle_draw = ImageDraw.Draw(circle_image)
+        # User avatar
+        avatar_url = user.discord.display_avatar.with_format("jpg").with_size(AVATAR_SIZE)
+        buffer_avatar = io.BytesIO(await avatar_url.read())
+        avatar_image = Image.open(buffer_avatar).resize((200, 200))
+        circle_mask = Image.new("L", (200, 200))
+        circle_draw = ImageDraw.Draw(circle_mask)
         circle_draw.ellipse((0, 0, 200, 200), fill=255)
+        image.paste(avatar_image, (21, 21), circle_mask)
 
-        image.paste(avatar_image1, (21,21), circle_image)
+        # Draw text fields
         draw = ImageDraw.Draw(image)
-        text = user.discord.display_name
-        font = ImageFont.truetype(FONT, 40)
+        font_large = ImageFont.truetype(FONT, 40)
+        font_medium = ImageFont.truetype(FONT, 20)
+        font_small = ImageFont.truetype(FONT, 10)
         color = "white"
-        position = (360, 80)
-        draw.text(position, text, fill=color, font=font)
-        text = str(user.level)
-        font = ImageFont.truetype(FONT, 40)
-        color = "white"
-        position = (360, 150)
-        draw.text(position, text, fill=color, font=font)
-        text = f"{str(user.energy)}/{str(user.total_energy)}⚡"
-        font = ImageFont.truetype(FONT, 40)
-        color = "white"
-        position = (360, 210)
-        draw.text(position, text, fill=color, font=font)
-        if user.galaxy_id:
-            galaxy = await client.database.get_galaxy_info(user.galaxy_id)
-            text = galaxy.name
-        else:
-            text = "Not part of a galaxy"
-        font = ImageFont.truetype(FONT, 10)
-        color = "white"
-        position = (65, 300)
-        draw.text(position, text, fill=color, font=font)
-        text = str(user.fragments)
-        font = ImageFont.truetype(FONT, 20)
-        color = "white"
-        position = (250, 300)
-        draw.text(position, text, fill=color, font=font)
-        text = str(user.super_fragements)
-        font = ImageFont.truetype(FONT, 20)
-        color = "white"
-        position = (425, 300)
-        draw.text(position, text, fill=color, font=font)
-        text = str(0)
-        font = ImageFont.truetype(FONT, 20)
-        color = "white"
-        position = (65, 410)
-        draw.text(position, text, fill=color, font=font)
-        text = str(None)
-        font = ImageFont.truetype(FONT, 20)
-        color = "white"
-        position = (250, 410)
-        draw.text(position, text, fill=color, font=font)
-        text = "yes" if user.is_donator() else "no"
-        font = ImageFont.truetype(FONT, 20)
-        color = "white"
-        position = (425, 410)
-        draw.text(position, text, fill=color, font=font)
-        
+
+        draw.text((360, 80), user.discord.display_name, fill=color, font=font_large)
+        draw.text((360, 150), str(user.level), fill=color, font=font_large)
+        draw.text((360, 210), f"{user.energy}/{user.total_energy}⚡", fill=color, font=font_large)
+        galaxy_name = "Not part of a galaxy" if not user.galaxy_id else (await client.database.get_galaxy_info(user.galaxy_id)).name
+        draw.text((65, 300), galaxy_name, fill=color, font=font_small)
+        draw.text((250, 300), str(user.fragments), fill=color, font=font_medium)
+        draw.text((425, 300), str(user.super_fragements), fill=color, font=font_medium)
+        draw.text((65, 410), str(0), fill=color, font=font_medium)
+        draw.text((250, 410), str(None), fill=color, font=font_medium)
+        draw.text((425, 410), "yes" if user.is_donator() else "no", fill=color, font=font_medium)
+
+        # Add main characters to the profile image
+        main_characters = user.main_characters[:3]  # Assuming user.main_characters returns the top 3 characters
+        char_size = 128  # Square size of each character image
+        char_positions = [
+            (28+i*200, 450)
+            for i in range(3)
+        ]
+
+        for char, pos in zip(main_characters, char_positions):
+            char_image = await client.database.get_character_image(char.id)
+            char_image = char_image.resize((char_size, char_size)).convert("RGBA")
+            char_mask = Image.new("L", (char_size, char_size), 255)
+            image.paste(char_image, pos, char_image)
+
         buffer_output = io.BytesIO()
-        # save PNG in buffer
         image.save(buffer_output, format="PNG")
-        # move to beginning of buffer so `send()` it will read from beginning
         buffer_output.seek(0)
-        file = disnake.File(buffer_output, "myimage.png")
-    #except:
-        #file = get_error_file()
-        return file
+        return disnake.File(buffer_output, "profile.png")
+    except Exception as e:
+        print(f"Error generating profile image: {e}")
+        return get_error_file()
 
 
 async def origins_tower_image(user: disnake.User, stage: int) -> disnake.File:

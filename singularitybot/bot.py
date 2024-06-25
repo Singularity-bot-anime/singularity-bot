@@ -12,6 +12,7 @@ if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_pre
     from dotenv import load_dotenv
 
     load_dotenv()
+    print("LOCAL URL LOAD")
 LOOP = asyncio.get_event_loop()
 TOKEN = os.environ["DISCORD_KEY_SINGULARITY"]
 

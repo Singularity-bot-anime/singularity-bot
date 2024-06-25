@@ -395,7 +395,7 @@
         {
             "id": 29,
             "name": "Goku (SSJ 1 transforming)",
-            "rarity": "SSR",
+            "rarity": "UR",
             "special_description": "Transformation: Boost stats over 3 turns",
             "base_hp": 300,
             "base_damage": 220,
@@ -403,7 +403,7 @@
             "turn_for_ability": 3,
             "base_critical": 35,
             "expension": 1,
-            "evolve_to": null,
+            "evolve_to": 28,
             "armor": 140
         },
         {

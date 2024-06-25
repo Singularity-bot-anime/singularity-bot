@@ -104,7 +104,10 @@ class management(commands.Cog):
             embed.add_field(name=f"{character.name}{converter[character.rarity]}{int(character.level)}",value=typequal)
         
         view = CharacterSelectDropdown(Interaction, storage,max_value=len(storage))
-        await Interaction.send(embed=embed, view=view)
+        if Interaction.response.is_done():
+            await Interaction.send(embed=embed, view=view)
+        else:
+            await Interaction.channel.send(embed=embed, view=view)
         await wait_for(view)
         storage = [storage[c] for c in range(len(storage)) if not c in view.value ]
         embed = disnake.Embed(
@@ -288,11 +291,12 @@ class management(commands.Cog):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
+        
         embed = disnake.Embed(
             title="Choose a main character to store",
             color=disnake.Color.purple(),
         )
-        for character in storage:
+        for character in user.main_characters:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
                 typequal+=f"{_t.emoji} {_q.emoji}\n"
@@ -304,7 +308,7 @@ class management(commands.Cog):
         msg = add_to_available_storage(user, character, skip_main=True)
         if msg:
             embed = disnake.Embed(
-                title=f"{msg}",
+                title=f"{character.name} was stored in {msg}",
                 color=disnake.Color.purple(),
             )
             embed.set_image(url=f"https://media.singularityapp.online/images/cards/{character.id}.png")
@@ -312,14 +316,14 @@ class management(commands.Cog):
             await Interaction.channel.send(embed=embed)
             return
         embed = disnake.Embed(
-            title=f"{character.name} has been stored.",
+            title=f"You storage is full {character.name} is still a main character",
             color=disnake.Color.purple(),
         )
         embed.set_image(url=f"https://media.singularityapp.online/images/cards/{character.id}.png")
         await Interaction.channel.send(embed=embed)
 
     @character.sub_command(
-        name="ascend", description="ascend a main stand to a higher plain of existence"
+        name="ascend", description="ascend a main character to a higher plain of existence"
     )
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def awake(self, Interaction: disnake.ApplicationCommandInteraction):
