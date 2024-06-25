@@ -140,7 +140,7 @@ class Banners(commands.Cog):
                 
             user.pity += 1
         await Interaction.response.defer()
-        #await user.update()
+        await user.update()
         pulled_rarities.sort(key=rarity_prio)
         embed = disnake.Embed(color=disnake.Color.dark_purple())
         embed.set_image(url=f"https://media.singularityapp.online/images/animations/{pulled_rarities[0]}.png")

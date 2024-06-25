@@ -15,7 +15,7 @@ from singularitybot.utils.functions import (
 
 # character model
 from singularitybot.models.bot.singularitybot import SingularityBot
-from singularitybot.models.gameobjects.character import Character
+from singularitybot.models.gameobjects.character import Character, Types, Qualities
 
 # specific class import
 from disnake.ext import commands
@@ -30,6 +30,7 @@ from singularitybot.ui.storage.ChooseDonor import ChooseStorage
 class management(commands.Cog):
     def __init__(self, singularitybot: SingularityBot):
         self.singularitybot = singularitybot
+        self.active_trades = set()  # To keep track of active trades
 
     @commands.slash_command(name="character", description="character management")
     @database_check()
@@ -353,182 +354,252 @@ class management(commands.Cog):
             title="Your character has reach it's peak or isn't level 100", color=disnake.Color.purple()
         )
         await Interaction.channel.send(embed=embed)
-    
-"""    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    @stand.sub_command(name="trade", description="trade a stand with someone else")
-    async def trade(
-        self, Interaction: disnake.ApplicationCommandInteraction, tradee: disnake.Member
-    ):
-        translation = await self.stfubot.database.get_interaction_lang(Interaction)
-        user1 = await self.stfubot.database.get_user_info(Interaction.author.id)
-        user1.discord = Interaction.author
+    @character.sub_command(name="reforge", description="Reforge a main character for 10000 fragments")
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
+    async def reforge(self, Interaction: disnake.ApplicationCommandInteraction):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user.discord = Interaction.author
 
-        if True:
+        if user.fragments < 10000:
             embed = disnake.Embed(
-                title="An error has occurred",
-                description="This command is disabled while we investigate a bug",
+                title="Insufficient Fragments",
+                description=f"You need 10000 fragments to reforge a character. You currently have {user.fragments} fragments.",
                 color=disnake.Color.red(),
             )
-            embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
-            )
-            await Interaction.send(embed=embed)
+            await Interaction.send(embed=embed, ephemeral=True)
             return
-        
-        if tradee == user1.discord:
+
+        if not user.main_characters:
             embed = disnake.Embed(
-                title="An error has occurred",
-                description="You can't trade with yourself...",
-                color=0xFF0000,
+                title="No Main Characters",
+                description="You don't have any main characters to reforge.",
+                color=disnake.Color.red(),
             )
-            embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
-            )
-            await Interaction.send(embed=embed)
+            await Interaction.send(embed=embed, ephemeral=True)
             return
-        if not await self.stfubot.database.user_in_database(tradee.id):
-            embed = disnake.Embed(
-                title="An error has occurred",
-                description=f"It seems {tradee.display_name} is not in the database, consider using .ad first !",
-                color=0xFF0000,
-            )
-            embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
-            )
-            await Interaction.send(embed=embed)
-            return
-        user2 = await self.stfubot.database.get_user_info(tradee.id)
-        user2.discord = tradee
-        tradeUrl = "https://cdn0.iconfinder.com/data/icons/trading-outline/32/trading_outline_2._Location-512.png"
+
         embed = disnake.Embed(
-            title=f"Trade between {Interaction.author.display_name} and {tradee.display_name}",
-            description=f"{tradee.display_name}, do you want to trade with {Interaction.author.display_name} ?",
+            title="Select a character to reforge",
+            color=disnake.Color.dark_purple(),
         )
-        embed.set_thumbnail(url=tradeUrl)
-        view = Confirm(Interaction, custom_user=tradee)
+        view = CharacterSelectDropdown(Interaction, user.main_characters)
         await Interaction.send(embed=embed, view=view)
-        time_out = await view.wait()
-        if time_out:
-            raise asyncio.TimeoutError
+        await wait_for(view)
+        character = user.main_characters[view.value]
+        index = view.value
+        embed = disnake.Embed(
+            title=f"Are you sure you want to reforge {character.name} for 10000 {CustomEmoji.FRAGMENTS}?",
+            color=disnake.Color.dark_purple(),
+        )
+        embed.set_image(url="https://media1.tenor.com/m/W3PYGHqtkUMAAAAd/forge-dwarf.gif")
+        view = Confirm(Interaction)
+        await Interaction.send(embed=embed, view=view)
+        await wait_for(view)
+        Interaction = view.interaction
+
         if not view.value:
             embed = disnake.Embed(
+                title="Reforge Cancelled",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url="https://media1.tenor.com/m/W3PYGHqtkUMAAAAd/forge-dwarf.gif")
+            await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
+            return
+
+        # Deduct the cost and reforge the character
+        user.fragments -= 10000
+        #get types and qualities
+        _types = [Types.ATTACK,Types.DEFENSE,Types.BALANCE,Types.LUCK,Types.SPEED]
+        _qualities = [Qualities.UNIVERSAL,Qualities.SUPREME,Qualities.GREAT,Qualities.GOOD,Qualities.SUB_PAR,Qualities.BAD]
+        _bad_qualities = [Qualities.SUB_PAR,Qualities.BAD]
+        standard_probabilities = [0.05, 0.10, 0.20, 0.50, 0.10, 0.05]
+        enhanced_probabilities = [0.40, 0.30, 0.20, 0.10, 0.05, 0.03]
+        
+        #we get at least 1 quality
+        pulled_types = [random.choice(_types)]
+        remove_i = _types.index(pulled_types[-1])
+        standard_probabilities.pop(remove_i)
+        enhanced_probabilities.pop(remove_i)
+        _types.pop(remove_i)
+        pulled_qualities = [random.choice(_qualities)]
+        _qualities.pop(remove_i)
+        pull_prob = 0.1
+        #We get a second pull if the first one is bad with better odds
+        #We remove the quality we just pulled to not draw them again
+        if pulled_qualities[-1] in _bad_qualities:
+            pull_prob = 1
+        while(random.random() <= pull_prob and len(_types) >0):
+            weights = standard_probabilities
+            if pulled_qualities[-1] in _qualities:
+                weights = enhanced_probabilities
+            pulled_types.append(random.choice(_types))
+            pulled_qualities.append(random.choices(_qualities,weights=weights,k=1)[0])
+            remove_i = _types.index(pulled_types[-1])
+            standard_probabilities.pop(remove_i)
+            enhanced_probabilities.pop(remove_i)
+            _types.pop(remove_i)
+            _qualities.pop(remove_i)
+            pull_prob = 0.1
+        
+
+        character.types = [t.name for t in pulled_types]
+        character.qualities = [q.name for q in pulled_qualities]
+        character = Character(character.to_dict())
+        user.main_characters[index] = character
+        await user.update()
+
+        embed = disnake.Embed(
+            title=f"{character.name} has been reforged!",
+            color=disnake.Color.dark_purple(),
+        )
+        embed = character_field(character,embed)
+        await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
+
+    @character.sub_command(name="trade", description="trade a character with another user")
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
+    async def trade(
+        self, Interaction: disnake.ApplicationCommandInteraction, tradee: disnake.User
+    ):
+        user1 = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user1.discord = Interaction.author
+
+        if tradee.id == user1.discord.id:
+            embed = disnake.Embed(
                 title="Error",
-                description=f"{tradee.display_name} refused the trade",
-                color=0xFF0000,
+                description="You can't trade with yourself.",
+                color=disnake.Color.red(),
             )
-            embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
-            )
-            await Interaction.response.edit_message(embed=embed, view=None)
+            await Interaction.send(embed=embed, ephemeral=True)
             return
 
-        if user1.stands == [] or user2.stands == []:
+        if not await self.singularitybot.database.user_in_database(tradee.id):
             embed = disnake.Embed(
-                title="An error has occurred",
-                description=f"It seems one of you don't have any stand",
-                color=0xFF0000,
+                title="Error",
+                description=f"{tradee.display_name} is not in the database. They need to use the bot first!",
+                color=disnake.Color.red(),
             )
-            embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
-            )
-            await Interaction.response.edit_message(embed=embed, view=None)
+            await Interaction.send(embed=embed, ephemeral=True)
             return
-        embed = disnake.Embed(
-            title=f"{Interaction.author.display_name}, Which stand would you like to trade ?"
-        )
-        embed.set_thumbnail(url=tradeUrl)
-        stands = []
-        # get the second stand to exange
-        for i, s in enumerate(User1["main_stand"]):
-            stands.append([self.fixpool[s[0] - 1], s[1], i])
-        for i, s in enumerate(stands):
-            stars = "⭐" * s[0]["stars"] + "🌟" * s[1]
-            embed.add_field(
-                name=f"｢{s[0]['stand_name']}｣:{i+1}",
-                value=f"{stars}",
-                inline=False,
-            )
-        view = StandSelectDropdown(Interaction, User1["main_stand"])
-        await Interaction.edit_original_message(embed=embed, view=view)
-        time_out = await view.wait()
-        if time_out:
-            raise asyncio.TimeoutError
-        choix1 = view.value
-        # get the first stand to exange
-        stands = []
-        embed = disnake.Embed(
-            title=f"{user.display_name}, which stand would you like to trade ?"
-        )
-        embed.set_thumbnail(url=tradeUrl)
-        for i, s in enumerate(User2["main_stand"]):
-            stands.append([self.fixpool[s[0] - 1], s[1], i])
-        for i, s in enumerate(stands):
-            stars = "⭐" * s[0]["stars"] + "🌟" * s[1]
-            embed.add_field(
-                name=f"｢{s[0]['stand_name']}｣:{i+1}",
-                value=f"{stars}",
-                inline=False,
-            )
-        view = StandSelectDropdown(Interaction, User2["main_stand"], custom_user=user)
-        await Interaction.edit_original_message(embed=embed, view=view)
-        time_out = await view.wait()
-        if time_out:
-            raise asyncio.TimeoutError
-        choix2 = int(view.children[0].values[0])
-        users = [user, Interaction.author]
 
-        stands = []
-        stands.append(
-            [
-                self.fixpool[User1["main_stand"][choix1][0] - 1],
-                User1["main_stand"][choix1][1],
-                0,
-            ]
-        )
-        stands.append(
-            [
-                self.fixpool[User2["main_stand"][choix2][0] - 1],
-                User2["main_stand"][choix2][1],
-                1,
-            ]
-        )
-        for user_ in users:
+        user2 = await self.singularitybot.database.get_user_info(tradee.id)
+        user2.discord = tradee
+
+        if (user1.id, user2.id) in self.active_trades or (user2.id, user1.id) in self.active_trades:
             embed = disnake.Embed(
-                title=f"{user_.display_name}, do you accept the trade ?"
+                title="Error",
+                description="A trade between you two is already in progress.",
+                color=disnake.Color.red(),
             )
-            embed.set_thumbnail(url=tradeUrl)
-            for i, s in enumerate(stands):
-                stars = "⭐" * s[0]["stars"] + "🌟" * s[1]
-                if s[1] > 1:
-                    stars = "🌟" * s[0]["stars"] + "🌠" * s[1]
-                embed.add_field(
-                    name=f"{users[not(i)].display_name} get:",
-                    value=f"｢{s[0]['stand_name']}｣ {stars}",
-                    inline=False,
-                )
-            view = Confirm(Interaction, custom_user=user_)
-            await Interaction.edit_original_message(embed=embed, view=view)
-            if await view.wait():
-                raise asyncio.TimeoutError
+            await Interaction.send(embed=embed, ephemeral=True)
+            return
+
+        self.active_trades.add((user1.id, user2.id))
+        trade_url = "https://cdn0.iconfinder.com/data/icons/trading-outline/32/trading_outline_2._Location-512.png"
+        
+        try:
+            embed = disnake.Embed(
+                title=f"Trade Request",
+                description=f"{tradee.display_name}, do you want to trade with {Interaction.author.display_name}?",
+                color=disnake.Color.blue(),
+            )
+            embed.set_thumbnail(url=trade_url)
+            view = Confirm(Interaction, user=tradee)
+            await Interaction.send(embed=embed, view=view)
+            await wait_for(view)
+
             if not view.value:
                 embed = disnake.Embed(
-                    title="Error",
-                    description=f"{user_.display_name} refused the trade",
-                    color=0xFF0000,
-                )
-                embed.set_thumbnail(
-                    url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                    title="Trade Refused",
+                    description=f"{tradee.display_name} refused the trade.",
+                    color=disnake.Color.red(),
                 )
                 await Interaction.edit_original_message(embed=embed, view=None)
                 return
-        User1["main_stand"][choix1], User2["main_stand"][choix2] = (
-            User2["main_stand"][choix2],
-            User1["main_stand"][choix1],
-        )
-        await self.database.Update(User1)
-        await self.database.Update(User2)
-        embed = disnake.Embed(title=f"Done, the trade was successful !")
-        await Interaction.edit_original_message(embed=embed, view=None)
-"""
+
+            if not user1.main_characters or not user2.main_characters:
+                embed = disnake.Embed(
+                    title="Error",
+                    description="One of you doesn't have any main characters to trade.",
+                    color=disnake.Color.red(),
+                )
+                await Interaction.edit_original_message(embed=embed, view=None)
+                return
+
+            # Select character from user1
+            embed = disnake.Embed(
+                title=f"{Interaction.author.display_name}, select a character to trade:",
+                color=disnake.Color.blue(),
+            )
+            view = CharacterSelectDropdown(Interaction, user1.main_characters)
+            await Interaction.edit_original_message(embed=embed, view=view)
+            await wait_for(view)
+            choice1 = view.value
+
+            # Select character from user2
+            embed = disnake.Embed(
+                title=f"{tradee.display_name}, select a character to trade:",
+                color=disnake.Color.blue(),
+            )
+            view = CharacterSelectDropdown(Interaction, user2.main_characters, custom_user=tradee)
+            await Interaction.edit_original_message(embed=embed, view=view)
+            await wait_for(view)
+            choice2 = view.value
+
+            char1 = user1.main_characters.pop(choice1)
+            char2 = user2.main_characters.pop(choice2)
+            # Perform the trade by updating the users
+            await user1.update()
+            await user2.update()
+
+            # Confirm the trade
+            embed = disnake.Embed(
+                title="Confirm Trade",
+                description=f"{Interaction.author.display_name} will trade {char1.name} with {tradee.display_name}'s {char2.name}. Do you both accept?",
+                color=disnake.Color.blue(),
+            )
+            embed.set_thumbnail(url=trade_url)
+            view = Confirm(Interaction)
+            await Interaction.edit_original_message(embed=embed, view=view)
+            await wait_for(view)
+
+            if not view.value:
+                
+                embed = disnake.Embed(
+                    title="Trade Cancelled",
+                    description="The trade was cancelled.",
+                    color=disnake.Color.red(),
+                )
+                # Perform the trade by updating the users
+                user1.main_characters.insert(choice1, char1)
+                user2.main_characters.insert(choice2, char2)
+                await user1.update()
+                await user2.update()
+                await Interaction.edit_original_message(embed=embed, view=None)
+                return
+
+            
+
+            user1.main_characters.append(char2)
+            user2.main_characters.append(char1)
+
+            await user1.update()
+            await user2.update()
+
+            embed = disnake.Embed(
+                title="Trade Successful",
+                description=f"{Interaction.author.display_name} traded {char1.name} with {tradee.display_name}'s {char2.name}.",
+                color=disnake.Color.green(),
+            )
+            await Interaction.edit_original_message(embed=embed, view=None)
+        except Exception as e:
+            embed = disnake.Embed(
+                title="Error",
+                description="An error occurred during the trade. Please try again.",
+                color=disnake.Color.red(),
+            )
+            await Interaction.edit_original_message(embed=embed, view=None)
+            print(f"Error during trade: {e}")
+        finally:
+            self.active_trades.discard((user1.id, user2.id))
 def setup(client: SingularityBot):
     client.add_cog(management(client))
