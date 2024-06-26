@@ -35,4 +35,5 @@ You can suggest change to this repository with pull request but, we recommend do
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+Copyright © 2022 [EIRBLAST](https://github.com/EIRBLAST).<br />
+This project is [GNU GPL version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.fr.html#SEC1) licensed.
