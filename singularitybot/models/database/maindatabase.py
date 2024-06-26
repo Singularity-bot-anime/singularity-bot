@@ -16,6 +16,8 @@ from singularitybot.models.database.guild import Guild, create_guild
 from singularitybot.models.gameobjects.shop import Shop, create_shop
 from singularitybot.models.gameobjects.items import Item
 from singularitybot.models.gameobjects.galaxy import Galaxy, create_galaxy
+from singularitybot.models.gameobjects.war import War
+from singularitybot.models.gameobjects.raid import Raid
 
 
 # Run localy
@@ -338,6 +340,57 @@ class Database:
                         return Image.open(io.BytesIO(image_data))
                     else:
                         raise ValueError("Failed to fetch image")
+    async def add_war(self, war: War):
+        async with await self.get_redis_connection() as conn:
+            await conn.hset("wars", str(war.id), pickle.dumps(war))
+
+    async def get_active_wars(self) -> List[War]:
+        async with await self.get_redis_connection() as conn:
+            all_wars = await conn.hgetall("wars")
+            active_wars = []
+            for war_data in all_wars.values():
+                war = pickle.loads(war_data)
+                if war.status == "ongoing":
+                    active_wars.append(war)
+            return active_wars
+
+    async def get_last_war(self) -> War:
+        async with await self.get_redis_connection() as conn:
+            all_wars = await conn.hgetall("wars")
+            if not all_wars:
+                return None
+            last_war_data = max(all_wars.values(), key=lambda x: pickle.loads(x).end_time)
+            return pickle.loads(last_war_data)
+
+    async def add_raid(self, raid: Raid):
+        async with await self.get_redis_connection() as conn:
+            await conn.hset("raids", str(raid.id), pickle.dumps(raid))
+
+    async def get_active_raids(self) -> List[Raid]:
+        async with await self.get_redis_connection() as conn:
+            all_raids = await conn.hgetall("raids")
+            active_raids = []
+            for raid_data in all_raids.values():
+                raid = pickle.loads(raid_data)
+                if raid.status == "ongoing":
+                    active_raids.append(raid)
+            return active_raids
+
+    async def get_last_raid(self) -> Raid:
+        async with await self.get_redis_connection() as conn:
+            all_raids = await conn.hgetall("raids")
+            if not all_raids:
+                return None
+            last_raid_data = max(all_raids.values(), key=lambda x: pickle.loads(x).end_time)
+            return pickle.loads(last_raid_data)
+
+    async def update_war(self, war: War):
+        async with await self.get_redis_connection() as conn:
+            await conn.hset("wars", str(war.id), pickle.dumps(war))
+
+    async def update_raid(self, raid: Raid):
+        async with await self.get_redis_connection() as conn:
+            await conn.hset("raids", str(raid.id), pickle.dumps(raid))
 async def add_field(
     pool: ConnectionPool,
     collection: str,

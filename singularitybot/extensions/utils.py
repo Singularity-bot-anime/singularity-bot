@@ -38,6 +38,7 @@ class Utils(commands.Cog):
         # Get the current time and user last times
         now = datetime.datetime.now()
         times = {
+            "energy recharge":(user.last_full_energy,24,24),
             "Adventure": (user.last_adventure, DONOR_ADV_WAIT_TIME, NORMAL_ADV_WAIT_TIME),
             "Vote": (user.last_vote, 12, 12),
             "Wormhole": (user.last_wormhole, DONOR_WH_WAIT_TIME, NORMAL_WH_WAIT_TIME),
