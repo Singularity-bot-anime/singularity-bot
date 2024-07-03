@@ -30,7 +30,7 @@ def explosive_tag(
     if len(valid_character) != 0:
         target = random.choice(valid_character)
         target.current_hp -= multiplier
-        message = f"｢{character.name}｣'s Sheer heart attack explode on {target.name} for {multiplier} damage"
+        message = f"｢{character.name}｣'s explosive tag detonage on {target.name} for {multiplier} damage"
     message = f"Sheer heart attack schearch for ennemies"
     return message
 

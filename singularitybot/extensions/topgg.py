@@ -65,7 +65,7 @@ class TopGG(commands.Cog):
                 description=translation["error_meesages"]["cool_down"].format(
                     "vote", secondsToText(wait_for.total_seconds())
                 ),
-                color=disnake.Colour.blue(),
+                color=disnake.Colour.dark_purple(),
             )
             embed.set_thumbnail(
                 url="https://cdn1.iconfinder.com/data/icons/finance-banking-and-currency-part-1/400/finance_2-512.png"
@@ -73,7 +73,7 @@ class TopGG(commands.Cog):
             await Interaction.send(embed=embed)
             return
         embed = disnake.Embed(
-            title=translation["vote"]["1"], color=disnake.Colour.blue()
+            title=translation["vote"]["1"], color=disnake.Colour.dark_purple()
         )
         embed.add_field(
             name=translation["vote"]["2"].format(CustomEmoji.LOADING_ICON),
@@ -91,7 +91,7 @@ class TopGG(commands.Cog):
         user.coins += COINS_VOTE
         user.items = user.items + [item_from_dict({"id": 2})] * ARROW_VOTE
         embed = disnake.Embed(
-            title=translation["vote"]["4"], color=disnake.Colour.blue()
+            title=translation["vote"]["4"], color=disnake.Colour.dark_purple()
         )
         embed.set_image(url=self.singularitybot.avatar_url)
         embed.add_field(name=f"`Arrows:`", value=f"{ARROW_VOTE}{CustomEmoji.ARROW}"),

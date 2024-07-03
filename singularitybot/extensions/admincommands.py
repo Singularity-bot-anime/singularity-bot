@@ -59,7 +59,7 @@ class admincommands(commands.Cog):
     @inner_permissions(type="give_character")
     async def emojis(self, Interaction: disnake.ApplicationCommandInteraction):
         # Create an embed to display emojis and IDs
-        embed = disnake.Embed(title="Emoji IDs", color=disnake.Color.blue())
+        embed = disnake.Embed(title="Emoji IDs", color=disnake.Color.dark_purple())
         
         # Add each emoji and its ID to the embed
         for emoji in Interaction.guild.emojis:

@@ -4,7 +4,6 @@ import datetime
 from disnake.ext import tasks,commands
 
 from singularitybot.globals.variables import GANGCREATIONCOST, GANGURL
-
 # ui
 from singularitybot.ui.storage.ChooseDonor import ChooseStorage
 from singularitybot.ui.CharacterSelect import CharacterSelectDropdown
@@ -14,19 +13,17 @@ from singularitybot.ui.galaxy.galaxy_creation_prompt import GalaxyModal
 from singularitybot.ui.galaxy.galaxy_join_select import GalaxySelectDropdown
 
 # utils
-from singularitybot.utils.decorators import database_check, galaxy_check, galaxy_rank_check
-from singularitybot.utils.functions import wait_for, add_to_available_storage, is_url_image
+from singularitybot.utils.decorators import database_check,energy_check, galaxy_check, galaxy_rank_check
+from singularitybot.utils.functions import wait_for, add_to_available_storage, is_url_image, create_fight_handler_request, wait_for_fight_end
 
 # singularitybot model
 from singularitybot.models.bot.singularitybot import SingularityBot
-from singularitybot.globals.emojis import CustomEmoji
+from singularitybot.globals.emojis import CustomEmoji,converter
 from singularitybot.models.gameobjects.galaxy import Galaxy, GalaxyRank
 
 class Galaxies(commands.Cog):
     def __init__(self, singularitybot: SingularityBot):
         self.singularitybot = singularitybot
-        self.check_active_wars.start()
-
     # GALAXY MAIN COMMANDS
     @commands.slash_command(name="galaxy", description="Galaxies related commands")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
@@ -199,12 +196,10 @@ class Galaxies(commands.Cog):
                 inline=False,
             )
             for character in galaxy.characters:
-                stars = "⭐" * character.stars + "🌟" * character.ascension
-                embed.add_field(
-                    name=f"`｢{character.name}｣`|`{stars}`",
-                    value=f"`Level: {character.level}`",
-                    inline=True,
-                )
+                typequal = ""
+                for _t,_q in zip(character.etypes,character.equalities):
+                    typequal+=f"{_t.emoji} {_q.emoji}\n"
+                embed.add_field(name=f"{character.name}{converter[character.rarity]}",value=typequal,inline=True)
         embed.add_field(
             name="`Statistics`",
             value=f"\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
@@ -262,7 +257,7 @@ class Galaxies(commands.Cog):
             await Interaction.send(embed=embed, view=view)
             await wait_for(view)
             Interaction = view.interaction  # type: ignore
-            if not view.value:
+            if view.value:
                 premium = True
                 storage = user.pcharacter_storage
 
@@ -272,14 +267,19 @@ class Galaxies(commands.Cog):
                 color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=galaxy.image_url)
-            await Interaction.send(embed=embed)
+            if Interaction.response.is_done():
+                await Interaction.send(embed=embed)
+                return
+            await Interaction.channel.send(embed=embed)
             return
 
         view = CharacterSelectDropdown(Interaction, storage)
         embed = disnake.Embed(
             title="Select a character to protect your galaxy", color=disnake.Color.dark_purple()
         )
-        await Interaction.send(embed=embed, view=view)
+        if Interaction.response.is_done():
+            await Interaction.send(embed=embed,view=view)
+        await Interaction.channel.send(embed=embed,view=view)
         await wait_for(view)
         character = storage.pop(view.value)  # type: ignore
         galaxy.characters.append(character)
@@ -313,14 +313,19 @@ class Galaxies(commands.Cog):
                 color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=galaxy.image_url)
-            await Interaction.send(embed=embed)
+            if Interaction.response.is_done():
+                await Interaction.send(embed=embed)
+                return
+            await Interaction.channel.send(embed=embed)
             return
 
         view = CharacterSelectDropdown(Interaction, galaxy.characters)
         embed = disnake.Embed(
             title="Select a character to remove", color=disnake.Color.dark_purple()
         )
-        await Interaction.send(embed=embed, view=view)
+        if Interaction.response.is_done():
+            await Interaction.send(embed=embed,view=view)
+        await Interaction.channel.send(embed=embed,view=view)
         await wait_for(view)
         character = galaxy.characters.pop(view.value)  # type: ignore
         msg = add_to_available_storage(user, character, skip_main=True)
@@ -338,8 +343,9 @@ class Galaxies(commands.Cog):
             title=f"The character was stored in: {msg}", color=disnake.Color.dark_purple()
         )
         embed.set_image(url=galaxy.image_url)
-        await Interaction.send(embed=embed)
-
+        if Interaction.response.is_done():
+            await Interaction.send(embed=embed)
+        await Interaction.channel.send(embed=embed)
     # MEMBER MANAGEMENT
     @galaxy_check()
     @galaxy.sub_command_group(name="manage")
@@ -621,185 +627,156 @@ class Galaxies(commands.Cog):
         embed.set_image(url=galaxy.image_url)
         await Interaction.send(embed=embed)
 
-
     # WAR COMMANDS
-    @tasks.loop(hours=1)
-    async def check_active_wars(self):
-        now = datetime.datetime.utcnow()
-        wars = await self.singularitybot.database.get_active_wars()
-        for war in wars:
-            if now >= war.end_time:
-                await self.end_war(war)
-
-    async def end_war(self, war):
-        galaxy1 = await self.singularitybot.database.get_galaxy_info(war.galaxy1_id)
-        galaxy2 = await self.singularitybot.database.get_galaxy_info(war.galaxy2_id)
-        if war.galaxy1_wins > war.galaxy2_wins:
-            winner = galaxy1
-            loser = galaxy2
-            war.status = "galaxy1"
-        elif war.galaxy1_wins < war.galaxy2_wins:
-            winner = galaxy2
-            loser = galaxy1
-            war.status = "galaxy2"
-        else:
-            war.status = "draw"
-            await war.update(self.singularitybot.database)
-            return
-
-        # Update Elo and rewards
-        winner.war_elo += 50
-        loser.war_elo -= 50
-        winner.vault += 1000
-        loser.vault += 500
-        await winner.update()
-        await loser.update()
-        await war.update(self.singularitybot.database)
-
-    @galaxy.sub_command_group(name="war", description="Galaxy war commands")
-    async def war(self, Interaction: disnake.ApplicationCommandInteraction):
+    @galaxy_check()
+    @galaxy.sub_command_group(name="war")
+    async def war(self, Interaction: disnake.CommandInteraction):
         pass
-    
-    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
-    @war.sub_command(name="start", description="Start a war with another galaxy")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    async def start_war(self, Interaction: disnake.ApplicationCommandInteraction, target_galaxy_id: int):
+    @war.sub_command(name="start")
+    async def start(self,Interaction: disnake.CommandInteraction):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+
+        if not galaxy.characters:
+            embed = disnake.Embed(
+                title="Your galaxy need to have a character to engage in a war",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+        
+        if self.singularitybot.database.check_active_war(galaxy.id):
+            embed = disnake.Embed(
+                title="Your galaxy is already in a war or has recently finished one. Please wait.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        await self.singularitybot.database.publish(MATCHMAKING_QUEUE, galaxy.id)
+        embed = disnake.Embed(
+            title="Your galaxy has been added to the matchmaking queue!",
+            color=disnake.Color.dark_purple(),
+        )
+        embed.set_image(url=galaxy.image_url)
+        await Interaction.send(embed=embed)
+
+    @war.sub_command(name="result")
+    async def result(self,Interaction: disnake.CommandInteraction):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+
+        # Get the last war record involving the user's galaxy
+        last_war_record = None
+        async with self.singularitybot.database.get_redis_connection() as conn:
+            war_records = await conn.hgetall("war_records")
+            for war_id, record in war_records.items():
+                record_data = pickle.loads(record)
+                if galaxy.id in [record_data["winner"], record_data["loser"]]:
+                    if not last_war_record or record_data["timestamp"] > last_war_record["timestamp"]:
+                        last_war_record = record_data
+
+        if not last_war_record:
+            embed = disnake.Embed(
+                title="No recent war records found for your galaxy.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        winner_galaxy = await self.singularitybot.database.get_galaxy_info(last_war_record["winner"])
+        loser_galaxy = await self.singularitybot.database.get_galaxy_info(last_war_record["loser"])
+
+        embed = disnake.Embed(
+            title="Last War Result",
+            color=disnake.Color.dark_purple(),
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.add_field(name="Winner", value=winner_galaxy.name, inline=True)
+        embed.add_field(name="Loser", value=loser_galaxy.name, inline=True)
+        embed.add_field(name="Winner Damage", value=last_war_record["winner_damage"], inline=True)
+        embed.add_field(name="Loser Damage", value=last_war_record["loser_damage"], inline=True)
+        embed.set_image(url=galaxy.image_url)
+
+        await Interaction.send(embed=embed)
+
+    @war.sub_command(name="attack")
+    async def attack(self,Interaction: disnake.CommandInteraction):
+
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
-
-        if not galaxy:
-            await Interaction.send("You are not in a galaxy.", ephemeral=True)
+        
+        if not self.singularitybot.database.check_active_war(galaxy.id):
+            embed = disnake.Embed(
+                title="Your galaxy is not in a war or has recently finished one. Please ask for your boss to start one.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
             return
-
-        target_galaxy = await self.singularitybot.database.get_galaxy_info(target_galaxy_id)
-
-        if not target_galaxy:
-            await Interaction.send("Target galaxy not found.", ephemeral=True)
+        # check that the person has not done an attack
+        
+        if user.id in galaxy.war_attacks:
+            embed = disnake.Embed(
+                title="You already did your attack for this war !",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
             return
+        # get the opposing galaxy ID
+        opp_id = self.singularitybot.database.get_active_war(galaxy.id)
+        opp_galaxy = await self.singularitybot.database.get_galaxy_info(opp_id)
+        # create the match request
+        
+        ennemy_data = {
+            "name": opp_galaxy.name,
+            "avatar": None,
+            "main_characters": [
+                char.to_dict() for char in opp_galaxy.characters
+            ],
+        }
+        players = [user.id, "0101"]
+        channels = [Interaction.channel.id]*2
+        shards = [self.singularitybot.shard_id]*2
+        names = [user.discord.display_name,ennemy_data["name"]]
+        match_request = create_fight_handler_request(players,channels,shards,names,galaxy_fight=True)
+        match_request["IA_DATA"] = ennemy_data
+        winner,combat_log = await wait_for_fight_end(self.singularitybot.database,match_request)
+        damage = combat_log.pop(-1)
+        galaxy.damage_to_current_war += damage
+        embeds = format_combat_log(combat_log)
+        final_view = Menu(embeds)
+        await Interaction.channel.send(embed=embeds[0], view=final_view)
+        await galaxy.update()
 
-        start_time = datetime.datetime.utcnow()
-        end_time = start_time + datetime.timedelta(days=3)  # War duration
-        war = War(id=None, galaxy1_id=galaxy.id, galaxy2_id=target_galaxy.id, start_time=start_time, end_time=end_time, status="ongoing")
+        user.xp += PLAYER_XPGAINS
+        user.fragments += FRAGMENTSGAIN
+        for char in user.main_characters:
+            char.xp += CHARACTER_XPGAINS
 
-        await self.singularitybot.database.add_war(war)
-        await Interaction.send(f"War started with {target_galaxy.name}.", ephemeral=True)
+        await user.update()
 
-    @war.sub_command(name="status", description="Show the status of ongoing wars")
-    async def war_status(self, Interaction: disnake.ApplicationCommandInteraction):
-        wars = await self.singularitybot.database.get_active_wars()
-
-        if not wars:
-            await Interaction.send("No ongoing wars.", ephemeral=True)
-            return
-
-        embed = disnake.Embed(title="Ongoing Wars", color=disnake.Color.red())
-        for war in wars:
-            galaxy1 = await self.singularitybot.database.get_galaxy_info(war.galaxy1_id)
-            galaxy2 = await self.singularitybot.database.get_galaxy_info(war.galaxy2_id)
-            embed.add_field(name=f"{galaxy1.name} vs {galaxy2.name}", value=f"Ends at {war.end_time}", inline=False)
-
-        await Interaction.send(embed=embed, ephemeral=True)
-
-    @war.sub_command(name="result", description="Show the result of the last galaxy war")
-    async def war_result(self, Interaction: disnake.ApplicationCommandInteraction):
-        war = await self.singularitybot.database.get_last_war()
-
-        if not war:
-            await Interaction.send("No war history found.", ephemeral=True)
-            return
-
-        galaxy1 = await self.singularitybot.database.get_galaxy_info(war.galaxy1_id)
-        galaxy2 = await self.singularitybot.database.get_galaxy_info(war.galaxy2_id)
-        result = "draw" if war.status == "draw" else (galaxy1.name if war.status == "galaxy1" else galaxy2.name)
-
-        embed = disnake.Embed(title="Last War Result", color=disnake.Color.green())
-        embed.add_field(name="Winner", value=result, inline=False)
-
-        await Interaction.send(embed=embed, ephemeral=True)
-    # RAID
-    @galaxy.sub_command_group(name="raid", description="Galaxy raid commands")
-    async def raid(self, Interaction: disnake.ApplicationCommandInteraction):
+    # RAID COMMANDS
+    @galaxy_check()
+    @galaxy.sub_command_group(name="raid")
+    async def raid(self, Interaction: disnake.CommandInteraction):
         pass
-    
-    @galaxy_rank_check(minimum_rank=GalaxyRank.BOSS)
-    @raid.sub_command(name="start", description="Start a raid")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    async def start_raid(self, Interaction: disnake.ApplicationCommandInteraction, target_id: int):
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+    @raid.sub_command(name="start")
+    async def start(self,Interaction: disnake.CommandInteraction):
+        pass
 
-        if not galaxy:
-            await Interaction.send("You are not in a galaxy.", ephemeral=True)
-            return
+    @raid.sub_command(name="result")
+    async def result(self,Interaction: disnake.CommandInteraction):
+        pass
 
-        entry_fee = 10000 + 1000 * len(galaxy.members)
-        if galaxy.vault < entry_fee:
-            await Interaction.send(f"Your galaxy does not have enough fragments. You need {entry_fee} fragments to start a raid.", ephemeral=True)
-            return
-
-        start_time = datetime.datetime.utcnow()
-        end_time = start_time + datetime.timedelta(hours=1)  # Raid duration
-        raid = Raid(id=None, galaxy_id=galaxy.id, target_id=target_id, members=[], start_time=start_time, end_time=end_time, status="ongoing")
-
-        await self.singularitybot.database.add_raid(raid)
-        await Interaction.send(f"Raid started against target {target_id}.", ephemeral=True)
-
-    @raid.sub_command(name="status", description="Show the status of ongoing raids")
-    async def raid_status(self, Interaction: disnake.ApplicationCommandInteraction):
-        raids = await self.singularitybot.database.get_active_raids()
-
-        if not raids:
-            await Interaction.send("No ongoing raids.", ephemeral=True)
-            return
-
-        embed = disnake.Embed(title="Ongoing Raids", color=disnake.Color.blue())
-        for raid in raids:
-            galaxy = await self.singularitybot.database.get_galaxy_info(raid.galaxy_id)
-            embed.add_field(name=f"Raid by {galaxy.name}", value=f"Ends at {raid.end_time}", inline=False)
-
-        await Interaction.send(embed=embed, ephemeral=True)
-
-    @raid.sub_command(name="participate", description="Participate in an ongoing raid")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    async def participate_in_raid(self, Interaction: disnake.ApplicationCommandInteraction):
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
-
-        if not galaxy:
-            await Interaction.send("You are not in a galaxy.", ephemeral=True)
-            return
-
-        raid = await self.singularitybot.database.get_active_raid(galaxy.id)
-
-        if not raid:
-            await Interaction.send("No active raid found for your galaxy.", ephemeral=True)
-            return
-
-        raid.members.append(user.id)
-        await raid.update(self.singularitybot.database)
-
-        await Interaction.send(f"You have joined the raid.", ephemeral=True)
-
-    @raid.sub_command(name="result", description="Show the result of the last raid")
-    async def raid_result(self, Interaction: disnake.ApplicationCommandInteraction):
-        raid = await self.singularitybot.database.get_last_raid()
-
-        if not raid:
-            await Interaction.send("No raid history found.", ephemeral=True)
-            return
-
-        galaxy = await self.singularitybot.database.get_galaxy_info(raid.galaxy_id)
-        result = "success" if raid.status == "success" else "failure"
-
-        embed = disnake.Embed(title="Last Raid Result", color=disnake.Color.orange())
-        embed.add_field(name="Result", value=result, inline=False)
-
-        await Interaction.send(embed=embed, ephemeral=True)
-
-
+    @raid.sub_command(name="attack")
+    async def attack(self,Interaction: disnake.CommandInteraction):
+        pass
 
 def setup(singularitybot: SingularityBot):
     singularitybot.add_cog(Galaxies(singularitybot))

@@ -82,10 +82,12 @@ def get_character_status(character: "Character") -> str:
         status = ""
         unique: List[Effect] = []
         actual_effect = character.effects
-        if character.current_armor < 100:
+        if character.current_armor < character.start_armor:
             actual_effect.append(Effect(EffectType.WEAKEN, 1, 0))
-        if character.current_damage > character.current_damage:
+        if character.current_damage > character.start_damage:
             actual_effect.append(Effect(EffectType.DAMAGEUP,1,0))
+        if character.current_hp > character.start_hp:
+            actual_effect.append(Effect(EffectType.HEALTHBOOST,1,0))
         if character.current_speed < character.start_speed:
             actual_effect.append(Effect(EffectType.SLOW, 1, 0))
         for effect in character.effects:
@@ -240,7 +242,7 @@ def is_url_image(image_url: str):
     except:
         return False
 
-def create_fight_handler_request(players:list[int],channels_ids:list[int],shards:list[int],names:list[str] = ["Unknown","Unknown"], ranked=False)->dict:
+def create_fight_handler_request(players:list[int],channels_ids:list[int],shards:list[int],names:list[str] = ["Unknown","Unknown"], ranked=False,galaxy_fight=False)->dict:
     """helper fonction to create a request
 
     Args:
@@ -258,7 +260,8 @@ def create_fight_handler_request(players:list[int],channels_ids:list[int],shards
         "players":players,
         "channels_ids":channels_ids,
         "shards":shards,
-        "names":names
+        "names":names,
+        "galaxy_fight":galaxy_fight
     }   
     return request
 

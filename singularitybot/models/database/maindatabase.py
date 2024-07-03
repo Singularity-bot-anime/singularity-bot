@@ -16,8 +16,6 @@ from singularitybot.models.database.guild import Guild, create_guild
 from singularitybot.models.gameobjects.shop import Shop, create_shop
 from singularitybot.models.gameobjects.items import Item
 from singularitybot.models.gameobjects.galaxy import Galaxy, create_galaxy
-from singularitybot.models.gameobjects.war import War
-from singularitybot.models.gameobjects.raid import Raid
 
 
 # Run localy
@@ -317,6 +315,7 @@ class Database:
                 "traceback": traceback,
             }
             await conn.hset("logs", str(date), pickle.dumps(log))
+
     async def cache_image(self, key: str, image_data: bytes):
         async with await self.get_redis_connection() as conn:
             await conn.set(key, image_data)
@@ -340,57 +339,118 @@ class Database:
                         return Image.open(io.BytesIO(image_data))
                     else:
                         raise ValueError("Failed to fetch image")
-    async def add_war(self, war: War):
-        async with await self.get_redis_connection() as conn:
-            await conn.hset("wars", str(war.id), pickle.dumps(war))
 
-    async def get_active_wars(self) -> List[War]:
-        async with await self.get_redis_connection() as conn:
-            all_wars = await conn.hgetall("wars")
-            active_wars = []
-            for war_data in all_wars.values():
-                war = pickle.loads(war_data)
-                if war.status == "ongoing":
-                    active_wars.append(war)
-            return active_wars
+    async def set_key_value(self, key: str, value: Any) -> None:
+        """Set a key-value pair in the database
 
-    async def get_last_war(self) -> War:
+        Args:
+            key (str): The key to set
+            value (Any): The value to associate with the key
+        """
         async with await self.get_redis_connection() as conn:
-            all_wars = await conn.hgetall("wars")
-            if not all_wars:
-                return None
-            last_war_data = max(all_wars.values(), key=lambda x: pickle.loads(x).end_time)
-            return pickle.loads(last_war_data)
+            await conn.set(key, pickle.dumps(value))
 
-    async def add_raid(self, raid: Raid):
-        async with await self.get_redis_connection() as conn:
-            await conn.hset("raids", str(raid.id), pickle.dumps(raid))
+    async def get_key_value(self, key: str) -> Any:
+        """Get the value associated with a key from the database
 
-    async def get_active_raids(self) -> List[Raid]:
-        async with await self.get_redis_connection() as conn:
-            all_raids = await conn.hgetall("raids")
-            active_raids = []
-            for raid_data in all_raids.values():
-                raid = pickle.loads(raid_data)
-                if raid.status == "ongoing":
-                    active_raids.append(raid)
-            return active_raids
+        Args:
+            key (str): The key to look up
 
-    async def get_last_raid(self) -> Raid:
+        Returns:
+            Any: The value associated with the key, or None if the key does not exist
+        """
         async with await self.get_redis_connection() as conn:
-            all_raids = await conn.hgetall("raids")
-            if not all_raids:
-                return None
-            last_raid_data = max(all_raids.values(), key=lambda x: pickle.loads(x).end_time)
-            return pickle.loads(last_raid_data)
+            value = await conn.get(key)
+            return pickle.loads(value) if value else None
 
-    async def update_war(self, war: War):
-        async with await self.get_redis_connection() as conn:
-            await conn.hset("wars", str(war.id), pickle.dumps(war))
+    async def delete_key(self, key: str) -> None:
+        """Delete a key-value pair from the database
 
-    async def update_raid(self, raid: Raid):
+        Args:
+            key (str): The key to delete
+        """
         async with await self.get_redis_connection() as conn:
-            await conn.hset("raids", str(raid.id), pickle.dumps(raid))
+            await conn.delete(key)
+
+    async def key_exists(self, key: str) -> bool:
+        """Check if a key exists in the database
+
+        Args:
+            key (str): The key to check
+
+        Returns:
+            bool: True if the key exists, False otherwise
+        """
+        async with await self.get_redis_connection() as conn:
+            return await conn.exists(key) > 0
+
+    # Methods for managing active wars
+    async def add_active_war(self, war_id: str, war_data: dict) -> None:
+        """Add a war to the active wars set
+
+        Args:
+            war_id (str): The ID of the war
+            war_data (dict): The data of the war
+        """
+        async with await self.get_redis_connection() as conn:
+            await conn.hset("active_wars", war_id, pickle.dumps(war_data))
+
+    async def remove_active_war(self, war_id: str) -> None:
+        """Remove a war from the active wars set
+
+        Args:
+            war_id (str): The ID of the war to remove
+        """
+        async with await self.get_redis_connection() as conn:
+            await conn.hdel("active_wars", war_id)
+
+    async def check_active_war(self, war_id: str) -> bool:
+        """Check if a war is active
+
+        Args:
+            war_id (str): The ID of the war to check
+
+        Returns:
+            bool: True if the war is active, False otherwise
+        """
+        async with await self.get_redis_connection() as conn:
+            return await conn.hexists("active_wars", war_id)
+    async def get_active_war(self, war_id: str) -> dict:
+        """Retrieve the details of an active war
+
+        Args:
+            war_id (str): The ID of the war to retrieve
+
+        Returns:
+            dict: The details of the active war, or None if the war does not exist
+        """
+        async with await self.get_redis_connection() as conn:
+            war_data = await conn.hget("active_wars", war_id)
+            return pickle.loads(war_data) if war_data else None
+
+    async def add_war_record(self, war_id: str, record_data: dict) -> None:
+        """Add a war record to the war records set
+
+        Args:
+            war_id (str): The ID of the war
+            record_data (dict): The data of the war record
+        """
+        async with await self.get_redis_connection() as conn:
+            await conn.hset("war_records", war_id, pickle.dumps(record_data))
+
+    async def get_war_record(self, war_id: str) -> dict:
+        """Retrieve the details of a war record
+
+        Args:
+            war_id (str): The ID of the war to retrieve
+
+        Returns:
+            dict: The details of the war record, or None if the war does not exist
+        """
+        async with await self.get_redis_connection() as conn:
+            record_data = await conn.hget("war_records", war_id)
+            return pickle.loads(record_data) if record_data else None
+
 async def add_field(
     pool: ConnectionPool,
     collection: str,

@@ -89,7 +89,7 @@ class Utils(commands.Cog):
             title="Donation",
             url="https://patreon.com/EIRBLAST",
             description="Donate to support the team and get cool loot !",
-            color=disnake.Colour.blue(),
+            color=disnake.Colour.dark_purple(),
         )
         embed.set_footer(
             text="Donate only if you can, and if you really want to support us!"

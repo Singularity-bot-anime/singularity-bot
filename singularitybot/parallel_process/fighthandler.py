@@ -51,6 +51,7 @@ async def create_match(match_request: Dict):
         match_request["shards"],
         match_request["names"],
         ranked=match_request['ranked'],
+        galaxy_fight=match_request["galaxy_fight"],
         fight_id=match_request['match_id']
     ) )
 
@@ -187,6 +188,7 @@ async def fight_loop(
     shards:List[int],
     names:List[str],
     ranked: bool = True,
+    galaxy_fight: bool = False,
     fight_id: str = str(uuid.uuid4())
 ) -> Tuple[Union[User, Ia], List[str]]:
     try:
@@ -198,7 +200,12 @@ async def fight_loop(
         messages_1 = await send_all(embed, channels,shards, fight_id)
         # Message used to display specials
         embed = disnake.Embed(colour=disnake.Colour.dark_purple())
-        embed.set_image(url="https://c.tenor.com/B_J3xedKvA8AAAAC/jojo-anime.gif")
+        image_list = ["https://media1.tenor.com/m/43hSW7CM0UoAAAAC/anime-come.gif",
+        "https://c.tenor.com/B_J3xedKvA8AAAAC/jojo-anime.gif",
+        "https://media1.tenor.com/m/_PPOYsb1GeIAAAAd/anime-fight.gif",
+        "https://media1.tenor.com/m/yd7Ntm5sUHMAAAAC/sasuke-naruto.gif",
+        ]
+        embed.set_image(url=random.choice(image_list))
         messages_2 = await send_all(embed, channels,shards, fight_id)
         # Set the message for the player
         fighters[0].message = messages_1[0]
@@ -310,7 +317,7 @@ async def fight_loop(
                             "turn {} Special Used".format(turn + 1) + ", " + message
                         )
                         embed = disnake.Embed(title=message, color=disnake.Color.dark_purple())
-                        url=f"https://storage.stfurequiem.com/special/{character.id}.gif"
+                        url=character.special_url
                         await edit(messages_2,shards,channels, embed,url,fight_id)
                         await asyncio.sleep(1)
                         king_crimson |= payload["king_crimson"]
@@ -345,9 +352,18 @@ async def fight_loop(
             turn += turn_amount
         await delete_all(messages_1,shards,channels,fight_id)
         await delete_all(messages_2,shards,channels,fight_id)
+        
+        if galaxy_fight:
+            ia = players[0] if not players[0].is_human else players[1]
+            dmg = calculate_team_damage(ia.main_characters)
+            combat_log.append(dmg)
+            await stop_fight(fight_id,win(players).id,combat_log)
+            return
+
         if not ranked:
             await stop_fight(fight_id,win(players).id,combat_log)
-            return 
+            return
+         
         winner = win(players)
         if winner == players[0]:
             looser = players[1]
@@ -393,6 +409,23 @@ def view_to_dict_fight(type:str,user_id:int,watcher_characters:list[Character],p
             'player_characters': player_characters,
         }
 
+def calculate_team_damage(characters: List[Character]) -> int:
+    """
+    Calculate the total damage done to a team at the end of a fight.
+    
+    Args:
+        characters (List[Character]): List of characters in the team.
+    
+    Returns:
+        int: Total damage taken by the team.
+    """
+    total_damage = 0
+    
+    for character in characters:
+        damage_taken = character.start_hp - character.current_hp
+        total_damage += damage_taken
+    
+    return total_damage
 
 if __name__ == "__main__":
     try:

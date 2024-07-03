@@ -101,7 +101,7 @@ class Wormhole(commands.Cog):
         }
         players = [user.id, "0101"]
         channels = [Interaction.channel.id]*2
-        shards = [self.singularitybot.shard_id,self.singularitybot.shard_id]
+        shards = [self.singularitybot.shard_id]*2
         names = [user.discord.display_name,ennemy_data["name"]]
         match_request = create_fight_handler_request(players,channels,shards,names)
         match_request["IA_DATA"] = ennemy_data

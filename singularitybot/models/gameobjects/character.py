@@ -47,6 +47,7 @@ class Character:
         self.base_armor: int = character_file[self.id-1]["armor"]
         self.turn_for_ability: int = character_file[self.id-1]["turn_for_ability"]
         self.special_description: str = character_file[self.id-1]["special_description"]
+        self.special_url:str = character_file[self.id-1]["special_url"]
         self.items: List[Item] = [item_from_dict(s) for s in data["items"]]
         self.level: int = min(MAX_LEVEL, self.xp // STXPTOLEVEL)
 
@@ -116,6 +117,7 @@ class Character:
         self.start_damage = self.current_damage
         self.start_speed = self.current_speed
         self.start_critical = self.current_critical
+        self.start_armor = self.current_armor
         self.effects: List[Effect] = []
         self.special_meter: int = 0
         self.turn: int = 0
@@ -182,20 +184,17 @@ class Character:
 
     def end_turn(self) -> None:
         """Make the relevant action at the end of the turn"""
-        # apply effects
+        # Apply effects
         for effect in self.effects:
             if effect.duration <= 0:
                 continue
-            if effect.type in [EffectType.POISON,EffectType.BLEED,EffectType.BURN]:
+            if effect.type in [EffectType.POISON, EffectType.BLEED, EffectType.BURN]:
                 self.current_hp -= effect.value
-            elif effect.type == EffectType.WEAKEN:
-                self.armor *= effect.value
-            elif (
-                effect.type == EffectType.REGENERATION
-                and self.current_hp < self.base_hp
-            ):
-                self.current_hp += effect.value
-            elif effect.type == EffectType.SLOW:
+            elif effect.type == EffectType.WEAKEN and not effect.used:
+                self.current_damage -= effect.value
+            elif effect.type == EffectType.REGENERATION:
+                self.current_hp = min(self.current_hp + effect.value, self.start_hp)
+            elif effect.type == EffectType.SLOW and not effect.used:
                 self.current_speed -= effect.value
             elif effect.type == EffectType.HEALTHBOOST and not effect.used:
                 self.current_hp += effect.value
@@ -204,12 +203,29 @@ class Character:
             effect.duration -= 1
             if not effect.used:
                 effect.used = True
-        # cleanup effect that have ended
-        self.effects = [e for e in self.effects if e.duration > 0]
-        # add to the special
+
+        # Cleanup effects that have ended and restore original state
+        remaining_effects = []
+        for effect in self.effects:
+            if effect.duration > 0:
+                remaining_effects.append(effect)
+            else:
+                if effect.type == EffectType.HEALTHBOOST:
+                    self.current_hp = max(self.current_hp - effect.value, 1)
+                elif effect.type == EffectType.DAMAGEUP:
+                    self.current_damage -= max(self.current_damage - effect.value, 1)
+                elif effect.type == EffectType.WEAKEN:
+                    self.current_armor += max(self.current_armor - effect.value, 1)
+                elif effect.type == EffectType.SLOW:
+                    self.current_speed += max(self.current_speed - effect.value, 1)
+
+        self.effects = remaining_effects
+
+        # Add to the special meter
         self.special_meter += 1
         self.turn += 1
-        # add to items special meter
+
+        # Add to items' special meter
         for item in self.items:
             item.special_meter += 1
 

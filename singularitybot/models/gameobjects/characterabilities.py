@@ -12,11 +12,11 @@ def get_payload():
 
 def choji_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    character.current_hp *= 2
+    character.current_hp += character.base_hp * 0.1
     character.current_speed += 5
     health_boost_effect = Effect(EffectType.HEALTHBOOST, duration=3, value=character.current_hp,sender=character)
     character.effects.append(health_boost_effect)
-    message = f"{character.name} gains double HP and 50 more speed."
+    message = f"{character.name} gains {int(character.base_hp * 0.1)} HP and 5 more speed."
     return payload, message
 
 specials["1"] = choji_special
@@ -45,8 +45,8 @@ def ino_special(character: "Character", allied_characters: List["Character"], en
     payload = get_payload()
     enemy = random.choice(enemy_characters)
     target = random.choice(enemy_characters) if len(enemy_characters) > 1 else enemy
-    enemy.attack(target)
-    message = f"{character.name} makes {enemy.name} attack {target.name}."
+    dmg = enemy.attack(target)["damage"]
+    message = f"{character.name} makes {enemy.name} attack {target.name} for {int(dmg)} damage"
     return payload, message
 
 specials["4"] = ino_special
@@ -54,9 +54,8 @@ specials["4"] = ino_special
 def konohamaru_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
     enemy = random.choice(enemy_characters)
-    extra_damage = character.base_damage * 0.25
-    character.attack(enemy,multiplier=0.25)
-    message = f"{character.name} uses Rasengan to deal {extra_damage} extra damage to {enemy.name}."
+    dmg = character.attack(enemy,multiplier=0.25)["damage"]
+    message = f"{character.name} uses Rasengan to deal {dmg} extra damage to {enemy.name}."
     return payload, message
 
 specials["5"] = konohamaru_special
@@ -64,9 +63,9 @@ specials["5"] = konohamaru_special
 def kurenai_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
     enemy = random.choice(enemy_characters)
-    slow_effect = Effect(EffectType.SLOW, value=25, duration=3,sender=character)
+    slow_effect = Effect(EffectType.SLOW, value=5, duration=3,sender=character)
     enemy.effects.append(slow_effect)
-    message = f"{character.name} slows {enemy.name} by 25%."
+    message = f"{character.name} slows {enemy.name} by 5."
     return payload, message
 
 specials["6"] = kurenai_special
@@ -83,7 +82,7 @@ def tenten_special(character: "Character", allied_characters: List["Character"],
     for enemy in enemy_characters:
         bleed_effect = Effect(EffectType.BLEED, duration=3, value=10)
         enemy.effects.append(bleed_effect)
-    message = f"{character.name} deals 30 damage to all enemies."
+    message = f"{character.name} deals bleed damage to all enemies."
     return payload, message
 
 specials["8"] =tenten_special
@@ -101,7 +100,7 @@ specials["9"] = teuchi_special
 def tsubaki_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
     enemy = random.choice(enemy_characters)
-    slow_effect = Effect(EffectType.SLOW, value=10, duration=2)
+    slow_effect = Effect(EffectType.SLOW, value=5, duration=2)
     enemy.effects.append(slow_effect)
     message = f"{character.name} slows {enemy.name} by 10%."
     return payload, message
@@ -112,7 +111,7 @@ def might_guy_special(character: "Character", allied_characters: List["Character
     payload = get_payload()
     for ally in allied_characters:
         if ally != character:
-            attack_boost_effect = Effect(EffectType.DAMAGEUP, duration=3, value=5)
+            attack_boost_effect = Effect(EffectType.DAMAGEUP, duration=4, value=5)
             ally.effects.append(attack_boost_effect)
     message = f"{character.name} gives words of advice, boosting allies' attack damage by 5."
     return payload, message
@@ -257,7 +256,7 @@ specials["24"] = jiraiya_special
 
 def naruto_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    character.current_hp = 2*character.start_hp
+    character.current_hp = character.start_hp
     character.current_damage = 2*character.start_damage
     for ally in allied_characters:
         fire_damage = int(0.1 * ally.base_hp)

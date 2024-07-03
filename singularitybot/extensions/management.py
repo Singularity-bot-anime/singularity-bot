@@ -44,7 +44,7 @@ class management(commands.Cog):
         if User.main_characters == []:
             embed = disnake.Embed(color=disnake.Color.dark_purple())
             embed.set_image(url="https://media.singularityapp.online/images/assets/nomain.jpg")
-            await Interaction.send(embed=embed, ephemeral=True)
+            await Interaction.send(embed=embed)
         else:
             # make an embed
             embed = disnake.Embed(
@@ -90,9 +90,9 @@ class management(commands.Cog):
             )
             embed.set_image(url="https://media.singularityapp.online/images/assets/pfpsister.png")
             if Interaction.response.is_done():
-                await Interaction.send(embed=embed, ephemeral=True)
+                await Interaction.send(embed=embed)
                 return
-            await Interaction.channel.send(embed=embed, ephemeral=True)
+            await Interaction.channel.send(embed=embed)
             return
         embed = disnake.Embed(
             title=f"{user.discord.display_name} character's storage",
@@ -113,7 +113,7 @@ class management(commands.Cog):
         storage = [storage[c] for c in range(len(storage)) if not c in view.value ]
         embed = disnake.Embed(
             title="Do you want to remove these characters ? They can't be retreived",
-            color=disnake.Color.blue(),
+            color=disnake.Color.dark_purple(),
         )
         for character in [user.character_storage[i] for i in range(len(user.character_storage)) if i in view.value ]:
             typequal = ""
@@ -140,7 +140,7 @@ class management(commands.Cog):
             title="The characters were not removed",
             color=disnake.Color.purple(),
         )
-        await Interaction.response.edit_message(embed=embed, view=PlaceHolder(), ephemeral=True)
+        await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
 
     @character.sub_command(name="storage", description="show your character storage")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
@@ -168,9 +168,9 @@ class management(commands.Cog):
             )
             embed.set_image(url="https://media.singularityapp.online/images/assets/pfpsister.png")
             if Interaction.response.is_done():
-                await Interaction.send(embed=embed, ephemeral=True)
+                await Interaction.send(embed=embed)
                 return
-            await Interaction.channel.send(embed=embed, ephemeral=True)
+            await Interaction.channel.send(embed=embed)
             return
         embed = disnake.Embed(
             title=f"{user.discord.display_name} character's storage",
@@ -332,7 +332,7 @@ class management(commands.Cog):
         user.discord = Interaction.author
 
         embed = disnake.Embed(
-            title="Select a character to awake", color=disnake.Color.blue()
+            title="Select a character to awake", color=disnake.Color.dark_purple()
         )
         view = CharacterSelectDropdown(Interaction, user.main_characters)
 
@@ -366,7 +366,7 @@ class management(commands.Cog):
                 description=f"You need 10000 fragments to reforge a character. You currently have {user.fragments} fragments.",
                 color=disnake.Color.red(),
             )
-            await Interaction.send(embed=embed, ephemeral=True)
+            await Interaction.send(embed=embed)
             return
 
         if not user.main_characters:
@@ -375,7 +375,7 @@ class management(commands.Cog):
                 description="You don't have any main characters to reforge.",
                 color=disnake.Color.red(),
             )
-            await Interaction.send(embed=embed, ephemeral=True)
+            await Interaction.send(embed=embed)
             return
 
         embed = disnake.Embed(
@@ -469,7 +469,7 @@ class management(commands.Cog):
                 description="You can't trade with yourself.",
                 color=disnake.Color.red(),
             )
-            await Interaction.send(embed=embed, ephemeral=True)
+            await Interaction.send(embed=embed)
             return
 
         if not await self.singularitybot.database.user_in_database(tradee.id):
@@ -478,7 +478,7 @@ class management(commands.Cog):
                 description=f"{tradee.display_name} is not in the database. They need to use the bot first!",
                 color=disnake.Color.red(),
             )
-            await Interaction.send(embed=embed, ephemeral=True)
+            await Interaction.send(embed=embed)
             return
 
         user2 = await self.singularitybot.database.get_user_info(tradee.id)
@@ -490,7 +490,7 @@ class management(commands.Cog):
                 description="A trade between you two is already in progress.",
                 color=disnake.Color.red(),
             )
-            await Interaction.send(embed=embed, ephemeral=True)
+            await Interaction.send(embed=embed)
             return
 
         self.active_trades.add((user1.id, user2.id))
@@ -500,7 +500,7 @@ class management(commands.Cog):
             embed = disnake.Embed(
                 title=f"Trade Request",
                 description=f"{tradee.display_name}, do you want to trade with {Interaction.author.display_name}?",
-                color=disnake.Color.blue(),
+                color=disnake.Color.dark_purple(),
             )
             embed.set_thumbnail(url=trade_url)
             view = Confirm(Interaction, user=tradee)
@@ -528,7 +528,7 @@ class management(commands.Cog):
             # Select character from user1
             embed = disnake.Embed(
                 title=f"{Interaction.author.display_name}, select a character to trade:",
-                color=disnake.Color.blue(),
+                color=disnake.Color.dark_purple(),
             )
             view = CharacterSelectDropdown(Interaction, user1.main_characters)
             await Interaction.edit_original_message(embed=embed, view=view)
@@ -538,7 +538,7 @@ class management(commands.Cog):
             # Select character from user2
             embed = disnake.Embed(
                 title=f"{tradee.display_name}, select a character to trade:",
-                color=disnake.Color.blue(),
+                color=disnake.Color.dark_purple(),
             )
             view = CharacterSelectDropdown(Interaction, user2.main_characters, custom_user=tradee)
             await Interaction.edit_original_message(embed=embed, view=view)
@@ -555,7 +555,7 @@ class management(commands.Cog):
             embed = disnake.Embed(
                 title="Confirm Trade",
                 description=f"{Interaction.author.display_name} will trade {char1.name} with {tradee.display_name}'s {char2.name}. Do you both accept?",
-                color=disnake.Color.blue(),
+                color=disnake.Color.dark_purple(),
             )
             embed.set_thumbnail(url=trade_url)
             view = Confirm(Interaction)
