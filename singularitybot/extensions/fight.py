@@ -87,15 +87,16 @@ class fight(commands.Cog):
         await Interaction.channel.send(embed=embeds[0], view=final_view)
 
     @commands.slash_command(name="ranked", description="Start a ranked fight")
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
     @energy_check()
     async def ranked(self, interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(interaction.author.id)
 
         if not user.main_characters:
-            embed = disnake.Embed(title="You need to have main characters to fight use `/character main`",color=disnake.Colour.dark_purple())
+            embed = disnake.Embed(title="You need to have main characters to fight use `/character main`",colour=disnake.Colour.dark_purple())
             embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
-            await Interaction.send(embed=embed)
+            await interaction.send(embed=embed)
         # Create matchmaking request
         match_request = create_ranked_fight_request(
             interaction.author.id,

@@ -373,17 +373,18 @@ async def fight_loop(
         for character in winner.main_characters:
             character.xp += CHARACTER_XPGAINS * 3
         winner.fragments += 200
-        winner.global_elo += max(10, max(0,winner.global_elo - looser.global_elo))
+        winner.global_elo += min(10, max(0,winner.global_elo - looser.global_elo))
         looser.xp += PLAYER_XPGAINS
         for character in looser.main_characters:
             character.xp += CHARACTER_XPGAINS
         looser.fragments += 0
-        looser.global_elo -= max(10, max(0,winner.global_elo - looser.global_elo))
+        looser.global_elo -= min(10, max(0,winner.global_elo - looser.global_elo))
         if looser.global_elo < 0:
             looser.global_elo = 0
         await winner.update()
         await looser.update()
-        await stop_rank(fight_id,win(players).id,combat_log)
+        await stop_rank(database,winner.id,winner.id.id,combat_log)
+        await stop_rank(database,looser.id,winner.id.id,combat_log)
         return 
     except Exception as error:
         if ranked:
