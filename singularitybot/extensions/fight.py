@@ -97,6 +97,7 @@ class fight(commands.Cog):
             embed = disnake.Embed(title="You need to have main characters to fight use `/character main`",colour=disnake.Colour.dark_purple())
             embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
             await interaction.send(embed=embed)
+            return
         # Create matchmaking request
         match_request = create_ranked_fight_request(
             interaction.author.id,
