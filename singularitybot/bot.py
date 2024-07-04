@@ -5,6 +5,7 @@ import asyncio
 from singularitybot.models.bot.singularitybot import SingularityBot
 from disnake.ext import commands
 
+DEBUG = False
 
 # Run localy
 import sys
@@ -12,7 +13,8 @@ if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_pre
     from dotenv import load_dotenv
 
     load_dotenv()
-    print("LOCAL URL LOAD")
+    DEBUG = True
+
 LOOP = asyncio.get_event_loop()
 TOKEN = os.environ["DISCORD_KEY_SINGULARITY"]
 
@@ -39,7 +41,7 @@ textart = """
 
 """
 
-Client = SingularityBot(loop=LOOP,debug=True)
+Client = SingularityBot(loop=LOOP,debug=DEBUG)
 
 print("All the databases ,emojis and apis have been initialized")
 
@@ -57,6 +59,10 @@ main_extension = {
     "extensions.shop"
 }
 
+# This suppres most errors and show informations to the user
+# This also logs errors in the database instead of the Terminal
+if not DEBUG:
+    main_extension.append("extensions.errors")
 
 # loads file and stuff
 for file in main_extension:
@@ -92,7 +98,6 @@ async def on_shard_ready(shard_id: int):
 async def on_ready():
     print(f"The bot is ready")
     print(textart)
-
     await Client.change_presence(activity=disnake.Game(f"Singularity converging"))
 
 

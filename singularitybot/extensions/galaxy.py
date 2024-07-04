@@ -761,6 +761,7 @@ class Galaxies(commands.Cog):
 
         await user.update()
 
+    """
     # RAID COMMANDS
     @galaxy_check()
     @galaxy.sub_command_group(name="raid")
@@ -777,6 +778,6 @@ class Galaxies(commands.Cog):
     @raid.sub_command(name="attack")
     async def attack(self,Interaction: disnake.CommandInteraction):
         pass
-
+    """
 def setup(singularitybot: SingularityBot):
     singularitybot.add_cog(Galaxies(singularitybot))

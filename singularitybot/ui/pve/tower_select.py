@@ -3,14 +3,16 @@ import json
 
 from singularitybot.globals.emojis import CustomEmoji
 
+with open("singularitybot/data/towers/towers.json", "r") as item:
+    tower_file = json.load(item)["towers"]
+
 # drop downelement class
 class Dropdown(disnake.ui.Select):
     def __init__(
         self,
         lang: str = "en",
     ):
-        with open("singularitybot/data/towers/towers.json", "r") as item:
-            tower_file = json.load(item)["towers"]
+       
         self.lang = lang
         self.emojiNumbers = [
             CustomEmoji.ONE,

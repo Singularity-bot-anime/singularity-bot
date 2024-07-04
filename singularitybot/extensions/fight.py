@@ -22,17 +22,18 @@ class fight(commands.Cog):
         self.singularitybot:disnake.AutoShardedClient = singularitybot
 
     @commands.slash_command(name="fight", description="fight someone in your server")
-    #@commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
     async def fight(
         self,
         Interaction: disnake.ApplicationCommandInteraction,
         ennemy: disnake.Member,
     ):
-        """# Check if the enemy is the same as the user
+    
         if ennemy.id == Interaction.author.id:
             await Interaction.send("You cannot fight yourself!", ephemeral=True)
-            return"""
+            return
+
         file_ = await get_fight_image(Interaction.author,ennemy)
         embed = disnake.Embed(color=disnake.Colour.dark_purple())
         embed.set_image(file=file_)
@@ -40,6 +41,14 @@ class fight(commands.Cog):
         # Check if the enemy is in the database
         if not await self.singularitybot.database.user_in_database(ennemy.id):
             embed.add_field(name="ERROR",value=f"{ennemy.display_name} is not in the database. They need to register first!")
+            await Interaction.send(embed, ephemeral=True)
+            return
+        
+        user_1 = await self.singularitybot.database.get_user_info(ennemy.id)
+        user_2 = await self.singularitybot.database.get_user_info(Interaction.author.id)
+
+        if not user_2.main_characters or not user_1.main_characters:
+            embed.add_field(name="ERROR",value=f"You need to have main characters to fight use `/character main`")
             await Interaction.send(embed, ephemeral=True)
             return
         
@@ -54,9 +63,7 @@ class fight(commands.Cog):
             await Interaction.channel.send(embed=embed)
             return
         
-        user_1 = await self.singularitybot.database.get_user_info(ennemy.id)
-        user_2 = await self.singularitybot.database.get_user_info(Interaction.author.id)
-
+        
         
 
         # create the match trough the handler
@@ -86,15 +93,19 @@ class fight(commands.Cog):
     @database_check()
     @energy_check()
     async def ranked(self, interaction: disnake.ApplicationCommandInteraction):
-        user_info = await self.singularitybot.database.get_user_info(interaction.author.id)
+        user = await self.singularitybot.database.get_user_info(interaction.author.id)
 
+        if not user.main_characters:
+            embed = disnake.Embed(title="You need to have main characters to fight use `/character main`",color=disnake.Colour.dark_purple())
+            embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
+            await Interaction.send(embed=embed)
         # Create matchmaking request
         match_request = create_ranked_fight_request(
             interaction.author.id,
             interaction.channel.id,
             self.singularitybot.shard_id,
             interaction.author.display_name,
-            user_info.global_elo,  # Use global ELO for matchmaking
+            user.global_elo,  # Use global ELO for matchmaking
         )
 
         # Add to matchmaking queue

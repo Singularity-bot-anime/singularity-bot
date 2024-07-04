@@ -335,7 +335,7 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
     redis_con = Redis(connection_pool=database.redis_pool)
 
     #view = Cancel(interaction)
-    await interaction.edit_original_message(content="Searching for an opponent... (Click to cancel)")
+    await interaction.edit_original_message(content="Searching for an opponent...")
 
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(channel_name)

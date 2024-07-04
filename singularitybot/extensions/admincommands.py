@@ -48,25 +48,6 @@ class admincommands(commands.Cog):
     def __init__(self, bot: SingularityBot):
         self.SingularityBot = bot
 
-    @commands.slash_command(
-        name="emojis",
-        description="Display all emojis and their IDs",
-        guild_ids=[
-            1097995244336848928,
-            1086875022808854528,
-        ],
-    )
-    @inner_permissions(type="give_character")
-    async def emojis(self, Interaction: disnake.ApplicationCommandInteraction):
-        # Create an embed to display emojis and IDs
-        embed = disnake.Embed(title="Emoji IDs", color=disnake.Color.dark_purple())
-        
-        # Add each emoji and its ID to the embed
-        for emoji in Interaction.guild.emojis:
-            embed.add_field(name=str(emoji), value=f"ID: {emoji.id}", inline=False)
-
-        await Interaction.response.send_message(embed=embed)
-
     @inner_permissions()
     @commands.slash_command(
         name="admincommands",

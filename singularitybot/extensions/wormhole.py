@@ -69,6 +69,12 @@ class Wormhole(commands.Cog):
             embed.set_thumbnail(url="https://media.singularityapp.online/images/assets/pfpsister.png")
             await Interaction.send(embed=embed)
             return
+        
+        if not user.main_characters:
+            embed = disnake.Embed(title="You need to have main characters to fight use `/character main`",color=disnake.Colour.dark_purple())
+            embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
+            await Interaction.send(embed=embed)
+        
         embed = disnake.Embed(
             title="You fell into a wormhole ...", color=disnake.Color.dark_purple()
         )

@@ -111,7 +111,9 @@ class Banners(commands.Cog):
             return
 
         view = Confirm(Interaction)
-        embed = disnake.Embed(title=f"Are you sure you want to use {banner['cost']} {CustomEmoji.SUPER_FRAGMENTS} you have {user.super_fragements}{CustomEmoji.SUPER_FRAGMENTS} ",color=disnake.Color.dark_purple())
+        embed = disnake.Embed(title=f"Are you sure you want to use {banner['cost']} {CustomEmoji.SUPER_FRAGMENTS} you have {user.super_fragements}{CustomEmoji.SUPER_FRAGMENTS} ",
+                                description=f"Pity {user.pity}/100 | You gain a guarented UR at 100",
+                                color=disnake.Color.dark_purple())
         embed.set_image(url=f"https://media.singularityapp.online/images/banners/banner_{banner['id']}.jpg")
         
         await Interaction.send(embed=embed,view=view)
