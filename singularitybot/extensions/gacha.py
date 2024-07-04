@@ -46,6 +46,8 @@ class Banners(commands.Cog):
     async def view(self, Interaction: disnake.ApplicationCommandInteraction):
         enabled_banners = [banner for banner in BANNERS if banner["enabled"]]
 
+        user:User = await self.singularitybot.database.get_user_info(Interaction.author.id)
+
         if not enabled_banners:
             await Interaction.send("There are no active banners at the moment.")
             return
