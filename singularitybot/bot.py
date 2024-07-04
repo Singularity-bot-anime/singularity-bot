@@ -62,7 +62,7 @@ main_extension = {
 # This suppres most errors and show informations to the user
 # This also logs errors in the database instead of the Terminal
 if not DEBUG:
-    main_extension.append("extensions.errors")
+    main_extension.add("extensions.errors")
 
 # loads file and stuff
 for file in main_extension:
