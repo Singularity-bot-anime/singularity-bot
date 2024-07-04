@@ -72,7 +72,7 @@ async def check_active_wars():
     while True:
         await asyncio.sleep(10)  # Check every 10 seconds
 
-        async with database.get_redis_connection() as conn:
+        async with await database.get_redis_connection() as conn:
             active_wars = await conn.hgetall(CURRENT_WAR)
 
             for galaxy_id, enemy_galaxy_id in active_wars.items():
