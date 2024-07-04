@@ -31,7 +31,7 @@ class fight(commands.Cog):
     ):
     
         if ennemy.id == Interaction.author.id:
-            await Interaction.send("You cannot fight yourself!", ephemeral=True)
+            await Interaction.send("You cannot fight yourself!")
             return
 
         file_ = await get_fight_image(Interaction.author,ennemy)
@@ -41,7 +41,7 @@ class fight(commands.Cog):
         # Check if the enemy is in the database
         if not await self.singularitybot.database.user_in_database(ennemy.id):
             embed.add_field(name="ERROR",value=f"{ennemy.display_name} is not in the database. They need to register first!")
-            await Interaction.send(embed=embed, ephemeral=True)
+            await Interaction.send(embed=embed)
             return
         
         user_1 = await self.singularitybot.database.get_user_info(ennemy.id)
@@ -49,7 +49,7 @@ class fight(commands.Cog):
 
         if not user_2.main_characters or not user_1.main_characters:
             embed.add_field(name="ERROR",value=f"You need to have main characters to fight use `/character main`")
-            await Interaction.send(embed, ephemeral=True)
+            await Interaction.send(embed=embed)
             return
         
         embed = disnake.Embed(title=f"{ennemy.display_name} do you want to fight {Interaction.author.display_name}",color=disnake.Colour.dark_purple())
@@ -72,8 +72,8 @@ class fight(commands.Cog):
         winner,combat_log = await wait_for_fight_end(self.singularitybot.database,match_request)
         
         # cleanup & end
-        user_1.energy -= 1
-        user_2.energy -= 1
+        # user_1.energy -= 1
+        # user_2.energy -= 1
 
         await user_1.update()
         await user_2.update()

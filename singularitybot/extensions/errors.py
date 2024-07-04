@@ -72,7 +72,6 @@ class ErrorHandle(commands.Cog):
         # ignore ctx commands
         if isinstance(Interaction, commands.Context):
             return
-        translation = await self.singularitybot.database.get_interaction_lang(Interaction)
         # get the command where the error occurred
         command = Interaction.application_command
         # ignore these Exception
@@ -88,7 +87,7 @@ class ErrorHandle(commands.Cog):
         # check if the error should be ignored
         if any([isinstance(error, exception) for exception in ignore]):
             return  # avoid logging
-        # case handlling
+        # case handling
 
         # Timeout error with view :)
         if isinstance(
@@ -111,89 +110,85 @@ class ErrorHandle(commands.Cog):
         # Missing Permission error from bot
         if isinstance(error, disnake.errors.Forbidden):
             embed = disnake.Embed(
-                title=translation["error_meesages"]["error"],
-                description=translation["error_meesages"]["not_enough_permission"],
+                title="Error",
+                description="The bot does not have the required permissions to execute this command.",
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
             embed.add_field(
-                name=translation["errors"]["1"],
-                value="https://stfurequiem.com/invite/",
+                name="Permission Error",
+                value="The bot lacks the necessary permissions to perform this action.",
             )
-            embed.add_field(
-                name=translation["errors"]["2"],
-                value=translation["errors"]["3"],
-            )
-            embed.set_footer(text=translation["errors"]["4"])
+            embed.set_footer(text="Please check the bot's permissions and try again.")
             await self.try_sending_message(Interaction, embed)
             return  # avoid logging
         # Missing Permission error from user
         if isinstance(error, errors.MissingPermissions):
             embed = disnake.Embed(
-                title=translation["error_meesages"]["error"],
-                description=translation["error_meesages"]["no_permission"],
+                title="Error",
+                description="You do not have the required permissions to execute this command.",
+                color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
-            embed.set_footer(text=translation["errors"]["1"])
+            embed.set_footer(text="Please check your permissions and try again.")
             await self.try_sending_message(Interaction, embed)
             return  # avoid logging
         # if someone doesn't give all the command argument
         if isinstance(error, errors.MissingRequiredArgument):
             embed = disnake.Embed(
-                title=translation["error_meesages"]["error"],
-                description=translation["error_meesages"]["missing_arguments"],
+                title="Error",
+                description="Missing required arguments for this command.",
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
-            embed.set_footer(text=translation["errors"]["4"])
+            embed.set_footer(text="Please provide all required arguments and try again.")
             await self.try_sending_message(Interaction, embed)
             return  # avoid logging
-        # if the arrow command was user more than one time
+        # if the arrow command was used more than one time
         if isinstance(error, errors.MaxConcurrencyReached):
             embed = disnake.Embed(
-                title=translation["error_meesages"]["error"],
-                description=translation["error_meesages"]["max_concurrency"].format(
-                    command.qualified_name
-                ),
+                title="Error",
+                description=f"Command '{command.qualified_name}' is already in use. Please wait for it to complete before using it again.",
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
-            embed.set_footer(text=translation["errors"]["4"])
+            embed.set_footer(text="Please wait for the current command to finish.")
             await self.try_sending_message(Interaction, embed)
             return  # avoid logging
         # if the top.gg server are dead.
         if isinstance(error, (topgg.errors.ServerError, topgg.errors.HTTPException)):
             embed = disnake.Embed(
-                title=translation["error_meesages"]["error"],
-                description=translation["error_meesages"]["TOPGG"],
+                title="Error",
+                description="An error occurred while communicating with the Top.gg API.",
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
-            embed.set_footer(text=translation["errors"]["4"])
+            embed.set_footer(text="Please try again later.")
             await self.try_sending_message(Interaction, embed)
             return  # avoid logging
         # bad embed form
         if isinstance(error, disnake.errors.HTTPException):
             embed = disnake.Embed(
-                title=translation["error_meesages"]["error"],
-                description=translation["error_meesages"]["http_error"],
+                title="Error",
+                description="An error occurred while sending an embed message.",
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://storage.stfurequiem.com/randomAsset/avatar.png"
+                url="https://media.singularityapp.online/images/assets/pfpsister.png"
             )
-            embed.set_footer(text=translation["errors"]["4"])
+            embed.set_footer(text="Please try again.")
             await self.try_sending_message(Interaction, embed)
+            return  # avoid logging
         # log the error and warn
         warning(f'In the "{command}" command got the Exception: {str(type(error))}')
         await self.logger(command, error)
@@ -234,8 +229,8 @@ class ErrorHandle(commands.Cog):
                 error_traceback,
             )
         except:
-            warning(f"failed Logging! is the database compromised ?")
+            warning(f"Failed Logging! Is the database compromised?")
 
 
-def setup(client:SingularityBot):
+def setup(client: SingularityBot):
     client.add_cog(ErrorHandle(client))
