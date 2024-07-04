@@ -35,12 +35,12 @@ class Shop(commands.Cog):
     @commands.slash_command(
         name="shop", description="Every command to manage and buy at shops"
     )
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
     async def shop(self, Interaction: disnake.ApplicationCommandInteraction):
         pass
 
     @shop.sub_command(name="create", description="Create a public shop.")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def create(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
@@ -91,7 +91,6 @@ class Shop(commands.Cog):
         await user.update()
 
     @shop.sub_command(name="sell", description="Sell an item to your shop")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @shop_check()
     async def sell(
         self, Interaction: disnake.ApplicationCommandInteraction
@@ -132,7 +131,6 @@ class Shop(commands.Cog):
         await Interaction.channel.send(embed=embed)
 
     @shop.sub_command(name="remove", description="Remove an item from your shop")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @shop_check()
     async def remove(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
@@ -172,7 +170,6 @@ class Shop(commands.Cog):
         await Interaction.channel.send(embed=embed)
 
     @shop.sub_command(name="show", description="Show your own shop")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @shop_check()
     async def show(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
@@ -204,7 +201,6 @@ class Shop(commands.Cog):
         await Interaction.send(embed=embed)
 
     @shop.sub_command(name="changeimage", description="Change the shop image")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @shop_check()
     async def changeimage(
         self, Interaction: disnake.ApplicationCommandInteraction, url: str
@@ -235,7 +231,6 @@ class Shop(commands.Cog):
     @shop.sub_command(
         name="buy", description="Buy the cheapest items from other players"
     )
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def buy(
         self,
         Interaction: disnake.ApplicationCommandInteraction,

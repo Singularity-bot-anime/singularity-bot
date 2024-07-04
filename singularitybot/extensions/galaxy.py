@@ -709,7 +709,7 @@ class Galaxies(commands.Cog):
 
         # Get the last war record involving the user's galaxy
         last_war_record = None
-        async with self.singularitybot.database.get_redis_connection() as conn:
+        async with await self.singularitybot.database.get_redis_connection() as conn:
             war_records = await conn.hgetall("war_records")
             for war_id, record in war_records.items():
                 record_data = pickle.loads(record)
@@ -841,6 +841,6 @@ class Galaxies(commands.Cog):
     async def attack(self,Interaction: disnake.CommandInteraction):
         pass
     """
-    
+
 def setup(singularitybot: SingularityBot):
     singularitybot.add_cog(Galaxies(singularitybot))

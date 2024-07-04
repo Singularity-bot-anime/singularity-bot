@@ -33,12 +33,12 @@ class management(commands.Cog):
         self.active_trades = set()  # To keep track of active trades
 
     @commands.slash_command(name="character", description="character management")
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
     async def character(self, Interaction: disnake.ApplicationCommandInteraction):
         pass
 
     @character.sub_command(name="show", description="show one of your main character stats.")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def show(self, Interaction: disnake.ApplicationCommandInteraction):
         User = await self.singularitybot.database.get_user_info(Interaction.author.id)
         if User.main_characters == []:
@@ -64,7 +64,6 @@ class management(commands.Cog):
 
 
     @character.sub_command(name="remove", description="Remove a character from your storage")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def remove(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
@@ -143,7 +142,6 @@ class management(commands.Cog):
         await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
 
     @character.sub_command(name="storage", description="show your character storage")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def storage(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
@@ -287,7 +285,6 @@ class management(commands.Cog):
         await Interaction.channel.send(embed=embed)
 
     @character.sub_command(name="store", description="store a main character into storage")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def store(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
@@ -326,7 +323,6 @@ class management(commands.Cog):
     @character.sub_command(
         name="ascend", description="ascend a main character to a higher plain of existence"
     )
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def awake(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
@@ -355,7 +351,6 @@ class management(commands.Cog):
         )
         await Interaction.channel.send(embed=embed)
     @character.sub_command(name="reforge", description="Reforge a main character for 10000 fragments")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def reforge(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
@@ -456,7 +451,6 @@ class management(commands.Cog):
         await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
 
     @character.sub_command(name="trade", description="trade a character with another user")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def trade(
         self, Interaction: disnake.ApplicationCommandInteraction, tradee: disnake.User
     ):

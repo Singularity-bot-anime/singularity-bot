@@ -42,7 +42,7 @@ class Banners(commands.Cog):
         name="view",
         description="View all active banners!",
     )
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
+    
     async def view(self, Interaction: disnake.ApplicationCommandInteraction):
         enabled_banners = [banner for banner in BANNERS if banner["enabled"]]
 

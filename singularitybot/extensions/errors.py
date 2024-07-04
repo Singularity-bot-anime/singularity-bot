@@ -218,7 +218,7 @@ class ErrorHandle(commands.Cog):
             # from stack overflow : https://stackoverflow.com/questions/4564559/get-exception-description-and-stack-trace-which-caused-an-exception-all-as-a-st
             error_traceback = "".join(
                 traceback.format_exception(
-                    etype=type(error), value=error, tb=error.__traceback__
+                    type(error), error, error.__traceback__
                 )
             )
             # log the error

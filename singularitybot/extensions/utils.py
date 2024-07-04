@@ -21,15 +21,27 @@ class Utils(commands.Cog):
         name="profile",
         description="Display user profile",
     )
-    @database_check()
-    async def profile(self, Interaction: disnake.ApplicationCommandInteraction):
-        #reload
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-    
-        profile_image_file = await get_profile_image(user,self.singularitybot)
-        
+    async def profile(
+        self,
+        Interaction: disnake.ApplicationCommandInteraction,
+        user: disnake.Member = None
+    ):
+        await Interaction.response.defer()
+        target_user = user if user else Interaction.author
+
+        if not await self.singularitybot.database.user_in_database(target_user.id):
+            embed = disnake.Embed(color=disnake.Color.dark_purple())
+            embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
+            await Interaction.send(embed=embed)
+            return
+
+        target_user_info = await self.singularitybot.database.get_user_info(target_user.id)
+        target_user_info.discord = target_user
+
+        profile_image_file = await get_profile_image(target_user_info, self.singularitybot)
+
         await Interaction.send(file=profile_image_file)
+    
     @commands.slash_command(name="cooldowns", description="Show a cooldown list")
     @database_check()
     async def cooldowns(self, Interaction: disnake.ApplicationCommandInteraction):

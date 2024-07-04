@@ -88,8 +88,7 @@ def database_check():
         if not(Interaction.response.is_done()):
             await Interaction.response.defer()
         if not await database.user_in_database(Interaction.author.id):
-            embed = disnake.Embed()
-            disnake.Color.dark_purple()
+            embed = disnake.Embed(color=disnake.Color.dark_purple())
             embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
             await Interaction.send(embed=embed)
             return False

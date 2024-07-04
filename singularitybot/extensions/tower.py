@@ -38,6 +38,7 @@ class Tower(commands.Cog):
     @commands.slash_command(
         name="tower", description="Enter towers to farm items and new character !"
     )
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
     async def tower(self, Interaction: disnake.ApplicationCommandInteraction):
         # translation

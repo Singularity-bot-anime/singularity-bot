@@ -52,7 +52,7 @@ class User:
         self.xp = data["xp"]
         self.level: int = min(USRXPTOLEVEL,int(LVLSCALING*sqrt(self.xp)))  # cap xp to 100
         self.energy: int = data["energy"]
-        self.total_energy: int = int(10 + (self.level) * 2)
+        self.total_energy: int = int(10 + (self.level//5))
         self.pity: int = data["pity"]
         self.job: dict = data["job"]
         self.prestige: int = data["prestige"]
