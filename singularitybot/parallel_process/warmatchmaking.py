@@ -36,10 +36,10 @@ async def main():
             galaxy2 = pickle.loads(galaxy2["data"])
 
             # Already in the matchmaking checks !
-            if database.check_active_war(galaxy1):
+            if await database.check_active_war(galaxy1):
                 await database.publish(MATCHMAKING_QUEUE, galaxy2)
                 continue
-            if database.check_active_war(galaxy2):
+            if await database.check_active_war(galaxy2):
                 await database.publish(MATCHMAKING_QUEUE, galaxy1)
                 continue
             if galaxy1 == galaxy2:

@@ -35,8 +35,8 @@ class Galaxy:
         self.items: List[Item] = [item_from_dict(s) for s in data["items"]]
         self.raid_level: int = data["raid_level"]
         self.war_elo: int = data["war_elo"]
-        self.war_attacks:List[str] = data["war_attacks"],
-        self.raid_attacks:List[str] = data["raid_attacks"]
+        self.war_attacks:List[str] = list(data["war_attacks"])
+        self.raid_attacks:List[str] = list(data["raid_attacks"])
         self.damage_to_current_war: int = data["damage_to_current_war"]
         self.damage_to_current_raid: int = data["damage_to_current_raid"]
         self.end_of_raid: datetime.datetime = data["end_of_raid"]

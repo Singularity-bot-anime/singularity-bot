@@ -355,8 +355,13 @@ async def fight_loop(
         
         if galaxy_fight:
             ia = players[0] if not players[0].is_human else players[1]
-            dmg = calculate_team_damage(ia.main_characters)
-            combat_log.append(dmg)
+            
+            number_of_char = len(ia.main_characters)
+            dead_char = len([char for char in ia.main_characters if not char.is_alive()])
+
+            pourcentage = int((dead_char/number_of_char) * 100)
+
+            combat_log.append(pourcentage)
             await stop_fight(fight_id,win(players).id,combat_log)
             return
 
