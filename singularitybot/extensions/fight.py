@@ -41,7 +41,7 @@ class fight(commands.Cog):
         # Check if the enemy is in the database
         if not await self.singularitybot.database.user_in_database(ennemy.id):
             embed.add_field(name="ERROR",value=f"{ennemy.display_name} is not in the database. They need to register first!")
-            await Interaction.send(embed, ephemeral=True)
+            await Interaction.send(embed=embed, ephemeral=True)
             return
         
         user_1 = await self.singularitybot.database.get_user_info(ennemy.id)
@@ -62,9 +62,6 @@ class fight(commands.Cog):
             embed.add_field(name="Match canceled",value=f"{ennemy.display_name} refused to fight")
             await Interaction.channel.send(embed=embed)
             return
-        
-        
-        
 
         # create the match trough the handler
         players = [Interaction.author.id,ennemy.id]
