@@ -1,5 +1,7 @@
 import disnake
 import datetime
+import pickle
+import json
 
 from disnake.ext import tasks,commands
 
@@ -21,6 +23,9 @@ from singularitybot.utils.functions import format_combat_log,wait_for, add_to_av
 from singularitybot.models.bot.singularitybot import SingularityBot
 from singularitybot.globals.emojis import CustomEmoji,converter
 from singularitybot.models.gameobjects.galaxy import Galaxy, GalaxyRank
+
+with open("singularitybot/data/raids/current_raid.json") as file:
+    current_raid = json.load(file)
 
 class Galaxies(commands.Cog):
     def __init__(self, singularitybot: SingularityBot):
@@ -811,36 +816,219 @@ class Galaxies(commands.Cog):
         embed.set_image(url=galaxy.image_url)
         await Interaction.channel.send(embed=embed)
 
-        user.xp += PLAYER_XPGAINS
-        user.fragments += FRAGMENTSGAIN
+        user.xp += PLAYER_XPGAINS * (1 + (winner.id == user.id))
+        user.fragments += FRAGMENTSGAIN * (1 + (winner.id == user.id))
         for char in user.main_characters:
-            char.xp += CHARACTER_XPGAINS
+            char.xp += CHARACTER_XPGAINS * (1 + (winner.id == user.id))
         
         await user.update()
 
-    """
     # RAID COMMANDS
     @galaxy_check()
     @galaxy.sub_command_group(name="raid")
     async def raid(self, Interaction: disnake.CommandInteraction):
         pass
+    @raid.sub_command(name="start", description="Start a raid and try to win items and characters")
+    async def start(self, Interaction: disnake.CommandInteraction):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-    @war.sub_command(name="status",description="Check if you are in a war and the current status of the war")
+        if galaxy.damage_to_current_raid > 0 and galaxy.end_of_raid > datetime.datetime.utcnow():
+            embed = disnake.Embed(
+                title="Your galaxy is already in a raid or has recently finished one. Please wait.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        raid_cost = current_raid["cost"]
+
+        if galaxy.vault < raid_cost:
+            embed = disnake.Embed(
+                title="Insufficient Funds",
+                description=f"Your galaxy does not have enough funds to start this raid. You need {raid_cost} fragments.",
+                color=disnake.Color.red(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        # Deduct the cost from the galaxy's vault
+        galaxy.vault -= raid_cost
+
+        galaxy.end_of_raid = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        galaxy.damage_to_current_raid = 0
+        galaxy.raid_attacks = []
+
+        await galaxy.update()
+
+        embed = disnake.Embed(
+            title=f"Your galaxy has started a raid against {current_raid['name']}!",
+            description=f"The raid cost {raid_cost} fragments, which has been deducted from your galaxy's vault.",
+            color=disnake.Color.dark_purple(),
+        )
+        embed.set_image(url=galaxy.image_url)
+        await Interaction.send(embed=embed)
+
+    @raid.sub_command(name="status", description="Check if you are in a raid and the current status of the raid")
     async def status(self, Interaction: disnake.CommandInteraction):
-        pass
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-    @raid.sub_command(name="start",description="Start a raid and try to win items and charaters")
-    async def start(self,Interaction: disnake.CommandInteraction):
-        pass
+        if galaxy.end_of_raid <= datetime.datetime.utcnow():
+            embed = disnake.Embed(
+                title="Your galaxy is not currently in a raid.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
 
-    @raid.sub_command(name="result",description="See the result of the last raid")
-    async def result(self,Interaction: disnake.CommandInteraction):
-        pass
+        remaining_time = galaxy.end_of_raid - datetime.datetime.utcnow()
+        remaining_time_str = str(remaining_time).split('.')[0]  # Format remaining time
 
-    @raid.sub_command(name="attack",description="Attack the current raid")
-    async def attack(self,Interaction: disnake.CommandInteraction):
-        pass
-    """
+        
+
+        target_damage = current_raid["target_damage"]
+        remaining_damage = max(0, target_damage - galaxy.damage_to_current_raid)
+        raid_image_url = current_raid["raid_image"]
+
+        embed = disnake.Embed(
+            title="Raid Status",
+            color=disnake.Color.dark_purple(),
+        )
+        embed.add_field(name="Your Galaxy's Damage", value=galaxy.damage_to_current_raid, inline=True)
+        embed.add_field(name="Remaining Damage for Rewards", value=remaining_damage, inline=True)
+        embed.add_field(name="Time Until Raid Ends", value=remaining_time_str, inline=True)
+        embed.set_image(url=raid_image_url)
+
+        await Interaction.send(embed=embed)
+
+
+    @raid.sub_command(name="result", description="See the result of the last raid")
+    async def result(self, Interaction: disnake.CommandInteraction):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+
+        if galaxy.damage_to_current_raid == 0:
+            embed = disnake.Embed(
+                title="Your galaxy has not participated in a raid recently.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        # Retrieve the last raid record
+        raid_id = f"raid_{galaxy.id}"
+        raid_record = await self.singularitybot.database.get_raid_record(raid_id)
+
+        if not raid_record:
+            embed = disnake.Embed(
+                title="No Raid Record Found",
+                description="No recent raid records found for your galaxy.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        raid_successful = raid_record["successful"]
+
+        if raid_successful:
+            embed = disnake.Embed(
+                title="Raid Result",
+                description=f"Congratulations! Your galaxy successfully completed the raid and earned rewards!",
+                color=disnake.Color.dark_purple(),
+            )
+            rewards = raid_record["rewards"]
+            rewards_str = "\n".join([f"- {reward}" for reward in rewards])
+            embed.add_field(name="Rewards", value=rewards_str, inline=False)
+        else:
+            embed = disnake.Embed(
+                title="Raid Result",
+                description="Your galaxy failed to complete the raid.",
+                color=disnake.Color.dark_purple(),
+            )
+
+        # Use the raid image
+        raid_image_url = raid_record.get("raid_image", galaxy.image_url)
+        embed.set_image(url=raid_image_url)
+
+        await Interaction.send(embed=embed)
+
+
+    @raid.sub_command(name="attack", description="Attack the current raid")
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
+    async def attack(self, Interaction: disnake.CommandInteraction):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user.discord = Interaction.author
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+
+        if galaxy.end_of_raid < datetime.datetime.utcnow():
+            embed = disnake.Embed(
+                title="Your galaxy is not currently in a raid or the raid has ended.",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        if not user.main_characters:
+            embed = disnake.Embed(title="You need to have main characters to fight use `/character main`", colour=disnake.Colour.dark_purple())
+            embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
+            await Interaction.send(embed=embed)
+            return
+
+        if user.id in galaxy.raid_attacks:
+            embed = disnake.Embed(
+                title="You already did your attack for this raid!",
+                color=disnake.Color.dark_purple(),
+            )
+            embed.set_image(url=galaxy.image_url)
+            await Interaction.send(embed=embed)
+            return
+
+        embed = disnake.Embed(color=disnake.Color.dark_purple())
+        embed.set_image(url=current_raid["raid_image"])
+        await Interaction.send(embed=embed)
+
+        ennemy_data = {
+            "name": current_raid["name"],
+            "avatar": None,
+            "main_characters": current_raid["main_characters"],
+        }
+        players = [user.id, "0101"]
+        channels = [Interaction.channel.id]*2
+        shards = [self.singularitybot.shard_id]*2
+        names = [user.discord.display_name, ennemy_data["name"]]
+        match_request = create_fight_handler_request(players, channels, shards, names, galaxy_raid=True)
+        match_request["IA_DATA"] = ennemy_data
+        winner, combat_log = await wait_for_fight_end(self.singularitybot.database, match_request)
+        damage = combat_log.pop(-1)
+
+        galaxy.damage_to_current_raid += damage
+        galaxy.raid_attacks.append(user.id)
+        await galaxy.update()
+
+        embeds = format_combat_log(combat_log)
+
+        final_view = Menu(embeds)
+        await Interaction.channel.send(embed=embeds[0], view=final_view)
+        embed = disnake.Embed(
+            title=f"You did {damage} to {current_raid['name']}!",
+            color=disnake.Color.dark_purple(),
+        )
+        embed.set_image(url=galaxy.image_url)
+        await Interaction.channel.send(embed=embed)
+
+        user.xp += PLAYER_XPGAINS  * (1 + (winner.id == user.id))
+        user.fragments += FRAGMENTSGAIN * (1 + (winner.id == user.id))
+        for char in user.main_characters:
+            char.xp += CHARACTER_XPGAINS * (1 + (winner.id == user.id))
+
+        await user.update()
 
 def setup(singularitybot: SingularityBot):
     singularitybot.add_cog(Galaxies(singularitybot))

@@ -451,6 +451,27 @@ class Database:
             record_data = await conn.hget("war_records", war_id)
             return pickle.loads(record_data) if record_data else None
 
+    async def add_raid_record(self, raid_id: str, record_data: dict):
+        async with await self.get_redis_connection() as conn:
+            await conn.hset("RAID_RECORDS", raid_id, pickle.dumps(record_data))
+
+    async def get_raid_record(self, raid_id: str) -> dict:
+        async with await self.get_redis_connection() as conn:
+            record_data = await conn.hget("RAID_RECORDS", raid_id)
+            if record_data:
+                return pickle.loads(record_data)
+            return None
+
+    async def get_all_galaxies(self) -> List[Galaxy]:
+        async with await self.get_redis_connection() as conn:
+            galaxy_ids = await conn.hkeys("galaxies")
+            galaxies = []
+            for galaxy_id in galaxy_ids:
+                galaxy_data = await conn.hget("galaxies", galaxy_id)
+                if galaxy_data:
+                    galaxies.append(pickle.loads(galaxy_data))
+            return galaxies
+
 async def add_field(
     pool: ConnectionPool,
     collection: str,

@@ -80,6 +80,8 @@ def get_character_status(character: "Character") -> str:
         status = " `✔️` "
     else:
         status = ""
+        if character.taunt:
+            status += "🎯"
         unique: List[Effect] = []
         actual_effect = character.effects
         if character.current_armor < character.start_armor:
@@ -151,7 +153,7 @@ def format_combat_log(combat_log: List[str]) -> List[disnake.Embed]:
             embed = disnake.Embed(
                 title="Fight combat log", color=disnake.Color.purple()
             )
-        embed.add_field(name=line, value=f"n°{i}")
+        embed.add_field(name=line, value=f"Turn n°{i}",inline=True)
     embeds.append(embed)
     return embeds
 
@@ -222,6 +224,11 @@ def character_field(character: "Character", embed: disnake.Embed):
         name="▬▬`SPECIAL`▬▬",
         value=character.special_description + "\n     ▬▬▬▬▬▬▬▬▬",
     )
+    if character.taunt:
+        embed.add_field(
+            name="▬▬`TAUNT`▬▬",
+            value="🎯 this character will take damage first from basic attack before it's teamate" + "\n     ▬▬▬▬▬▬▬▬▬",
+        )
     if len(character.items) != 0:
         item = ""
         for i in character.items:
@@ -242,7 +249,7 @@ def is_url_image(image_url: str):
     except:
         return False
 
-def create_fight_handler_request(players:list[int],channels_ids:list[int],shards:list[int],names:list[str] = ["Unknown","Unknown"], ranked=False,galaxy_fight=False)->dict:
+def create_fight_handler_request(players:list[int],channels_ids:list[int],shards:list[int],names:list[str] = ["Unknown","Unknown"], ranked=False,galaxy_fight=False,galaxy_raid=False)->dict:
     """helper fonction to create a request
 
     Args:
@@ -261,7 +268,8 @@ def create_fight_handler_request(players:list[int],channels_ids:list[int],shards
         "channels_ids":channels_ids,
         "shards":shards,
         "names":names,
-        "galaxy_fight":galaxy_fight
+        "galaxy_fight":galaxy_fight,
+        "galaxy_raid":galaxy_raid
     }   
     return request
 

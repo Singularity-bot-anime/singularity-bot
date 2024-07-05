@@ -22,9 +22,17 @@ class Ia:
         self.is_human = False
 
     def choice(self, ennemies: List[Character]):
-        # What the Ia must prioritize
-        def prio(x: Character):
-            return x.current_hp * (x.current_damage) / x.current_armor
+        # Filter only alive enemies and keep their original indices
+        alive_ennemies = [(index, enemy) for index, enemy in enumerate(ennemies) if enemy.is_alive()]
 
-        ennemies.sort(key=prio, reverse=True)
-        return ennemies[0]
+        # Sort enemies based on taunt status, then by damage, then by HP
+        def prio(x):
+            return (
+                not x[1].taunt,      # False if x has taunt, True otherwise (False is prioritized over True)
+                -x[1].current_damage, # Higher damage is prioritized
+                -x[1].current_hp      # Higher HP is prioritized
+            )
+
+        alive_ennemies.sort(key=prio)
+        return alive_ennemies[0][0] if alive_ennemies else 0
+

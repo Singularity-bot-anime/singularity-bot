@@ -72,7 +72,11 @@ class SingularityBot(commands.AutoShardedInteractionBot):
         process = subprocess.Popen(["python", "singularitybot/parallel_process/matchmaking.py"], text=True)
         print("Matchmaking Started")
         return process
-    
+    def start_raidender(self) -> subprocess.CompletedProcess:
+        """Start the matchmaking.py script as a separate process."""
+        process = subprocess.Popen(["python", "singularitybot/parallel_process/raid_end.py"], text=True)
+        print("Raid cleaner Started")
+        return process
     def start_warmatchmaking(self) -> subprocess.CompletedProcess:
         """Start the matchmaking.py script as a separate process."""
         process = subprocess.Popen(["python", "singularitybot/parallel_process/warmatchmaking.py"], text=True)

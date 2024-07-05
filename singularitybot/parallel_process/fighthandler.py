@@ -52,6 +52,7 @@ async def create_match(match_request: Dict):
         match_request["names"],
         ranked=match_request['ranked'],
         galaxy_fight=match_request["galaxy_fight"],
+        galaxy_raid=match_request["galaxy_raid"],
         fight_id=match_request['match_id']
     ) )
 
@@ -189,6 +190,7 @@ async def fight_loop(
     names:List[str],
     ranked: bool = True,
     galaxy_fight: bool = False,
+    galaxy_raid: bool = False,
     fight_id: str = str(uuid.uuid4())
 ) -> Tuple[Union[User, Ia], List[str]]:
     try:
@@ -286,19 +288,19 @@ async def fight_loop(
                         targeted_character: Character = watcher.main_characters[character_index]
                     else:
                         await asyncio.sleep(1)
-                        targeted_character: Stand = player.choice(watcher.main_characters)
+                        targeted_character: Character =  watcher.main_characters[player.choice(watcher.main_characters)]
                     data = character.attack(targeted_character)
                     info_message = ""
                     if data["dodged"]:
-                        info_message = "{} dodged {} attack".format(
+                        info_message = "{} dodged {} attack 💨".format(
                             targeted_character.name, character.name
                         )
                     elif data["critical"]:
-                        info_message = "{} was hit with a citical strike for {} damage".format(
+                        info_message = "{} was hit with a citical strike for {} damage 💥".format(
                             targeted_character.name, data["damage"]
                         )
                     else:
-                        info_message = "{} was hit with {} damage".format(
+                        info_message = "{} was hit with {} damage 💔".format(
                             targeted_character.name, data["damage"]
                         )
                     combat_log.append(
@@ -364,7 +366,15 @@ async def fight_loop(
             combat_log.append(pourcentage)
             await stop_fight(fight_id,win(players).id,combat_log)
             return
+        
+        if galaxy_raid:
+            ia = players[0] if not players[0].is_human else players[1]
+            damage = calculate_team_damage(ia.main_characters)
 
+            combat_log.append(damage)
+            await stop_fight(fight_id,win(players).id,combat_log)
+            return
+        
         if not ranked:
             await stop_fight(fight_id,win(players).id,combat_log)
             return

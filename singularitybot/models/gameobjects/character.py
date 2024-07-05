@@ -48,6 +48,7 @@ class Character:
         self.turn_for_ability: int = character_file[self.id-1]["turn_for_ability"]
         self.special_description: str = character_file[self.id-1]["special_description"]
         self.special_url:str = character_file[self.id-1]["special_url"]
+        self.taunt: bool = character_file[self.id-1]["taunt"]
         self.items: List[Item] = [item_from_dict(s) for s in data["items"]]
         self.level: int = min(MAX_LEVEL, self.xp // STXPTOLEVEL)
 
@@ -56,7 +57,7 @@ class Character:
         bonus_damage = 0
         bonus_speed = 0
         bonus_critical = 0
-        bonus_armor = 0
+        bonus_armor = 0 + (50 * self.taunt)
         for item in self.items:
             bonus_hp += item.bonus_hp
             bonus_damage += item.bonus_damage

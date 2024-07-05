@@ -12,6 +12,7 @@
             "turn_for_ability": 4,
             "base_critical": 5,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -27,6 +28,7 @@
             "turn_for_ability": 0,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -42,6 +44,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -57,6 +60,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -72,6 +76,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -87,6 +92,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -102,6 +108,7 @@
             "turn_for_ability": 0,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -117,6 +124,7 @@
             "turn_for_ability": 0,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -132,6 +140,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -147,6 +156,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -162,6 +172,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -177,6 +188,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -192,6 +204,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -207,6 +220,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -222,6 +236,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -237,6 +252,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -252,6 +268,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -267,6 +284,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -282,6 +300,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -297,6 +316,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -312,6 +332,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -327,6 +348,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -342,6 +364,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -357,6 +380,7 @@
             "turn_for_ability": 3,
             "base_critical": 15,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 140
         },
@@ -369,9 +393,10 @@
             "base_hp": 350,
             "base_damage": 100,
             "base_speed": 15,
-            "turn_for_ability": 2,
+            "turn_for_ability": 3,
             "base_critical": 15,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -387,6 +412,7 @@
             "turn_for_ability": 5,
             "base_critical": 15,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -402,6 +428,7 @@
             "turn_for_ability": 3,
             "base_critical": 15,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -417,6 +444,7 @@
             "turn_for_ability": 4,
             "base_critical": 15,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -432,6 +460,7 @@
             "turn_for_ability": 3,
             "base_critical": 15,
             "expension": 1,
+            "taunt":false,
             "evolve_to": 28,
             "armor": 100
         },
@@ -447,6 +476,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -462,6 +492,7 @@
             "turn_for_ability": 3,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -477,6 +508,7 @@
             "turn_for_ability": 1,
             "base_critical": 10,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -492,6 +524,7 @@
             "turn_for_ability": 3,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -507,6 +540,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -522,6 +556,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -537,6 +572,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -552,6 +588,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -567,6 +604,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -582,6 +620,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -597,6 +636,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -612,6 +652,7 @@
             "turn_for_ability": 1,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -627,6 +668,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -642,6 +684,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -657,6 +700,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -672,6 +716,7 @@
             "turn_for_ability": 3,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -687,6 +732,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -702,6 +748,7 @@
             "turn_for_ability": 2,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -717,6 +764,7 @@
             "turn_for_ability": 1,
             "base_critical": 5,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -732,6 +780,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -747,6 +796,7 @@
             "turn_for_ability": 3,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -762,6 +812,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -777,6 +828,7 @@
             "turn_for_ability": 3,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -792,6 +844,7 @@
             "turn_for_ability": 2,
             "base_critical": 10,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -799,14 +852,15 @@
             "id": 54,
             "name": "Luffy",
             "rarity": "UR",
-            "special_description": "Melodic Charm: Buff allies' stats for 3 turns",
-            "special_url": "https://media1.tenor.com/m/N9CY0ysfpNkAAAAC/one-piece-one-piece-red.gif",
+            "special_description": "gum gum bazooka deal massive damage to ennemies with high armor",
+            "special_url": "https://media1.tenor.com/m/HdHGjI8Vmn0AAAAd/luffy.gif",
             "base_hp": 350,
             "base_damage": 100,
             "base_speed": 15,
             "turn_for_ability": 2,
             "base_critical": 15,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -814,14 +868,15 @@
             "id": 55,
             "name": "Zoro",
             "rarity": "UR",
-            "special_description": "Melodic Charm: Buff allies' stats for 3 turns",
-            "special_url": "https://media1.tenor.com/m/N9CY0ysfpNkAAAAC/one-piece-one-piece-red.gif",
+            "special_description": "Three swords style, Increse speec, critical chance and weaken all ennemies",
+            "special_url": "https://media1.tenor.com/m/S0HSXOdbDdMAAAAC/onigiri-1080p.gif",
             "base_hp": 350,
             "base_damage": 100,
             "base_speed": 15,
             "turn_for_ability": 2,
             "base_critical": 15,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -829,13 +884,15 @@
             "id": 56,
             "name": "Satoru Gojo",
             "rarity": "UR",
-            "special_description":"Hollow Purple",
+            "special_description":"Hollow Purple deal massive extra damage to ennemies who taunt",
             "special_url":"https://media1.tenor.com/m/zDPGGtBO0nkAAAAC/gojou-gojo.gif",
             "base_hp": 350,
             "base_damage": 100,
             "base_speed": 15,
             "base_critical": 15,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -843,13 +900,15 @@
             "id": 57,
             "name": "Ryomen Sukuna",
             "rarity": "UR",
-            "special_description": "Malevolent Shrine" ,
+            "special_description": "Malevolent Shrine, Bleed, and deal AOE damage, the damage bypass armor" ,
             "special_url":"https://media1.tenor.com/m/DJBnrklBV7IAAAAC/sukunan-domain-jujustu-kaisen-expansion.gif",
             "base_hp": 350,
             "base_damage": 100,
             "base_speed": 15,
             "base_critical": 15,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -857,13 +916,15 @@
             "id": 58,
             "name": "Yuji Itadori",
             "rarity": "SSR",
-            "special_description": "Black Flash" ,
+            "special_description": "Black Flash ignore armor and allways crit" ,
             "special_url":"https://media1.tenor.com/m/gy7FlaPfYSAAAAAC/jjk-jujutsu-kaisen.gif",
             "base_hp": 300,
             "base_damage": 75,
             "base_speed": 10,
             "base_critical": 10,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -871,13 +932,15 @@
             "id": 59,
             "name": "Megumi Fushiguro",
             "rarity": "SSR",
-            "special_description": "Summon Mahogara" ,
+            "special_description": "Summon Mahogara and make the team adapt to the current negative effects" ,
             "special_url":"https://media1.tenor.com/m/NOchYt--6C8AAAAC/mahoraga-jujutsu-kaisen.gif",
             "base_hp": 300,
             "base_damage": 75,
             "base_speed": 10,
             "base_critical": 10,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -891,7 +954,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -905,7 +970,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -919,7 +986,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -933,7 +1002,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -947,7 +1018,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -961,7 +1034,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -975,7 +1050,9 @@
             "base_damage": 50,
             "base_speed": 1,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -989,7 +1066,9 @@
             "base_damage": 50,
             "base_speed": 1,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1003,7 +1082,9 @@
             "base_damage": 50,
             "base_speed": 1,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1017,7 +1098,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1031,7 +1114,9 @@
             "base_damage": 50,
             "base_speed": 1,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1045,7 +1130,9 @@
             "base_damage": 75,
             "base_speed": 10,
             "base_critical": 10,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1059,7 +1146,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1073,7 +1162,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":true,
             "evolve_to": null,
             "armor": 100
         },
@@ -1087,7 +1178,9 @@
             "base_damage": 50,
             "base_speed": 5,
             "base_critical": 5,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1101,7 +1194,9 @@
             "base_damage": 75,
             "base_speed": 10,
             "base_critical": 10,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         },
@@ -1116,7 +1211,9 @@
             "base_damage": 75,
             "base_speed": 10,
             "base_critical": 10,
+            "turn_for_ability": 2,
             "expension": 1,
+            "taunt":false,
             "evolve_to": null,
             "armor": 100
         }

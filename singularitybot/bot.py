@@ -90,6 +90,8 @@ async def on_shard_ready(shard_id: int):
             # Match players and galaxies
             Client.start_matchmaking()
             Client.start_warmatchmaking()
+            # Cleanup raids
+            Client.start_raidender()
         Client.bot_init = True
     print(f"Shard id:{shard_id} is ready")
 

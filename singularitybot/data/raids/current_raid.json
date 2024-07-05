@@ -1,0 +1,12 @@
+{
+    "name":"16 fingers Sukuna",
+    "main_characters": [
+        { "id": 57, "xp": 100, "types":["ATTACK"],"qualities":["UNIVERSAL"],"awaken": 3, "items": [{ "id":  5}] }
+    ],
+    "cost": 10000,
+    "target_damage":10000,
+    "raid_image":"https://media1.tenor.com/m/uJqmkP1vVVgAAAAd/sukuna-jogo.gif",
+    "rewards": [
+        6
+    ]
+}
