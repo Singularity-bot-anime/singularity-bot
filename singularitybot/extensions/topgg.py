@@ -83,7 +83,7 @@ class TopGG(commands.Cog):
         
         view = disnake.ui.View()
         view.add_item(disnake.ui.Button(label="Vote!", style=disnake.ButtonStyle.url, url="https://top.gg/bot/1086877089543753748/vote"))
-        await Interaction.send(embed=embed)
+        await Interaction.send(embed=embed,view=view)
 
         time = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         while not await self.dblpy.get_user_vote(user.discord.id):
