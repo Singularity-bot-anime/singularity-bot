@@ -116,5 +116,5 @@ class TopGG(commands.Cog):
         await post_channel.send(embed=embed)
     """
 
-def setup(singularitybot: singularitybot):
+def setup(singularitybot: SingularityBot):
     singularitybot.add_cog(TopGG(singularitybot))
