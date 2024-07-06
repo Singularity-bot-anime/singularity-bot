@@ -26,7 +26,7 @@ class TopGG(commands.Cog):
     """
 
     def __init__(self, singularitybot: SingularityBot):
-        self.singularitybot = SingularityBot
+        self.singularitybot = singularitybot
         self.token = os.environ["TOPGG"]  # set this to your DBL token
         self.dblpy = topgg.DBLClient(self.singularitybot, self.token)
         self.update_stats.start()
