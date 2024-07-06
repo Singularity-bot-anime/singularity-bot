@@ -25,7 +25,7 @@ class TopGG(commands.Cog):
     This example uses tasks provided by discord.ext to create a task that posts guild count to top.gg every 30 minutes.
     """
 
-    def __init__(self, singularitybot: singularitybot):
+    def __init__(self, singularitybot: SingularityBot):
         self.singularitybot = SingularityBot
         self.token = os.environ["TOPGG"]  # set this to your DBL token
         self.dblpy = topgg.DBLClient(self.singularitybot, self.token)
