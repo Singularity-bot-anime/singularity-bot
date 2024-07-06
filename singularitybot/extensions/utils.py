@@ -84,7 +84,7 @@ class Utils(commands.Cog):
         view = disnake.ui.View()
         links = {
             "Advert link": ("Advert", "https://stfurequiem.com/ads"),
-            "Vote link": ("Vote", "https://stfurequiem.com/vote"),
+            "Vote link": ("Vote", "https://top.gg/bot/1086877089543753748/vote"),
         }
         for label, (key, url) in links.items():
             if (now - times[key][0]).total_seconds() // 3600 > times[key][1]:

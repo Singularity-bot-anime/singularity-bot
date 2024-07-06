@@ -7,7 +7,7 @@ import asyncio
 from disnake.ext import commands, tasks
 
 # globals
-from singularitybot.globals.variables import ARROW_VOTE, COINS_VOTE
+from singularitybot.globals.variables import SUPERFRAGMENT_VOTE, COINS_VOTE
 from singularitybot.globals.emojis import CustomEmoji
 
 # utils
@@ -41,19 +41,19 @@ class TopGG(commands.Cog):
             print("Posted server count ({})".format(server_count))
         except Exception as e:
             print("Failed to post server count\n{}: {}".format(type(e).__name__, e))
-    """
-    @commands.slash_command(name="vote", description="vote to gain rewards !")
+    
+    @commands.slash_command(name="vote", description="Vote to gain rewards!")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
     async def vote(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
-        translation = await self.singularitybot.database.get_interaction_lang(Interaction)
 
         past_time = user.last_vote
         now = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         Delta = now - past_time
         wait_time = 12
+
         if Delta.total_seconds() // 3600 <= wait_time:
             wait_for = (
                 datetime.timedelta(hours=wait_time) - Delta
@@ -61,10 +61,8 @@ class TopGG(commands.Cog):
                 else Delta - datetime.timedelta(hours=wait_time)
             )
             embed = disnake.Embed(
-                title=translation["error_meesages"]["error"],
-                description=translation["error_meesages"]["cool_down"].format(
-                    "vote", secondsToText(wait_for.total_seconds())
-                ),
+                title="Error",
+                description=f"You need to wait {secondsToText(wait_for.total_seconds())} before you can vote again.",
                 color=disnake.Colour.dark_purple(),
             )
             embed.set_thumbnail(
@@ -72,40 +70,44 @@ class TopGG(commands.Cog):
             )
             await Interaction.send(embed=embed)
             return
+
         embed = disnake.Embed(
-            title=translation["vote"]["1"], color=disnake.Colour.dark_purple()
+            title="Vote for Rewards!",
+            color=disnake.Colour.dark_purple(),
         )
         embed.add_field(
-            name=translation["vote"]["2"].format(CustomEmoji.LOADING_ICON),
-            value=translation["vote"]["3"],
+            name=f"Voting... {CustomEmoji.LOADING_ICON}",
+            value="Please wait while we check your vote status.",
         )
         embed.set_image(url=self.singularitybot.avatar_url)
+        
+        view = disnake.ui.View()
+        view.add_item(disnake.ui.Button(label="Vote!", style=disnake.ButtonStyle.url, url="https://top.gg/bot/1086877089543753748/vote"))
         await Interaction.send(embed=embed)
+
         time = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         while not await self.dblpy.get_user_vote(user.discord.id):
             delta = (datetime.datetime.utcnow() + datetime.timedelta(hours=2)) - time
             if delta.total_seconds() > 5 * 60:
                 raise TimeoutError
             await asyncio.sleep(10)
+
         user.last_vote = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
-        user.coins += COINS_VOTE
-        user.items = user.items + [item_from_dict({"id": 2})] * ARROW_VOTE
+        user.fragments += COINS_VOTE
+        user.super_fragements += SUPERFRAGMENT_VOTE
+
         embed = disnake.Embed(
-            title=translation["vote"]["4"], color=disnake.Colour.dark_purple()
+            title="Thank you for voting!",
+            color=disnake.Colour.dark_purple(),
         )
         embed.set_image(url=self.singularitybot.avatar_url)
-        embed.add_field(name=f"`Arrows:`", value=f"{ARROW_VOTE}{CustomEmoji.ARROW}"),
-        embed.add_field(name=f"`Coins`:", value=f"{COINS_VOTE}{CustomEmoji.COIN}")
-
-        try:
-            await self.post_to_stfurequiem_server(user)
-        except:
-            pass  # We don't log because it's not necessary !
+        embed.add_field(name="super fragments:", value=f"{SUPERFRAGMENT_VOTE} {CustomEmoji.SUPER_FRAGMENTS}", inline=True)
+        embed.add_field(name="fragments", value=f"{COINS_VOTE} {CustomEmoji.FRAGMENTS}", inline=True)
 
         await user.update()
         await Interaction.delete_original_message()
         await Interaction.channel.send(embed=embed)
-
+    """
     async def post_to_stfurequiem_server(self, user: User):
         post_channel = await self.singularitybot.fetch_channel(990668989074141244)
         embed = disnake.Embed(
