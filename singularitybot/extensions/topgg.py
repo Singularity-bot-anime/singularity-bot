@@ -30,7 +30,7 @@ class TopGG(commands.Cog):
         self.token = os.environ["TOPGG"]  # set this to your DBL token
         self.dblpy = topgg.DBLClient(self.singularitybot, self.token)
         self.update_stats.start()
-
+    
     @tasks.loop(minutes=30)
     async def update_stats(self):
         """This function runs every 30 minutes to automatically update your server count."""
@@ -41,7 +41,7 @@ class TopGG(commands.Cog):
             print("Posted server count ({})".format(server_count))
         except Exception as e:
             print("Failed to post server count\n{}: {}".format(type(e).__name__, e))
-
+    """
     @commands.slash_command(name="vote", description="vote to gain rewards !")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
@@ -114,7 +114,7 @@ class TopGG(commands.Cog):
         )
         embed.set_thumbnail(url=user.discord.display_avatar.url)
         await post_channel.send(embed=embed)
-
+    """
 
 def setup(singularitybot: singularitybot):
     singularitybot.add_cog(TopGG(singularitybot))
