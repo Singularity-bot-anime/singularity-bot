@@ -13,6 +13,7 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": true,
+            "special_image":"",
             "turn_for_ability": 0
         },
         {
@@ -28,6 +29,7 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": true,
+            "special_image":"",
             "turn_for_ability": 0
         },
         {
@@ -43,6 +45,7 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": true,
+            "special_image":"",
             "turn_for_ability": 0
         },
         {
@@ -58,6 +61,7 @@
             "is_equipable": true,
             "is_active": true,
             "prurchasable": false,
+            "special_image":"https://media1.tenor.com/m/18lhv0R4JOQAAAAC/madara-uchiha-madara.gif",
             "turn_for_ability": 0
         },
         {
@@ -73,11 +77,12 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": false,
+            "special_image":"",
             "turn_for_ability": 0
         },
         {
             "id": 6,
-            "name": "mahoraga wheel piece",
+            "name": "Mahoraga wheel piece",
             "price": null,
             "emoji": "🛞",
             "bonus_hp": 0,
@@ -88,7 +93,24 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "special_image":"",
             "turn_for_ability": 0
+        },
+        {
+            "id": 7,
+            "name": "Mahoraga wheel",
+            "price": 100000,
+            "emoji": "🛞",
+            "bonus_hp": 200,
+            "bonus_damage": 0,
+            "bonus_speed": 0,
+            "bonus_critical": 0,
+            "bonus_armor":50,
+            "is_equipable": true,
+            "is_active": true,
+            "prurchasable": true,
+            "special_image":"https://media1.tenor.com/m/GZ7U7-D6aasAAAAC/mahoraga-mahora-ga.gif",
+            "turn_for_ability": 2
         }
     ]
 }

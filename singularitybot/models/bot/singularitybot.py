@@ -95,7 +95,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
                 if message is not None:
                     await requests.put(message)
                     
-
     async def process_redis_message(self,requests:asyncio.Queue):
         while True:
             request = await requests.get()

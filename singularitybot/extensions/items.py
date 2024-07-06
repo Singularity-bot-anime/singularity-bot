@@ -1,5 +1,6 @@
 import disnake
 import random
+import json
 
 from disnake.ext import commands
 from typing import List
@@ -7,6 +8,7 @@ from typing import List
 # ui
 from singularitybot.ui.CharacterSelect import CharacterSelectDropdown
 from singularitybot.ui.item_select import ItemSelectDropdown
+from singularitybot.ui.confirmation import Confirm
 
 # utils
 from singularitybot.utils.decorators import database_check
@@ -21,6 +23,9 @@ from singularitybot.utils.functions import (
 from singularitybot.models.gameobjects.items import Item
 from singularitybot.models.bot.singularitybot import SingularityBot
 from singularitybot.models.gameobjects.character import Character, get_character_from_template
+
+with open("singularitybot/data/templates/recipes.json") as file:
+    recipes = json.load(file)["recipes"]
 
 
 class Items(commands.Cog):
@@ -181,190 +186,77 @@ class Items(commands.Cog):
         )
         await user.update()
         await Interaction.channel.send(embed=embed)
-
-    """@item.sub_command(name="use", description="use one of your non equipable items.")
+    
+    @item.sub_command(name="craft", description="Craft an item from a recipe")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    async def use(self, Interaction: disnake.ApplicationCommandInteraction):
-        translation = await self.singularitybot.database.get_interaction_lang(Interaction)
+    @database_check()
+    async def craft(self, Interaction: disnake.ApplicationCommandInteraction, recipe_name: str):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        usable_items = [item for item in user.items if not item.is_equipable]
-        if len(usable_items) == 0:
+        recipe = next((r for r in recipes if r["name"].lower() == recipe_name.lower()), None)
+        if not recipe:
             embed = disnake.Embed(
-                title=translation["use"]["1"], color=disnake.Color.blue()
+                title="Recipe not found.",
+                color=disnake.Color.dark_purple(),
             )
-            embed.set_image(url=self.singularitybot.avatar_url)
+            await Interaction.send(embed=embed, ephemeral=True)
+            return
+
+        missing_items = []
+        for ingredient in recipe["ingredients"]:
+            item_id, required_amount = ingredient
+            user_items_count = sum(1 for item in user.items if item.id == item_id)
+            if user_items_count < required_amount:
+                missing_items.append((item_id, required_amount - user_items_count))
+
+        if missing_items:
+            embed = disnake.Embed(color=disnake.Color.dark_purple())
+            for item_id, amount in missing_items:
+                item = Item({"id": item_id})
+                embed.add_field(name=f"Missing {item.name} x{amount}", value=item.emoji, inline=True)
             await Interaction.send(embed=embed)
             return
-        embed = disnake.Embed(title=translation["use"]["2"], color=disnake.Color.blue())
-        view = ItemSelectDropdown(Interaction, usable_items)
+
+        embed = disnake.Embed(
+            title="Confirm Crafting",
+            description=f"Do you want to craft {recipe_name}?",
+            color=disnake.Color.dark_purple(),
+        )
+        view = Confirm(Interaction)
         await Interaction.send(embed=embed, view=view)
         await wait_for(view)
-        index = view.value
-        item = usable_items[index]
-        index = [i.id for i in user.items].index(item.id)
-        item = user.items.pop(index)
 
-        # Gacha items
-        gacha_item = [2, 12]
-        # Stand chip
-        chip_ids = [
-            8,
-            9,
-            10,
-            11,
-            14,
-            17,
-            18,
-            19,
-            20,
-            21,
-            22,
-            23,
-            24,
-            25,
-            26,
-            27,
-            28,
-            29,
-            30,
-            31,
-            32,
-        ]
-        actual_id = [
-            9,
-            0,
-            5,
-            29,
-            162,
-            30,
-            57,
-            31,
-            33,
-            44,
-            48,
-            49,
-            58,
-            59,
-            68,
-            74,
-            77,
-            79,
-            80,
-            82,
-            83,
-        ]
-        # Requiem IDs
-        requiemable = [49, 6, 59]
-        requiem_stand = [57, 82, 83]
-        # stand to excluse from gacha
-        special_stand = [163, 110, 84, 109, 161, 120, 114]
-        # action based on which item was used
-        if item.id in gacha_item:  # Stand arrows classic gacha
-            if item.id == 2:
+        if not view.value:
+            embed = disnake.Embed(
+                title="Crafting Canceled",
+                description="You have canceled the crafting process.",
+                color=disnake.Color.dark_purple(),
+            )
+            await Interaction.send(embed=embed, ephemeral=True)
+            return
 
-                stand_list = [
-                    get_stand_from_template(stand)
-                    for stand in self.singularitybot.stand_file
-                    if not stand["id"] in special_stand
-                ]
-            if item.id == 12:
-                stand_list = [
-                    get_stand_from_template(stand)
-                    for stand in self.singularitybot.stand_file
-                    if stand["id"] < 31 and not stand["id"] in special_stand
-                ]
-            drop: Stand = get_drop_from_list(stand_list)[0]
-            msg = add_to_available_storage(user, drop)
-            if msg:
-                embed = disnake.Embed(
-                    title=translation["use"]["3"].format(msg),
-                    color=disnake.Color.blue(),
-                )
-                embed.set_thumbnail(
-                    url="https://vignette.wikia.nocookie.net/jjba/images/9/9f/Arrow_anime.png/revision/latest?cb=20190614222010"
-                )
-                embed = stand_fields(drop, embed)
-                await user.update()
-                await Interaction.channel.send(embed=embed)
-                return
-            embed = disnake.Embed(
-                title=translation["use"]["4"], color=disnake.Color.blue()
-            )
-            embed.set_image(url=self.singularitybot.avatar_url)
-            await Interaction.channel.send(embed=embed)
-            return
-        if item.id == 3:  # Requiem stand
-            view = StandSelectDropdown(Interaction, user.stands)
-            embed = disnake.Embed(
-                title=translation["use"]["5"], color=disnake.Color.blue()
-            )
-            await Interaction.channel.send(embed=embed, view=view)
-            await wait_for(view)
-            stand: Stand = user.stands[view.value]
-            if stand.ascension + stand.stars >= 7:
-                embed = disnake.Embed(
-                    title=translation["use"]["6"], color=disnake.Color.blue()
-                )
-                embed.set_image(url=self.singularitybot.avatar_url)
-                await Interaction.channel.send(embed=embed)
-                return
-            if stand.id in requiemable and stand.ascension >= 2 and stand.level >= 100:
-                index = requiemable.index(stand.id)
-                new_stand_template = self.singularitybot.stand_file[requiem_stand[index]]
-                new_stand = get_stand_from_template(new_stand_template)
-                new_stand.items = stand.items
-                new_stand.reset()
-                user.stands[view.value] = new_stand
-                await user.update()
-                embed = disnake.Embed(
-                    title=translation["use"]["7"], color=disnake.Color.blue()
-                )
-                embed = stand_fields(new_stand, embed)
-                await Interaction.channel.send(embed=embed)
-                return
-            stand.ascension += 1
-            user.stands[view.value] = stand
-            embed = disnake.Embed(
-                title=translation["use"]["8"].format(stand.name, stand.ascension),
-                color=disnake.Color.blue(),
-            )
-            embed.set_image(url="https://storage.stfurequiem.com/item_special/6.gif")
-            await user.update()
-            await Interaction.channel.send(embed=embed)
-        if item.id in chip_ids:  # Stand Chips
-            index = chip_ids.index(item.id)
-            new_stand_template = self.singularitybot.stand_file[actual_id[index]]
-            new_stand = get_stand_from_template(new_stand_template)
-            msg = add_to_available_storage(user, new_stand)
-            if msg:
-                embed = disnake.Embed(
-                    title=translation["use"]["3"].format(msg),
-                    color=disnake.Color.blue(),
-                )
-                embed = stand_fields(new_stand, embed)
-                await user.update()
-                await Interaction.channel.send(embed=embed)
-                return
-            embed = disnake.Embed(
-                title=translation["use"]["4"], color=disnake.Color.blue()
-            )
-            await Interaction.channel.send(embed=embed)
-            user.items.append(item)
-            return
-        if item.id == 13:  # bag of coins
-            amount = random.randint(75, 125)
-            user.coins += amount
-            embed = disnake.Embed(
-                title=translation["use"]["9"].format(amount), color=disnake.Color.blue()
-            )
-            embed.set_image(
-                url="https://i.pinimg.com/originals/a5/e8/2d/a5e82d700ff336637489b44f32d36095.gif"
-            )
-            await user.update()
-            await Interaction.channel.send(embed=embed)
-            return"""
+        for ingredient in recipe["ingredients"]:
+            item_id, required_amount = ingredient
+            for _ in range(required_amount):
+                item = next(item for item in user.items if item.id == item_id)
+                user.items.remove(item)
+
+        crafted_item = Item({"id":recipe["result"]})
+        user.items.append(crafted_item)
+
+        await user.update()
+
+        embed = disnake.Embed(
+            title="Crafting Successful",
+            description=f"You have crafted {crafted_item.name}{crafted_item.emoji}.",
+            color=disnake.Color.dark_purple(),
+        )
+        await Interaction.send(embed=embed)
+
+    @craft.autocomplete("recipe_name")
+    async def autocomplete_recipe_name(self, Interaction: disnake.ApplicationCommandInteraction, current: str):
+        return [recipe["name"] for recipe in recipes if current.lower() in recipe["name"].lower()]
 
 
 def setup(singularitybot: SingularityBot):

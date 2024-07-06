@@ -2,7 +2,7 @@ import random
 
 from typing import TYPE_CHECKING, List
 
-from singularitybot.models.gameobjects.effects import Effect, EffectType
+from singularitybot.models.gameobjects.effects import Effect, EffectType,NEGATIVE_EFFECTS
 
 # It's for typehint
 if TYPE_CHECKING:
@@ -31,11 +31,24 @@ def explosive_tag(
         target = random.choice(valid_character)
         target.current_hp -= multiplier
         message = f"｢{character.name}｣'s explosive tag detonage on {target.name} for {multiplier} damage"
-    message = f"Sheer heart attack schearch for ennemies"
+    message = f"explosive tag detonage"
     return message
 
+def mahoraga_wheel(
+    character: "Character", allied_character: List["Character"], ennemy_character: List["Character"]
+) -> tuple:
+   
+    character.effects = [e for e in character.effects if not e.type in NEGATIVE_EFFECTS]
+    if character.current_speed < character.start_speed:
+        character.current_speed = character.start_speed
+    if character.current_armor < character.start_armor:
+        character.current_armor = character.start_armor
+    
+    message = f"The wheel adapts to the effects and clear them off {character.name}"
 
+    return message
 
 item_specials = {
-    "4":explosive_tag
+    "4":explosive_tag,
+    "7":mahoraga_wheel,
 }

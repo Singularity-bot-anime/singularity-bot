@@ -48,3 +48,5 @@ class Effect:
         self.used: bool = False
         self.emoji: disnake.PartialEmoji = Emoji[self.type.name]
         self.sender: Optional["Character"] = sender
+
+NEGATIVE_EFFECTS = [EffectType.POISON, EffectType.BURN, EffectType.BLEED,EffectType.STUN,EffectType.WEAKEN]

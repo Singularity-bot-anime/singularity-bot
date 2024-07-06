@@ -1,0 +1,9 @@
+{
+    "recipes":[
+        {
+            "name":"Mahoraga wheel",
+            "ingredients":[[6,8]],
+            "result":7
+        }
+    ]
+}

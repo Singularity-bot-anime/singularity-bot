@@ -462,7 +462,7 @@ class Database:
                 return pickle.loads(record_data)
             return None
 
-    async def get_all_galaxies(self) -> List[Galaxy]:
+    async def get_all_galaxies(self) -> List[dict]:
         async with await self.get_redis_connection() as conn:
             galaxy_ids = await conn.hkeys("galaxies")
             galaxies = []

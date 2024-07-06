@@ -29,6 +29,7 @@ class Item:
         self.is_equipable = item_file[self.id-1]["is_equipable"]
         self.is_active = item_file[self.id-1]["is_active"]
         self.turn_for_ability = item_file[self.id-1]["turn_for_ability"]
+        self.special_image = item_file[self.id-1]["special_image"]
         # Variable
         self.special_meter: int = 0
 
@@ -39,7 +40,8 @@ class Item:
         self.special_meter = 0
         try:
             message = item_specials[f"{self.id}"](stand, allies, ennemies)
-        except:
+        except Exception as e:
+            raise(e)
             message = "None"
         return message
 

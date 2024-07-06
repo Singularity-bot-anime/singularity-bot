@@ -327,8 +327,7 @@ async def fight_loop(
                     for item in character.items:
                         if item.as_special():
                             message = item.special(character, player.main_characters, watcher.main_characters)
-                            await asyncio.sleep(0.5)
-                            if message == "None":
+                            if message:
                                 combat_log.append(
                                     "turn {} item special".format(turn + 1)
                                     + ", "
@@ -336,12 +335,13 @@ async def fight_loop(
                                 )
                                 embed = disnake.Embed(
                                     title=message, color=disnake.Color.dark_purple()
-                                )
-                                embed.set_image(
-                                    url=f"https://storage.stfurequiem.com/item_special/{item.id}.gif"
-                                )
-                                await edit(messages_2,shards, embed)
-                                await asyncio.sleep(0.5)
+                                )  
+                                url=item.special_image
+
+                                await edit(messages_2,shards,channels, embed,url,fight_id)
+                                await asyncio.sleep(2)
+                            else:
+                                print(f"Error in item special :{item.name}")
             for character in player.main_characters + watcher.main_characters:
                 character.end_turn()
             turn_amount = 1

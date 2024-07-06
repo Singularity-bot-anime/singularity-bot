@@ -18,19 +18,17 @@ database: Database = Database(LOOP)
 
 async def main():
     await check_active_raids()
-
 async def check_active_raids():
     while True:
         await asyncio.sleep(3600)  # Check every hour
 
         galaxies = await database.get_all_galaxies()
         for galaxy in galaxies:
-            if galaxy.end_of_raid and datetime.datetime.utcnow() >= galaxy.end_of_raid:
+            galaxy = await database.get_galaxy_info(galaxy["id"])
+            if datetime.datetime.utcnow() >= galaxy.end_of_raid:
                 await process_raid_end(galaxy)
 
 async def process_raid_end(galaxy: Galaxy):
-    
-
     target_damage = current_raid["target_damage"]
     raid_successful = galaxy.damage_to_current_raid >= target_damage
 
