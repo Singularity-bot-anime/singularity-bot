@@ -61,6 +61,8 @@ class Tower(commands.Cog):
 
         Interaction = view.interaction
 
+        await Interaction.response.edit_message(embed=embed,view=PlaceHolder())
+
         if not view.value:
             embed = disnake.Embed(
                 title="You did not enter the tower", color=disnake.Color.dark_purple()
@@ -83,7 +85,7 @@ class Tower(commands.Cog):
         user.fragments -= ENTRYCOST
         #await user.update()
         view = TowerSelectDropdown(Interaction)
-        await Interaction.response.edit_message(embed=embed, view=view)
+        await Interaction.edit_original_message(embed=embed, view=view)
         await wait_for(view)
         tower_id = view.value -1
         tower = self.tower_file[tower_id]
@@ -133,12 +135,11 @@ class Tower(commands.Cog):
             {"id": i["id"]} for i in tower["rewards"][0 : tower["unlocks"][i]]
         ]
         #I did this in STFU no idea what this does but it works
-        probabilities = [i["p"] for i in tower["rewards"][0 : tower["unlocks"][i]]]
+        reward_items = [{"id": i["id"]} for i in tower["rewards"][0: tower["unlocks"][i]]]
+        probabilities = [i["p"] for i in tower["rewards"][0: tower["unlocks"][i]]]
         sum_level = (i * (i + 1)) / 2
         probabilities_ndrop = [(7 - n) / sum_level for n in range(1, i + 1)]
-        number_of_drops = random.choices(
-            list(range(1, i + 1)), probabilities_ndrop, k=1
-        )[0]
+        number_of_drops = random.choices(list(range(1, i + 1)), probabilities_ndrop, k=1)[0]
         items = random.choices(reward_items, probabilities, k=number_of_drops)
 
         items = [item_from_dict(get_item_from_template(item)) for item in items]

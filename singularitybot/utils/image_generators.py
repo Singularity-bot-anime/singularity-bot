@@ -9,12 +9,16 @@ def get_error_file() -> disnake.File:
     """Returns the default error image"""
     return disnake.File("singularitybot/data/assets/errorloading.jpg")
 
-
+profile_image = Image.open("singularitybot/data/assets/profile_template.png")
+origin_tower = Image.open("singularitybot/data/assets/tower_1.png")
+win_image = Image.open("singularitybot/data/assets/fight_win_image.png")
+fight_image = Image.open(f"singularitybot/data/assets/fight_image.png")
+ranked_image = Image.open(f"singularitybot/data/assets/fight_ranked_image.png")
 async def get_profile_image(user: User, client) -> disnake.File:
     try:
-        image = Image.open("singularitybot/data/assets/profile_template.png")
+        
         AVATAR_SIZE = 128
-
+        image = profile_image.copy()
         # User avatar
         avatar_url = user.discord.display_avatar.with_format("jpg").with_size(AVATAR_SIZE)
         buffer_avatar = io.BytesIO(await avatar_url.read())
@@ -67,7 +71,7 @@ async def get_profile_image(user: User, client) -> disnake.File:
 
 async def origins_tower_image(user: disnake.User, stage: int) -> disnake.File:
     try:
-        image = Image.open("singularitybot/data/assets/tower_1.png")
+        image = origin_tower.copy()
         # create object for drawing
         AVATAR_SIZE = 128
 
@@ -121,7 +125,7 @@ tower_images = {
 # this returns a image used for fight
 async def get_win_image(user1: disnake.User) -> disnake.File:
     try:
-        image = Image.open("singularitybot/data/assets/fight_win_image.png")
+        image = win_image.copy()
         # create object for drawing
         AVATAR_SIZE = 128
         # get both avatars
@@ -153,10 +157,10 @@ async def get_win_image(user1: disnake.User) -> disnake.File:
 async def get_fight_image(user1: disnake.User, user2: disnake.User,ranked=False) -> disnake.File:
     try:
         if ranked:
-            fight="ranked_"
+            image = ranked_image.copy()
         else:
-            fight = ""
-        image = Image.open(f"singularitybot/data/assets/fight_{fight}image.png")
+            image = fight_image.copy()
+        
         # create object for drawing
         AVATAR_SIZE = 128
         # get both avatars

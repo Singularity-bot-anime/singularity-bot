@@ -24,7 +24,7 @@ async def check_active_raids():
 
         galaxies = await database.get_all_galaxies()
         for galaxy in galaxies:
-            galaxy = await database.get_galaxy_info(galaxy["id"])
+            galaxy = await database.get_galaxy_info(galaxy["_id"])
             if datetime.datetime.utcnow() >= galaxy.end_of_raid:
                 await process_raid_end(galaxy)
 

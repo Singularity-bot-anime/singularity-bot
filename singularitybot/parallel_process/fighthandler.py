@@ -182,12 +182,11 @@ async def delete_all(messages: List[int],shards:list[int],channels:list[int],fig
                 message = await pubsub.get_message(ignore_subscribe_messages=True)
                 if message is not None:
                     break
-
 async def fight_loop(
     fighters: List[Union[User, Ia]],
     channels: List[int],
-    shards:List[int],
-    names:List[str],
+    shards: List[int],
+    names: List[str],
     ranked: bool = True,
     galaxy_fight: bool = False,
     galaxy_raid: bool = False,
@@ -196,19 +195,20 @@ async def fight_loop(
     try:
         # Message used for status and attacks
         embed = disnake.Embed(
-            title=f"fight is loading please wait",
+            title="Fight is loading, please wait",
             color=disnake.Color.dark_purple(),
         )
-        messages_1 = await send_all(embed, channels,shards, fight_id)
+        messages_1 = await send_all(embed, channels, shards, fight_id)
         # Message used to display specials
         embed = disnake.Embed(colour=disnake.Colour.dark_purple())
-        image_list = ["https://media1.tenor.com/m/43hSW7CM0UoAAAAC/anime-come.gif",
-        "https://c.tenor.com/B_J3xedKvA8AAAAC/jojo-anime.gif",
-        "https://media1.tenor.com/m/_PPOYsb1GeIAAAAd/anime-fight.gif",
-        "https://media1.tenor.com/m/yd7Ntm5sUHMAAAAC/sasuke-naruto.gif",
+        image_list = [
+            "https://media1.tenor.com/m/43hSW7CM0UoAAAAC/anime-come.gif",
+            "https://c.tenor.com/B_J3xedKvA8AAAAC/jojo-anime.gif",
+            "https://media1.tenor.com/m/_PPOYsb1GeIAAAAd/anime-fight.gif",
+            "https://media1.tenor.com/m/yd7Ntm5sUHMAAAAC/sasuke-naruto.gif",
         ]
         embed.set_image(url=random.choice(image_list))
-        messages_2 = await send_all(embed, channels,shards, fight_id)
+        messages_2 = await send_all(embed, channels, shards, fight_id)
         # Set the message for the player
         fighters[0].message = messages_1[0]
         fighters[1].message = messages_1[1]
@@ -222,13 +222,13 @@ async def fight_loop(
         players = [fighters[0], fighters[1]]
         if start_2 > start_1:
             players = [fighters[1], fighters[0]]
-            channels = [channels[1],channels[0]]
-            shars = [shards[1],shards[0]]
+            channels = [channels[1], channels[0]]
+            shards = [shards[1], shards[0]]
         elif start_2 == start_1:
-            combined = list(zip(players, channels, shards,names,messages_2,messages_1))
+            combined = list(zip(players, channels, shards, names, messages_2, messages_1))
             random.shuffle(combined)
-            players, channels, shards, names,messages_2,messages_1 = zip(*combined)
-            players, channels, shards, names,messages_2,messages_1 = list(players), list(channels), list(shards), list(names),list(messages_2),list(messages_1)
+            players, channels, shards, names, messages_2, messages_1 = zip(*combined)
+            players, channels, shards, names, messages_2, messages_1 = list(players), list(channels), list(shards), list(names), list(messages_2), list(messages_1)
         # We give a little help if you start second
         for character in players[1].main_characters:
             character.special_meter += 1
@@ -243,14 +243,14 @@ async def fight_loop(
                 if character.is_alive() and not character.is_stunned():
                     embed = disnake.Embed(
                         title="Fight",
-                        description=f"Turn `{names[turn%2]}`",
+                        description=f"Turn `{names[turn % 2]}`",
                         color=disnake.Color.dark_purple(),
                     )
                     status = get_character_status(character)
                     turn_ = get_turn_special(character)
                     embed.add_field(
-                        name=f"What shoud {character.name} do ?",
-                        value=f"`HP`:`{int(character.current_hp)}/{int(character.start_hp)}❤️`\n`STATUS`:{status}\n`Ability`:{turn_}\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+                        name=f"What should {character.name} do?",
+                        value=f"`HP`: `{int(character.current_hp)}/{int(character.start_hp)}❤️`\n`STATUS`: {status}\n`Ability`: {turn_}\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
                         inline=False,
                     )
                     for ennemy_character in watcher.main_characters:
@@ -262,33 +262,33 @@ async def fight_loop(
                             spe = get_turn_special(ennemy_character)
                             embed.add_field(
                                 name=f"`『{ennemy_character.name}』`\n{etoile}",
-                                value=f"HP:`{int(ennemy_character.current_hp)}/{int(ennemy_character.start_hp)}❤️`\n`STATUS`:{status}\n`Ability`:{spe}\n    ▬▬▬▬▬▬▬▬▬",
+                                value=f"HP: `{int(ennemy_character.current_hp)}/{int(ennemy_character.start_hp)}❤️`\n`STATUS`: {status}\n`Ability`: {spe}\n    ▬▬▬▬▬▬▬▬▬",
                                 inline=True,
                             )
                     if player.is_human:
-                        view = view_to_dict_fight('FightUi',int(player.id),watcher.main_characters,player.main_characters)
+                        view = view_to_dict_fight('FightUi', int(player.id), watcher.main_characters, player.main_characters)
                         if ranked:
-                            await edit_ui(watcher.message,shards[(turn+1)%2],channels[(turn+1)%2], embed, {'type':'placeholder'},fight_id)
-                        value = await edit_ui(player.message,shards[turn%2],channels[turn%2] ,embed,view,fight_id)
-                        if value == None:
+                            await edit_ui(watcher.message, shards[(turn + 1) % 2], channels[(turn + 1) % 2], embed, {'type': 'placeholder'}, fight_id)
+                        value = await edit_ui(player.message, shards[turn % 2], channels[turn % 2], embed, view, fight_id)
+                        if value is None:
                             for i in player.main_characters:
                                 i.current_hp = 0
                             combat_log.append("Combat terminated because of inactivity.")
                             break
                         
-                        await edit_ui(player.message,shards[turn%2],channels[turn%2], embed,{'type':'placeholder'},fight_id)
+                        await edit_ui(player.message, shards[turn % 2], channels[turn % 2], embed, {'type': 'placeholder'}, fight_id)
                         if value == "ff":
                             for i in player.main_characters:
                                 i.current_hp = 0
                                 combat_log.append(
-                                    "{}".format(turn + 1) + ", " + f"{names[turn%2]} surrendered"
+                                    "{}".format(turn + 1) + ", " + f"{names[turn % 2]} surrendered"
                                 )
                             break
                         character_index = value
                         targeted_character: Character = watcher.main_characters[character_index]
                     else:
-                        await asyncio.sleep(1)
-                        targeted_character: Character =  watcher.main_characters[player.choice(watcher.main_characters)]
+                        await asyncio.sleep(2)
+                        targeted_character: Character = watcher.main_characters[player.choice(watcher.main_characters)]
                     data = character.attack(targeted_character)
                     info_message = ""
                     if data["dodged"]:
@@ -296,7 +296,7 @@ async def fight_loop(
                             targeted_character.name, character.name
                         )
                     elif data["critical"]:
-                        info_message = "{} was hit with a citical strike for {} damage 💥".format(
+                        info_message = "{} was hit with a critical strike for {} damage 💥".format(
                             targeted_character.name, data["damage"]
                         )
                     else:
@@ -306,11 +306,39 @@ async def fight_loop(
                     combat_log.append(
                         "{}".format(turn + 1) + ", " + info_message
                     )
+                    # Update the embed with the new status
+                    embed = disnake.Embed(
+                        title="Fight",
+                        description=f"Turn `{names[turn % 2]}`",
+                        color=disnake.Color.dark_purple(),
+                    )
+                    status = get_character_status(character)
+                    turn_ = get_turn_special(character)
+                    embed.add_field(
+                        name=f"What should {character.name} do?",
+                        value=f"`HP`: `{int(character.current_hp)}/{int(character.start_hp)}❤️`\n`STATUS`: {status}\n`Ability`: {turn_}\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+                        inline=False,
+                    )
+                    for ennemy_character in watcher.main_characters:
+                        if ennemy_character.is_alive():
+                            etoile = (
+                                converter[ennemy_character.rarity] + "🌟" * character.awaken
+                            )
+                            status = get_character_status(ennemy_character)
+                            spe = get_turn_special(ennemy_character)
+                            embed.add_field(
+                                name=f"`『{ennemy_character.name}』`\n{etoile}",
+                                value=f"HP: `{int(ennemy_character.current_hp)}/{int(ennemy_character.start_hp)}❤️`\n`STATUS`: {status}\n`Ability`: {spe}\n    ▬▬▬▬▬▬▬▬▬",
+                                inline=True,
+                            )
+                    await edit(messages_1, shards, channels, embed, url=None, fight_id=fight_id)
+                    
+                    # Show the attack result
                     embed = disnake.Embed(
                         title=info_message, color=disnake.Color.dark_purple()
                     )
-                    url=f"https://media.singularityapp.online/images/cards/{character.id}.png"  
-                    await edit(messages_2,shards,channels, embed,url,fight_id)
+                    url = f"https://media.singularityapp.online/images/cards/{character.id}.png"  
+                    await edit(messages_2, shards, channels, embed, url, fight_id)
                 if character.is_alive() and not (character.is_stunned()) and character.as_special():
                     payload, message = character.special(player.main_characters, watcher.main_characters)
                     if payload["is_a_special"]:
@@ -319,8 +347,8 @@ async def fight_loop(
                             "turn {} Special Used".format(turn + 1) + ", " + message
                         )
                         embed = disnake.Embed(title=message, color=disnake.Color.dark_purple())
-                        url=character.special_url
-                        await edit(messages_2,shards,channels, embed,url,fight_id)
+                        url = character.special_url
+                        await edit(messages_2, shards, channels, embed, url, fight_id)
                         await asyncio.sleep(1)
                         king_crimson |= payload["king_crimson"]
                 if character.is_alive():
@@ -336,9 +364,9 @@ async def fight_loop(
                                 embed = disnake.Embed(
                                     title=message, color=disnake.Color.dark_purple()
                                 )  
-                                url=item.special_image
+                                url = item.special_image
 
-                                await edit(messages_2,shards,channels, embed,url,fight_id)
+                                await edit(messages_2, shards, channels, embed, url, fight_id)
                                 await asyncio.sleep(2)
                             else:
                                 print(f"Error in item special :{item.name}")
@@ -347,13 +375,13 @@ async def fight_loop(
             turn_amount = 1
             if king_crimson:
                 # We set this to 2 so we don't change parity
-                # Effectivly skipping a turn
+                # Effectively skipping a turn
                 turn_amount = 2
                 # Disable the effect afterward
                 king_crimson = False
             turn += turn_amount
-        await delete_all(messages_1,shards,channels,fight_id)
-        await delete_all(messages_2,shards,channels,fight_id)
+        await delete_all(messages_1, shards, channels, fight_id)
+        await delete_all(messages_2, shards, channels, fight_id)
         
         if galaxy_fight:
             ia = players[0] if not players[0].is_human else players[1]
@@ -361,10 +389,10 @@ async def fight_loop(
             number_of_char = len(ia.main_characters)
             dead_char = len([char for char in ia.main_characters if not char.is_alive()])
 
-            pourcentage = int((dead_char/number_of_char) * 100)
+            pourcentage = int((dead_char / number_of_char) * 100)
 
             combat_log.append(pourcentage)
-            await stop_fight(fight_id,win(players).id,combat_log)
+            await stop_fight(fight_id, win(players).id, combat_log)
             return
         
         if galaxy_raid:
@@ -372,11 +400,11 @@ async def fight_loop(
             damage = calculate_team_damage(ia.main_characters)
 
             combat_log.append(damage)
-            await stop_fight(fight_id,win(players).id,combat_log)
+            await stop_fight(fight_id, win(players).id, combat_log)
             return
         
         if not ranked:
-            await stop_fight(fight_id,win(players).id,combat_log)
+            await stop_fight(fight_id, win(players).id, combat_log)
             return
          
         winner = win(players)
@@ -388,24 +416,24 @@ async def fight_loop(
         for character in winner.main_characters:
             character.xp += CHARACTER_XPGAINS * 3
         winner.fragments += 200
-        winner.global_elo += min(10, max(0,winner.global_elo - looser.global_elo))
+        winner.global_elo += min(10, max(0, winner.global_elo - looser.global_elo))
         looser.xp += PLAYER_XPGAINS
         for character in looser.main_characters:
             character.xp += CHARACTER_XPGAINS
         looser.fragments += 0
-        looser.global_elo -= min(10, max(0,winner.global_elo - looser.global_elo))
+        looser.global_elo -= min(10, max(0, winner.global_elo - looser.global_elo))
         if looser.global_elo < 0:
             looser.global_elo = 0
         await winner.update()
         await looser.update()
-        await stop_rank(database,winner.id,winner.id.id,combat_log)
-        await stop_rank(database,looser.id,winner.id.id,combat_log)
+        await stop_rank(database, winner.id, winner.id.id, combat_log)
+        await stop_rank(database, looser.id, winner.id.id, combat_log)
         return 
     except Exception as error:
         if ranked:
             error_traceback = "".join(
                 traceback.format_exception(
-                    etype=type(error), value=error, tb=error.__traceback__
+                    type(error), error, error.__traceback__
                 )
             )
             await database.add_log(

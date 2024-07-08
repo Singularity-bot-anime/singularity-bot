@@ -137,7 +137,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
                 player_characters = data["view"]["player_characters"]
                 view = FightUi(int(data["view"]["user_id"]),watcher_characters,player_characters)
                 await message.edit(embed=embed, view=view)
-                await wait_for(view)
+                await view.wait()
             elif data["view"]["type"] == "placeholder":
                 view = PlaceHolder()
                 await message.edit(embed=embed, view=view)
