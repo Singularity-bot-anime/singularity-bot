@@ -9,7 +9,7 @@ specials = {}
 
 def get_payload():
     return {"is_a_special": True,"king_crimson":False}
-
+        
 def choji_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
     character.current_hp += character.base_hp * 0.1
@@ -23,11 +23,7 @@ specials["1"] = choji_special
 
 def ebisu_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    lowest_health_ally = min(allied_characters, key=lambda ally: ally.current_hp)
-    heal_amount = int(0.05 * lowest_health_ally.base_hp + character.current_critical)
-    regeneration_effect = Effect(EffectType.REGENERATION, duration=3, value=heal_amount/3,sender=character)
-    lowest_health_ally.effects.append(regeneration_effect)
-    message = f"{character.name} heals {lowest_health_ally.name} for {heal_amount} in 3 turn"
+    message = f"{character.name} Nose bleed"
     return payload, message
 
 specials["2"] = ebisu_special
@@ -79,7 +75,10 @@ specials["7"] = sakura_special
 
 def tenten_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue    
         bleed_effect = Effect(EffectType.BLEED, duration=3, value=10)
         enemy.effects.append(bleed_effect)
     message = f"{character.name} deals bleed damage to all enemies."
@@ -89,10 +88,17 @@ specials["8"] =tenten_special
 
 def teuchi_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    for ally in allied_characters:
-        heal_amount = int(0.1 * ally.base_hp)
-        ally.current_hp += heal_amount
-    message = f"{character.name} heals everyone for 10% of their base HP."
+    if not [a for a in allied_characters if a.is_alive()]:
+        return payload,"No allies are alive"
+    
+    if not any(a.is_alive() for a in allied_characters):
+        return payload, "No allies are alive"
+    lowest_health_ally = min([a for a in allied_characters if a.is_alive()], key=lambda ally: ally.current_hp)
+
+    heal_amount = int(0.05 * lowest_health_ally.base_hp + character.current_critical)
+    regeneration_effect = Effect(EffectType.REGENERATION, duration=3, value=heal_amount/3,sender=character)
+    lowest_health_ally.effects.append(regeneration_effect)
+    message = f"{character.name} heals {lowest_health_ally.name} for {heal_amount} in 3 turn"
     return payload, message
 
 specials["9"] = teuchi_special
@@ -121,11 +127,15 @@ specials["11"] = might_guy_special
 
 def haku_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
-        bleed_effect = Effect(EffectType.BLEED, duration=3, value=15,sender=character)
-        slow_effect = Effect(EffectType.SLOW, duration=3, value=10,sender=character)
-        enemy.effects.append(bleed_effect)
-        enemy.effects.append(slow_effect)
+        if not enemy.is_alive():
+            continue
+        
+            bleed_effect = Effect(EffectType.BLEED, duration=3, value=15,sender=character)
+            slow_effect = Effect(EffectType.SLOW, duration=3, value=10,sender=character)
+            enemy.effects.append(bleed_effect)
+            enemy.effects.append(slow_effect)
     message = f"{character.name} uses Needle Drop, causing bleeding and slowing down enemies."
     return payload, message
 
@@ -182,7 +192,12 @@ specials["17"] = shino_special
 
 def tsunade_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    random_ally = random.choice(allied_characters)
+    
+    living_allies = [ally for ally in allied_characters if ally.is_alive()]
+    if not living_allies:
+        return payload, "No allies are alive"
+    random_ally = random.choice(living_allies)
+
     heal_amount = int(0.10 * random_ally.base_hp)
     random_ally.current_hp += heal_amount
     regeneration_effect = Effect(EffectType.REGENERATION, duration=3, value=heal_amount)
@@ -227,7 +242,11 @@ specials["21"] = kakashi_special
 
 def sasuke_ssr_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         armor_effect = Effect(EffectType.WEAKEN, duration=3, value=0.7)
         enemy.effects.append(armor_effect)
     message = f"{character.name} ignores 50% of all enemies' armor."
@@ -237,7 +256,11 @@ specials["22"] = sasuke_ssr_special
 
 def zabuza_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         if EffectType.BLEED in [effect.type for effect in enemy.effects]:
             enemy.current_hp -= character.base_damage
     message = f"{character.name} deals extra damage to bleeding enemies."
@@ -277,7 +300,11 @@ specials["26"] = freezer_full_power_special
 
 def freezer_final_form_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         aoe_damage = character.base_damage * 0.5
         enemy.current_hp -= aoe_damage
     message = f"{character.name} uses Final Form, dealing massive AoE {aoe_damage} to all enemies."
@@ -352,7 +379,11 @@ specials["34"] = carrot_special
 
 def brulee_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         reflect_damage = enemy.current_damage * 0.1
         enemy.current_hp -= int(reflect_damage)
     message = f"{character.name} uses Mirror World, reflecting 30% of the damage back to enemies."
@@ -362,7 +393,11 @@ specials["35"] = brulee_special
 
 def foxy_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         slow_effect = Effect(EffectType.SLOW, duration=3, value=5)
         enemy.effects.append(slow_effect)
     message = f"{character.name} uses Slow Beam, decreasing enemies' speed."
@@ -400,7 +435,11 @@ specials["39"] = nekomamushi_special
 
 def senor_pink_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         damage_reduction_effect = Effect(EffectType.WEAKEN, duration=3, value=0.9)
         enemy.effects.append(damage_reduction_effect)
     message = f"{character.name} uses Baby Shower, reducing enemies' damage."
@@ -446,7 +485,11 @@ specials["44"] = bartolomeo_special
 
 def moria_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         shadow_damage = character.base_damage * 1.2
         enemy.current_hp -= shadow_damage
     message = f"{character.name} uses Shadow Revolution, summoning shadows to attack enemies."
@@ -487,7 +530,11 @@ specials["48"] = usopp_special
 
 def doflamingo_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+        
         control_effect = Effect(EffectType.STUN, duration=1, value=0)
         enemy.effects.append(control_effect)
     message = f"{character.name} uses Puppet Master, controlling enemies for 2 turns."
@@ -497,7 +544,11 @@ specials["49"] = doflamingo_special
 
 def issho_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         gravity_effect = Effect(EffectType.STUN, duration=2, value=0)
         enemy.effects.append(gravity_effect)
     message = f"{character.name} uses Gravity Manipulation, immobilizing enemies for 2 turns."
@@ -516,7 +567,11 @@ specials["51"] = jinbei_special
 
 def katakuri_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         aoe_damage = character.base_damage * 1.5
         enemy.current_hp -= aoe_damage
     message = f"{character.name} uses Mochi Mastery, dealing high AoE damage."
@@ -537,7 +592,11 @@ specials["53"] = uta_special
 
 def luffy_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         if enemy.armor > 120:
             dmg = character.attack(enemy,multiplier=0.5)["damage"]
             message = f"{character.name} uses Gum Gum Bazooka to deal massive damage to {enemy.name} for {dmg}."
@@ -552,7 +611,11 @@ def zoro_special(character: "Character", allied_characters: List["Character"], e
     payload = get_payload()
     character.current_speed += 5
     character.current_critical += 10
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         weaken_effect = Effect(EffectType.WEAKEN, duration=3, value=0.9,sender=character)
         enemy.effects.append(weaken_effect)
     message = f"{character.name} uses Three Swords Style, increasing speed and critical chance, and weakening all enemies."
@@ -562,7 +625,11 @@ specials["55"] = zoro_special
 
 def gojo_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         if enemy.taunt:
             enemy.current_hp -= character.base_damage * 2
         else:
@@ -574,7 +641,11 @@ specials["56"] = gojo_special
 
 def sukuna_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         bleed_effect = Effect(EffectType.BLEED, duration=3, value=20,sender=character)
         enemy.effects.append(bleed_effect)
         enemy.current_hp -= character.base_damage * 0.5
@@ -594,8 +665,14 @@ specials["58"] = itadori_special
 
 def fushiguro_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    # Logic for adapting to negative effects (not implemented here)
-    message = f"{character.name} summons Mahoraga and makes the team adapt to negative effects."
+    for ally in allied_characters:
+        ally.effects = [e for e in ally.effects if not e.type in NEGATIVE_EFFECTS]
+        if ally.current_speed < ally.start_speed:
+            ally.current_speed = ally.start_speed
+        if ally.current_armor < ally.start_armor:
+            ally.current_armor = ally.start_armor
+    
+        message = f"{character.name} summons Mahoraga and makes the team adapt to negative effects."
     return payload, message
 
 specials["59"] = fushiguro_special
@@ -611,7 +688,11 @@ specials["60"] = kugisaki_special
 
 def maki_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+        
         dmg = character.attack(enemy)["damage"]
         message = f"{character.name} uses Cursed Tools Combo on {enemy.name} for {dmg} damage."
     return payload, message
@@ -620,7 +701,11 @@ specials["61"] = maki_special
 
 def inumaki_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         stun_effect = Effect(EffectType.STUN, duration=1, value=0,sender=character)
         enemy.effects.append(stun_effect)
     message = f"{character.name} uses Cursed Speech to stun all enemies for 1 turn."
@@ -665,7 +750,11 @@ specials["66"] = mai_special
 
 def kamo_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         dmg = character.attack(enemy)["damage"]
         message = f"{character.name} uses Blood Ray to attack {enemy.name} for {dmg} damage."
     return payload, message
@@ -682,7 +771,11 @@ specials["68"] = miwa_special
 
 def mei_mei_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         enemy.current_hp -= character.base_damage * 2
     message = f"{character.name} sacrifices her crows to deal massive damage to all enemies."
     return payload, message
@@ -691,7 +784,11 @@ specials["69"] = mei_mei_special
 
 def yoshino_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         poison_effect = Effect(EffectType.POISON, duration=3, value=15,sender=character)
         enemy.effects.append(poison_effect)
     message = f"{character.name} uses Moon Dregs to poison all enemies."
@@ -701,7 +798,11 @@ specials["70"] = yoshino_special
 
 def mahito_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         weaken_effect = Effect(EffectType.WEAKEN, duration=2, value=0.8,sender=character)
         enemy.effects.append(weaken_effect)
     message = f"{character.name} transforms souls, altering opponents' shapes and weakening them."
@@ -711,7 +812,11 @@ specials["71"] = mahito_special
 
 def jogo_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         burn_effect = Effect(EffectType.BURN, duration=3, value=15,sender=character)
         enemy.effects.append(burn_effect)
     message = f"{character.name} uses Volcano to unleash fire attacks, burning all enemies."
@@ -721,7 +826,11 @@ specials["72"] = jogo_special
 
 def hanami_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         dmg = character.attack(enemy,multiplier=0.25)["damage"]
         message = f"{character.name} controls nature to create plant-based attacks, dealing {dmg} damage to each enemy."
     return payload, message
@@ -741,16 +850,21 @@ specials["74"] = choso_special
 
 def yuta_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    for enemy in enemy_characters:
-        dmg = character.attack(enemy,multiplier=0.25)["damage"]
-        message = f"{character.name} summons Rika to assist in battle, dealing {dmg} damage to each enemy."
+    ur_specials = [gojo_special,sukuna_special] 
+    special = random.choice(ur_specials)
+    special_payload, special_message = special(character, allied_characters, enemy_characters)
+    message = f"{character.name} copies a UR special: {special_message}"
     return payload, message
 
 specials["75"] = yuta_special
 
 def geto_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
+    
     for enemy in enemy_characters:
+        if not enemy.is_alive():
+            continue
+    
         dmg = character.attack(enemy,multiplier=0.25)["damage"]
         message = f"{character.name} controls curses to attack enemies, dealing {dmg} damage to each enemy."
     return payload, message
@@ -768,6 +882,8 @@ def the_world(
     message = f"｢{character.name}｣ STOPS TIME! and damages everyone for {int(damage)}"
     return payload, message
 
+specials["78"] = the_world
+
 
 def star_platinum_the_world(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
@@ -780,22 +896,24 @@ def star_platinum_the_world(
     message = f"｢{character.name}｣ STOPS TIME! and damages everyone for {int(damage)}"
     return payload, message
 
+specials["77"] = star_platinum_the_world
+
 def crazy_diamond(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
 ) -> tuple:
     payload = get_payload()
-    valid_stand = [i for i in allied_characters if i.is_alive() and i != character]
-    if len(valid_stand) != 0:
-        ally: "Character" = random.choice(valid_stand)
+    valid_character = [i for i in allied_characters if i.is_alive() and i != character]
+    if len(valid_character) != 0:
+        ally: "Character" = random.choice(valid_character)
         dif_damage = abs(character.start_hp - character.current_hp)
         heal = min(ally.start_hp, ally.current_hp + (dif_damage // 2))
         ally.current_hp = heal
-        message = f"｢{character.name}｣ heals {ally.name}"
+        message = f"｢{character.name}｣ heals {ally.name} for {heal}"
     else:
         message = f"｢{character.name}｣ enraged!"
     return payload, message
 
-
+specials["79"] = crazy_diamond
 
 def killer_queen_bite_the_dust(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
@@ -807,6 +925,7 @@ def killer_queen_bite_the_dust(
     message = f"｢{character.name}｣ resets the timeline! and heals for {heal}"
     return payload, message
 
+specials["84"] = killer_queen_bite_the_dust
 
 def gold_experience(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
@@ -820,21 +939,24 @@ def gold_experience(
     message = f"｢{character.name}｣ heals it's ally for {multiplier}"
     return payload, message
 
+specials["80"] = gold_experience
+
 def king_crimson(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
 ) -> tuple:
     payload = get_payload()
     payload["king_crimson"] = True
-    message = f"｢{character.name}｣ has already..."
+    message = f"｢{character.name}｣ has already... skipped a turn"
     return payload, message
 
+specials["81"] = king_crimson
 
 def gold_experience_requiem(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
 ) -> tuple:
     payload = get_payload()
     payload["GER"] = True
-    valid_stand = [i for i in ennemy_character if i.is_alive()]
+    valid_character = [i for i in ennemy_character if i.is_alive()]
     message = f"｢{character.name}｣ You will never reach the truth, Return to Zero!"
     # reset their scaling
     for ennemy in ennemy_character:
@@ -842,25 +964,29 @@ def gold_experience_requiem(
         ennemy.current_hp = min(ennemy.current_hp, ennemy.start_hp)
         ennemy.current_damage = min(ennemy.current_damage, ennemy.start_damage)
         ennemy.current_speed = min(ennemy.current_speed, ennemy.start_speed)
-    if len(valid_stand) != 0:
-        target = random.choice(valid_stand)
+    if len(valid_character) != 0:
+        target = random.choice(valid_character)
         target.effects.append(Effect(EffectType.STUN, 2, 0, character))
         message += f"｢{character.name}｣ stunned {target.name}!"
     return payload, message
 
+specials["82"] = gold_experience_requiem
 
 def stone_free(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
 ) -> tuple:
     multiplier = 0.90
     payload = get_payload()
-    valid_stand = [i for i in ennemy_character if i.is_alive()]
+    valid_character = [i for i in ennemy_character if i.is_alive()]
     message = f"｢{character.name}｣ frees the stone ocean!"
-    if len(valid_stand) != 0:
-        target = random.choice(valid_stand)
+    if len(valid_character) != 0:
+        target = random.choice(valid_character)
         target.effects.append(Effect(EffectType.STUN, 1, 0, character))
         target.current_speed *= multiplier
     return payload, message
+
+
+specials["83"] = stone_free
 
 def made_in_heaven(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]
@@ -871,6 +997,8 @@ def made_in_heaven(
     character.current_critical += 5
     message = f"｢{character.name}｣'s speed increases!"
     return payload, message
+
+specials["85"] = made_in_heaven
 
 def not_implemented(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
