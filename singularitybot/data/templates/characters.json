@@ -1201,6 +1201,22 @@
             "armor": 100
         },
         {
+            "id": 76,
+            "name": "Dummy",
+            "rarity": "SSR",
+            "special_description": "Is really strong",
+            "special_url":"None",
+            "base_hp": 300,
+            "base_damage": 75,
+            "base_speed": 10,
+            "base_critical": 10,
+            "turn_for_ability": 6,
+            "expension": 1,
+            "taunt":false,
+            "evolve_to": null,
+            "armor": 100
+        },
+        {
             "id": 77,
             "name": "Jotaro Kujo",
             "rarity": "UR",
