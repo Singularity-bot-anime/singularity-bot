@@ -14,7 +14,7 @@ LOOP = None
 database: Database = Database(LOOP)
 
 MATCHMAKING_QUEUE = "war_matchmaking_requests"
-CURRENT_WAR = "ACTIVE_WARS"
+CURRENT_WAR = "active_wars"
 
 async def main():
     requests = asyncio.Queue()
@@ -71,15 +71,13 @@ async def reader(channel: redis.client.PubSub, requests: asyncio.Queue):
 async def check_active_wars():
     while True:
         await asyncio.sleep(10)  # Check every 10 seconds
-
         async with await database.get_redis_connection() as conn:
             active_wars = await conn.hgetall(CURRENT_WAR)
-
             for galaxy_id, enemy_galaxy_id in active_wars.items():
-                galaxy1 = await database.get_galaxy_info(galaxy_id)
-                galaxy2 = await database.get_galaxy_info(enemy_galaxy_id)
+                galaxy1 = await database.get_galaxy_info(galaxy_id.decode('utf-8'))
+                galaxy2 = await database.get_galaxy_info(pickle.loads(enemy_galaxy_id))
 
-                if datetime.datetime.utcnow() >= galaxy1.end_of_war:
+                if datetime.datetime.utcnow().isoformat() >= galaxy1.end_of_war:
                     await process_war_end(galaxy1, galaxy2)
 
 async def process_war_end(galaxy1: Galaxy, galaxy2: Galaxy):
@@ -101,16 +99,16 @@ async def process_war_end(galaxy1: Galaxy, galaxy2: Galaxy):
     # Update ELO
     winner.war_elo += elo_diff
     loser.war_elo -= elo_diff
-
+    loser.war_elo = max(0,loser.war_elo)
     # Update vault with fragments
-    winner.vault += 1000  # Example reward
+    winner.vault += 1000
 
     # Reset war damage
     galaxy1.damage_to_current_war = 0
     galaxy2.damage_to_current_war = 0
 
     # Remove active war records
-    async with database.get_redis_connection() as conn:
+    async with await database.get_redis_connection() as conn:
         await conn.hdel(CURRENT_WAR, galaxy1.id)
         await conn.hdel(CURRENT_WAR, galaxy2.id)
 

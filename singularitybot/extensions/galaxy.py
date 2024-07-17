@@ -640,7 +640,7 @@ class Galaxies(commands.Cog):
         pass
     @galaxy_rank_check(minimum_rank=GalaxyRank.STAR)                
     @war.sub_command(name="start",description="Start a war with a random galaxy")   
-    async def start(self,Interaction: disnake.CommandInteraction):
+    async def warstart(self,Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
@@ -671,7 +671,7 @@ class Galaxies(commands.Cog):
         await Interaction.send(embed=embed)
 
     @war.sub_command(name="status",description="Check if your galaxy is in a war and the current status of the war")
-    async def status(self, Interaction: disnake.CommandInteraction):
+    async def warstatus(self, Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
@@ -709,21 +709,22 @@ class Galaxies(commands.Cog):
         await Interaction.send(embed=embed)
  
     @war.sub_command(name="result",description="See the last war results")
-    async def result(self,Interaction: disnake.CommandInteraction):
-        print(self)
+    async def warresult(self,Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
         # Get the last war record involving the user's galaxy
         last_war_record = None
         async with await self.singularitybot.database.get_redis_connection() as conn:
-            war_records = await conn.   hgetall("war_records")
+            war_records = await conn.hgetall("war_records")
+            print("Before")
+            print(len(war_records))
             for war_id, record in war_records.items():
                 record_data = pickle.loads(record)
                 if galaxy.id in [record_data["winner"], record_data["loser"]]:
                     if not last_war_record or record_data["timestamp"] > last_war_record["timestamp"]:
                         last_war_record = record_data
-
+        print("After")                      
         if not last_war_record:
             embed = disnake.Embed(
                 title="No recent war records found for your galaxy.",
@@ -751,7 +752,7 @@ class Galaxies(commands.Cog):
 
     @war.sub_command(name="attack",description="Make an attack on the ennemy galaxy")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    async def attack(self,Interaction: disnake.CommandInteraction):
+    async def warattack(self,Interaction: disnake.CommandInteraction):
 
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
@@ -833,7 +834,7 @@ class Galaxies(commands.Cog):
     
     @galaxy_rank_check(minimum_rank=GalaxyRank.STAR)
     @raid.sub_command(name="start", description="Start a raid and try to win items and characters")
-    async def start(self, Interaction: disnake.CommandInteraction):
+    async def raidstart(self, Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
@@ -876,7 +877,7 @@ class Galaxies(commands.Cog):
         await Interaction.send(embed=embed)
 
     @raid.sub_command(name="status", description="Check if you are in a raid and the current status of the raid")
-    async def status(self, Interaction: disnake.CommandInteraction):
+    async def raidstatus(self, Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
@@ -892,7 +893,6 @@ class Galaxies(commands.Cog):
         remaining_time = galaxy.end_of_raid - datetime.datetime.utcnow()
         remaining_time_str = str(remaining_time).split('.')[0]  # Format remaining time
 
-        
 
         target_damage = current_raid["target_damage"]
         remaining_damage = max(0, target_damage - galaxy.damage_to_current_raid)
@@ -909,9 +909,8 @@ class Galaxies(commands.Cog):
 
         await Interaction.send(embed=embed)
 
-
     @raid.sub_command(name="result", description="See the result of the last raid")
-    async def result(self, Interaction: disnake.CommandInteraction):
+    async def raidresult(self, Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
@@ -965,7 +964,7 @@ class Galaxies(commands.Cog):
 
     @raid.sub_command(name="attack", description="Attack the current raid")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    async def attack(self, Interaction: disnake.CommandInteraction):
+    async def raidattack(self, Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
@@ -1021,7 +1020,7 @@ class Galaxies(commands.Cog):
         final_view = Menu(embeds)
         await Interaction.channel.send(embed=embeds[0], view=final_view)
         embed = disnake.Embed(
-            title=f"You did {damage} to {current_raid['name']}!",
+            title=f"You did {int(damage)} damage to {current_raid['name']}!",
             color=disnake.Color.dark_purple(),
         )
         embed.set_image(url=galaxy.image_url)
