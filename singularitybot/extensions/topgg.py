@@ -50,7 +50,7 @@ class TopGG(commands.Cog):
         user.discord = Interaction.author
 
         past_time = user.last_vote
-        now = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        now = datetime.datetime.now() + datetime.timedelta(hours=2)
         Delta = now - past_time
         wait_time = 12
 
@@ -85,14 +85,14 @@ class TopGG(commands.Cog):
         view.add_item(disnake.ui.Button(label="Vote!", style=disnake.ButtonStyle.url, url="https://top.gg/bot/1086877089543753748/vote"))
         await Interaction.send(embed=embed,view=view)
 
-        time = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        time = datetime.datetime.now() + datetime.timedelta(hours=2)
         while not await self.dblpy.get_user_vote(user.discord.id):
-            delta = (datetime.datetime.utcnow() + datetime.timedelta(hours=2)) - time
+            delta = (datetime.datetime.now() + datetime.timedelta(hours=2)) - time
             if delta.total_seconds() > 5 * 60:
                 raise TimeoutError
             await asyncio.sleep(10)
 
-        user.last_vote = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        user.last_vote = datetime.datetime.now() + datetime.timedelta(hours=2)
         user.fragments += COINS_VOTE
         user.super_fragements += SUPERFRAGMENT_VOTE
 

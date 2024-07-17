@@ -83,7 +83,7 @@ class User:
         status = self.early_supporter
         # regular donor status
         status |= self.donor_status >= (
-            datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+            datetime.datetime.now() + datetime.timedelta(hours=2)
         )
         # answer
         return status
@@ -152,8 +152,8 @@ def create_user(user_id: str):
         "tower_level": 0,
         "map_position": [0, 0],
         "profile_image": "https://i.pinimg.com/originals/77/ba/e4/77bae4f9d1c02f732e9271976539ed48.gif",
-        "join_date": (datetime.datetime.utcnow() + datetime.timedelta(hours=2)),
-        "last_full_energy": (datetime.datetime.utcnow() + datetime.timedelta(hours=2)),
+        "join_date": (datetime.datetime.now() + datetime.timedelta(hours=2)),
+        "last_full_energy": (datetime.datetime.now() + datetime.timedelta(hours=2)),
         "last_missions": datetime.datetime.min,
         "last_adventure": datetime.datetime.min,
         "last_vote": datetime.datetime.min,

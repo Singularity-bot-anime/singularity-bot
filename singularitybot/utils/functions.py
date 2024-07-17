@@ -337,31 +337,39 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
         interaction (disnake.ApplicationCommandInteraction): The interaction to send messages and the view to.
 
     Returns:
-        bool: True if a match was found, False if the user canceled.
+        bool: True if a match was found, False if the user canceled or timeout.
     """
     channel_name = f"{interaction.author.id}_match_found"
     redis_con = Redis(connection_pool=database.redis_pool)
+    MATCHLEAVE_REQUEST = "matchleave_requests"
 
-    #view = Cancel(interaction)
-    await interaction.edit_original_message(content="Searching for an opponent...")
+    view = Cancel(interaction,timeout=0)
+    embed = disnake.Embed(title="Matchmaking Queue", description=f"Looking for an opponent", color=disnake.Color.dark_purple(   ))
+    embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
+    await interaction.edit_original_message(embed=embed, view=view)
 
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(channel_name)
 
+        start_time = asyncio.get_event_loop().time()
+        timeout = 15.0  # 2 minutes
+
         while True:
-            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1)  # Check for messages or timeout
+            elapsed_time = asyncio.get_event_loop().time() - start_time
+            if elapsed_time > timeout:
+                await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))
+                await interaction.edit_original_message(content="Matchmaking timed out. You have been removed from the queue.", view=None)
+                return False  # Timeout
+
+            message = await pubsub.     get_message(ignore_subscribe_messages=True, timeout=1)
             if message is not None:
                 return True  # Match found
+            if view.value:  # The view has been interacted with and cancel button was pressed
+                await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))        
+                return False  # User canceled
 
-            """ Check for cancellation via the view
-                if view.value is not None:  # The view has been interacted with
-                    #await view.stop()  # Stop the view to prevent further interaction
-                    if not view.value:  # User canceled
-                        view.interaction.delete_original_message()
-                        return False""
-                else:
-                    # Refresh the view to keep the timeout active
-                await interaction.edit_original_message(view=view)""" 
+            await asyncio.sleep(0.5)  # Small sleep to prevent tight loop
+
 
 async def wait_for_ranked_stop(database:Database,user_id:int):
     """This coroutine wait for a ranked match to end

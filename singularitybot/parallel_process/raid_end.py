@@ -20,12 +20,12 @@ async def main():
     await check_active_raids()
 async def check_active_raids():
     while True:
-        await asyncio.sleep(3600)  # Check every hour
+        await asyncio.sleep(60)
 
         galaxies = await database.get_all_galaxies()
         for galaxy in galaxies:
             galaxy = await database.get_galaxy_info(galaxy["_id"])
-            if datetime.datetime.utcnow() >= galaxy.end_of_raid:
+            if datetime.datetime.now() >= galaxy.end_of_raid:
                 await process_raid_end(galaxy)
 
 async def process_raid_end(galaxy: Galaxy):
@@ -53,7 +53,7 @@ async def process_raid_end(galaxy: Galaxy):
         "galaxy_id": galaxy.id,
         "damage": galaxy.damage_to_current_raid,
         "successful": raid_successful,
-        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "timestamp": datetime.datetime.now().isoformat(),
         "participants": galaxy.raid_attacks,
         "rewards": current_raid["rewards"] if raid_successful else []
     }

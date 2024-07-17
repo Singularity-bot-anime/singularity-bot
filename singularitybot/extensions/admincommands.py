@@ -69,7 +69,7 @@ class admincommands(commands.Cog):
         Interaction: disnake.ApplicationCommandInteraction,
         someone: disnake.Member,
     ):
-        time = datetime.utcnow() + timedelta(weeks=4) + timedelta(hours=2)
+        time = datetime.now() + timedelta(weeks=4) + timedelta(hours=2)
         user = await self.SingularityBot.database.get_user_info(someone.id)
         user.discord = someone
         user.donor_status = time

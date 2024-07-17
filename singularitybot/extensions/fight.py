@@ -94,7 +94,7 @@ class fight(commands.Cog):
 
         if not user.main_characters:
             embed = disnake.Embed(title="You need to have main characters to fight use `/character main`",colour=disnake.Colour.dark_purple())
-            embed.set_image(url="https://media.singularityapp.online/images/assets/notregistered.jpg")
+            embed.set_image(url=self.singularitybot.avatar_url)
             await interaction.send(embed=embed)
             return
         # Create matchmaking request
@@ -112,13 +112,17 @@ class fight(commands.Cog):
         match_found = await wait_for_match(self.singularitybot.database, interaction)
 
         if not match_found:
-            await interaction.edit_original_message(content="Matchmaking canceled.")
+            embed = disnake.Embed(title="Matchmaking Queue", description=f"MATCH CANCELED", color=disnake.Color.dark_purple())
+            embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
+            await interaction.edit_original_message(embed=embed,view=None)
+            return
+        await interaction.delete_original_message()
         winner,combat_log = await wait_for_ranked_stop(self.singularitybot.database,interaction.author.id)
         # cleanup & end
         winner = await self.singularitybot.fetch_user(int(winner.id))
         file_= await get_win_image(winner)
         win_embed = disnake.Embed(color=disnake.Colour.dark_purple())
-        win_embed.set_image(file=file_)
+        win_embed.set_image(file=file_) 
         embeds = format_combat_log(combat_log)
         final_view = Menu(embeds)
         await Interaction.channel.send(embed=win_embed)

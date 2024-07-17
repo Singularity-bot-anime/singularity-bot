@@ -27,7 +27,7 @@ def energy_check():
             return False
         user = await database.get_user_info(Interaction.author.id)
 
-        now = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        now = datetime.datetime.now() + datetime.timedelta(hours=2)
         wait_time = (12 - 6*user.is_donator()) * 60 * 60
         # Check if 24 hours have passed since last energy replenishment
         if (now - user.last_full_energy).total_seconds() >= wait_time and user.energy < user.total_energy:

@@ -48,7 +48,7 @@ class Wormhole(commands.Cog):
 
         # Check the time
         past_time = user.last_wormhole
-        now = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        now = datetime.datetime.now() + datetime.timedelta(hours=2)
 
         delta = now - past_time
         wait_time = DONOR_WH_WAIT_TIME + (not user.is_donator()) * NORMAL_WH_WAIT_TIME
@@ -80,7 +80,7 @@ class Wormhole(commands.Cog):
         )
         await Interaction.send(embed=embed)
 
-        user.last_wormhole = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        user.last_wormhole = datetime.datetime.now() + datetime.timedelta(hours=2)
 
         if user.level < 5:
             rarity = "R"

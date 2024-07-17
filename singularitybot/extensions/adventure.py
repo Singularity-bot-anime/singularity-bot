@@ -65,7 +65,7 @@ class Adventure(commands.Cog):
     async def daily(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         past_time = user.last_adventure
-        now = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        now = datetime.datetime.now() + datetime.timedelta(hours=2)
 
         delta = now - past_time
         wait_time = DONOR_ADV_WAIT_TIME + (not user.is_donator()) * NORMAL_ADV_WAIT_TIME

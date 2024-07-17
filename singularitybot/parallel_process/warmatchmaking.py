@@ -48,8 +48,8 @@ async def main():
 
             galaxy1:Galaxy = await database.get_galaxy_info(galaxy1)
             galaxy2:Galaxy = await database.get_galaxy_info(galaxy2)
-            
-            now = datetime.datetime.utcnow()
+            now
+            now = datetime.datetime.now()
 
             galaxy1.end_of_war = now + datetime.timedelta(days=2)
             galaxy2.end_of_war = now + datetime.timedelta(days=2)
@@ -77,7 +77,7 @@ async def check_active_wars():
                 galaxy1 = await database.get_galaxy_info(galaxy_id.decode('utf-8'))
                 galaxy2 = await database.get_galaxy_info(pickle.loads(enemy_galaxy_id))
 
-                if datetime.datetime.utcnow().isoformat() >= galaxy1.end_of_war:
+                if datetime.datetime.now() >= galaxy1.end_of_war:
                     await process_war_end(galaxy1, galaxy2)
 
 async def process_war_end(galaxy1: Galaxy, galaxy2: Galaxy):
@@ -120,7 +120,7 @@ async def process_war_end(galaxy1: Galaxy, galaxy2: Galaxy):
         "loser": loser.id,
         "winner_damage": damage1 if winner.id == galaxy1.id else damage2,
         "loser_damage": damage2 if loser.id == galaxy1.id else damage1,
-        "timestamp": datetime.datetime.utcnow().isoformat()
+        "timestamp": datetime.datetime.now().isoformat()
     }
     await database.add_war_record(war_id, record_data)
 

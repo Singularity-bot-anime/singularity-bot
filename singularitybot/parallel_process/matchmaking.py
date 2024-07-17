@@ -6,23 +6,37 @@ import redis.asyncio as redis
 from redis.asyncio import Redis, ConnectionPool
 
 from singularitybot.models.database.maindatabase import Database
-from singularitybot.utils.functions import create_ranked_fight_request, wait_for_fight_end,create_fight_handler_request
+from singularitybot.utils.functions import create_ranked_fight_request, wait_for_fight_end, create_fight_handler_request
 
 # Initialize your database instance
 LOOP = None
 database: Database = Database(LOOP)
 
-
 MATCHMAKING_QUEUE = "matchmaking_requests"
+MATCHLEAVE_REQUEST = "matchleave_requests"
+
 async def main():
     requests = asyncio.Queue()
+    leave_requests = asyncio.Queue()
     redis_con = Redis(connection_pool=database.redis_pool)
 
     async with redis_con.pubsub() as pubsub:
-        await pubsub.subscribe(MATCHMAKING_QUEUE)
-        future = asyncio.create_task(reader(pubsub, requests))
+        await pubsub.subscribe(MATCHMAKING_QUEUE, MATCHLEAVE_REQUEST)
+        future = asyncio.create_task(reader(pubsub, requests, leave_requests))
 
         while True:
+            # Check for leave requests
+            while not leave_requests.empty():
+                leave_request = await leave_requests.get()
+                player_to_remove = pickle.loads(leave_request["data"])
+                temp_queue = asyncio.Queue()
+                while not requests.empty():
+                    player = await requests.get()
+                    player = pickle.loads(player["data"])
+                    if player["player"] != player_to_remove["player"]:
+                        await temp_queue.put(pickle.dumps(player))
+                requests = temp_queue
+
             # Wait for at least two players in the queue
             while requests.qsize() < 2:
                 await asyncio.sleep(0.5)  # Check every second
@@ -46,12 +60,14 @@ async def main():
             await redis_con.publish(f"{player2['player']}_match_found", "match_found")
 
 # reader 
-async def reader(channel: redis.client.PubSub,requests:asyncio.Queue):
+async def reader(channel: redis.client.PubSub, requests: asyncio.Queue, leave_requests: asyncio.Queue):
     while True:
         message = await channel.get_message(ignore_subscribe_messages=True)
         if message is not None:
-            await requests.put(message)
-
+            if message["channel"].decode() == MATCHLEAVE_REQUEST:
+                await leave_requests.put(message)
+            else:
+                await requests.put(message)
 
 if __name__ =="__main__":
     asyncio.run(main())

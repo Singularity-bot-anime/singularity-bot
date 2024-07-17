@@ -693,7 +693,7 @@ class Galaxies(commands.Cog):
         has_attacked = user.id in galaxy.war_attacks
 
         # Calculate remaining time until the end of the war
-        remaining_time = galaxy.end_of_war - datetime.datetime.utcnow()
+        remaining_time = galaxy.end_of_war - datetime.datetime.now()
         remaining_time_str = str(remaining_time).split('.')[0]  # Format remaining time
 
         embed = disnake.Embed(
@@ -740,7 +740,7 @@ class Galaxies(commands.Cog):
         embed = disnake.Embed(
             title="Last War Result",
             color=disnake.Color.dark_purple(),
-            timestamp=datetime.datetime.utcnow()
+            timestamp=datetime.datetime.now()
         )
         embed.add_field(name="Winner", value=winner_galaxy.name, inline=True)
         embed.add_field(name="Loser", value=loser_galaxy.name, inline=True)
@@ -838,7 +838,7 @@ class Galaxies(commands.Cog):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if galaxy.damage_to_current_raid > 0 and galaxy.end_of_raid > datetime.datetime.utcnow():
+        if galaxy.damage_to_current_raid > 0 and galaxy.end_of_raid > datetime.datetime.now():
             embed = disnake.Embed(
                 title="Your galaxy is already in a raid or has recently finished one. Please wait.",
                 color=disnake.Color.dark_purple(),
@@ -862,7 +862,7 @@ class Galaxies(commands.Cog):
         # Deduct the cost from the galaxy's vault
         galaxy.vault -= raid_cost
 
-        galaxy.end_of_raid = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        galaxy.end_of_raid = datetime.datetime.now() + datetime.timedelta(days=1)
         galaxy.damage_to_current_raid = 0
         galaxy.raid_attacks = []
 
@@ -881,7 +881,7 @@ class Galaxies(commands.Cog):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if galaxy.end_of_raid <= datetime.datetime.utcnow():
+        if galaxy.end_of_raid <= datetime.datetime.now():
             embed = disnake.Embed(
                 title="Your galaxy is not currently in a raid.",
                 color=disnake.Color.dark_purple(),
@@ -890,7 +890,7 @@ class Galaxies(commands.Cog):
             await Interaction.send(embed=embed)
             return
 
-        remaining_time = galaxy.end_of_raid - datetime.datetime.utcnow()
+        remaining_time = galaxy.end_of_raid - datetime.datetime.now()
         remaining_time_str = str(remaining_time).split('.')[0]  # Format remaining time
 
 
@@ -969,7 +969,7 @@ class Galaxies(commands.Cog):
         user.discord = Interaction.author
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
-        if galaxy.end_of_raid < datetime.datetime.utcnow():
+        if galaxy.end_of_raid < datetime.datetime.now():
             embed = disnake.Embed(
                 title="Your galaxy is not currently in a raid or the raid has ended.",
                 color=disnake.Color.dark_purple(),
