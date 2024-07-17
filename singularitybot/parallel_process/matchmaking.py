@@ -38,26 +38,26 @@ async def main():
                 requests = temp_queue
 
             # Wait for at least two players in the queue
-            while requests.qsize() < 2:
-                await asyncio.sleep(0.5)  # Check every second
+            if requests.qsize() < 2:
+                
+                player1 = await requests.get()
+                player2 = await requests.get()
 
-            player1 = await requests.get()
-            player2 = await requests.get()
+                player1 = pickle.loads(player1["data"])
+                player2 = pickle.loads(player2["data"])
+                # Create and start the match (non-blocking)
+                match_request = create_fight_handler_request(
+                    [player1["player"], player2["player"]],
+                    [player1["channel"], player2["channel"]],
+                    [player1["shard"], player2["shard"]],
+                    [player1["name"], player2["name"]],
+                    ranked=True,
+                )
+                asyncio.create_task(wait_for_fight_end(database, match_request))  # Non-blocking task
 
-            player1 = pickle.loads(player1["data"])
-            player2 = pickle.loads(player2["data"])
-            # Create and start the match (non-blocking)
-            match_request = create_fight_handler_request(
-                [player1["player"], player2["player"]],
-                [player1["channel"], player2["channel"]],
-                [player1["shard"], player2["shard"]],
-                [player1["name"], player2["name"]],
-                ranked=True,
-            )
-            asyncio.create_task(wait_for_fight_end(database, match_request))  # Non-blocking task
-
-            await redis_con.publish(f"{player1['player']}_match_found", "match_found")
-            await redis_con.publish(f"{player2['player']}_match_found", "match_found")
+                await redis_con.publish(f"{player1['player']}_match_found", "match_found")
+                await redis_con.publish(f"{player2['player']}_match_found", "match_found")
+            await asyncio.sleep(0.5)  # Check every second
 
 # reader 
 async def reader(channel: redis.client.PubSub, requests: asyncio.Queue, leave_requests: asyncio.Queue):

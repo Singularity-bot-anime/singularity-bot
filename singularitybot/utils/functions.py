@@ -326,6 +326,11 @@ async def wait_for_fight_end(database:Database,match_request:dict):
 
     return winner,combat_log
 
+async def reader(channel: redis.client.PubSub, requests: asyncio.Queue):
+    while True:
+        message = await channel.get_message(ignore_subscribe_messages=True)
+        if message is not None:
+            await requests.put(message)
 
 async def wait_for_match(database: Database, interaction: disnake.ApplicationCommandInteraction) -> bool:
     """Waits for a match to be found or cancellation.
@@ -343,28 +348,30 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
     redis_con = Redis(connection_pool=database.redis_pool)
     MATCHLEAVE_REQUEST = "matchleave_requests"
 
-    view = Cancel(interaction,timeout=0)
-    embed = disnake.Embed(title="Matchmaking Queue", description=f"Looking for an opponent", color=disnake.Color.dark_purple(   ))
+    view = Cancel(interaction, timeout=0)
+    embed = disnake.Embed(title="Matchmaking Queue", description="Looking for an opponent", color=disnake.Color.dark_purple())
     embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
     await interaction.edit_original_message(embed=embed, view=view)
 
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(channel_name)
+        requests = asyncio.Queue()
+        asyncio.create_task(reader(pubsub, requests))
 
         start_time = asyncio.get_event_loop().time()
-        timeout = 60*5  # 5 minutes
+        timeout = 60 * 5  # 5 minutes
 
         while True:
             elapsed_time = asyncio.get_event_loop().time() - start_time
             if elapsed_time > timeout:
                 await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))
                 return False  # Timeout
+            
+            if not requests.empty():
+                return True  # Match found     
 
-            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1)
-            if message is not None:
-                return True  # Match found
-            if view.value:  # The view has been interacted with and cancel button was pressed
-                await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))        
+            if view.value is False:  # The view has been interacted with and cancel button was pressed
+                await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))
                 return False  # User canceled
 
             await asyncio.sleep(0.5)  # Small sleep to prevent tight loop
