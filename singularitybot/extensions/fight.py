@@ -115,7 +115,7 @@ class fight(commands.Cog):
             embed = disnake.Embed(title="Matchmaking Queue", description=f"MATCH CANCELED", color=disnake.Color.dark_purple())
             embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
             await interaction.edit_original_message(embed=embed,view=None)
-            return
+            returns 
         await interaction.delete_original_message()
         winner,combat_log = await wait_for_ranked_stop(self.singularitybot.database,interaction.author.id)
         # cleanup & end

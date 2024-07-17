@@ -352,16 +352,15 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
         await pubsub.subscribe(channel_name)
 
         start_time = asyncio.get_event_loop().time()
-        timeout = 15.0  # 2 minutes
+        timeout = 60*5  # 5 minutes
 
         while True:
             elapsed_time = asyncio.get_event_loop().time() - start_time
             if elapsed_time > timeout:
                 await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))
-                await interaction.edit_original_message(content="Matchmaking timed out. You have been removed from the queue.", view=None)
                 return False  # Timeout
 
-            message = await pubsub.     get_message(ignore_subscribe_messages=True, timeout=1)
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1)
             if message is not None:
                 return True  # Match found
             if view.value:  # The view has been interacted with and cancel button was pressed
