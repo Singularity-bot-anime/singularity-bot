@@ -62,7 +62,6 @@ class Adventure(commands.Cog):
         description="Claim your daily rewards!",
     )
     @database_check()
-    @energy_check()
     async def daily(self, Interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         past_time = user.last_adventure

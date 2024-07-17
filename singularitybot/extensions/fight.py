@@ -89,7 +89,6 @@ class fight(commands.Cog):
     @commands.slash_command(name="ranked", description="Start a ranked fight")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     @database_check()
-    @energy_check()
     async def ranked(self, interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(interaction.author.id)
 
