@@ -3,7 +3,7 @@ import asyncio
 # URL
 
 WORMHOLEURL = "https://media1.tenor.com/m/xQ24GQOIYZAAAAAd/space.gif"
-TOWERURL = "https://storage.stfurequiem.com/randomAsset/tower.png"
+TOWERURL = "https://media1.tenor.com/m/GO9Ve8WjsX0AAAAd/yakuza-like-a-dragon-millennium-tower.gif"
 GANGURL = "https://media1.tenor.com/m/-fG6_QSIjZAAAAAC/amicreeper-galaxy.gif"
 
 # Bot loop
@@ -56,7 +56,7 @@ SHOPCREATIONCOST = 3000
 ITEMTYPE = [
     "damage",
     "utility",
-    "misc",
+    #"misc",
 ]
 ITEMBYTYPE = {
     "damage": [{"id": 1}, {"id": 4}],

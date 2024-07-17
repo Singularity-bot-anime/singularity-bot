@@ -68,7 +68,7 @@ class Tower(commands.Cog):
                 title="You did not enter the tower", color=disnake.Color.dark_purple()
             )
             embed.set_image(url=TOWERURL)
-            await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
+            await Interaction.edit_original_message(embed=embed, view=PlaceHolder())
             return
         if user.fragments < ENTRYCOST:
             amount = f"{ENTRYCOST-user.fragments}{CustomEmoji.FRAGMENTS}"
@@ -77,7 +77,7 @@ class Tower(commands.Cog):
                 color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=TOWERURL)
-            await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
+            await Interaction.edit_original_message(embed=embed, view=PlaceHolder())
             return
 
         # Level selection

@@ -21,7 +21,6 @@ from singularitybot.models.gameobjects.galaxy import Galaxy, create_galaxy
 # Run localy
 import sys
 if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)):
-    print("LOCAL URL LOAD")
     from dotenv import load_dotenv
     load_dotenv()
 

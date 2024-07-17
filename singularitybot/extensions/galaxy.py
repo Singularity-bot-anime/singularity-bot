@@ -152,7 +152,7 @@ class Galaxies(commands.Cog):
         await user.update()
 
         await Interaction.send(embed=embed)
-
+                    
     @galaxy_check()
     @galaxy.sub_command(name="show", description="Show your galaxy info")
     async def show(self, Interaction: disnake.CommandInteraction):
@@ -638,7 +638,8 @@ class Galaxies(commands.Cog):
     @galaxy.sub_command_group(name="war")
     async def war(self, Interaction: disnake.CommandInteraction):
         pass
-    @war.sub_command(name="start",description="Start a war with a random galaxy")
+    @galaxy_rank_check(minimum_rank=GalaxyRank.STAR)                
+    @war.sub_command(name="start",description="Start a war with a random galaxy")   
     async def start(self,Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
@@ -709,13 +710,14 @@ class Galaxies(commands.Cog):
  
     @war.sub_command(name="result",description="See the last war results")
     async def result(self,Interaction: disnake.CommandInteraction):
+        print(self)
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
         # Get the last war record involving the user's galaxy
         last_war_record = None
         async with await self.singularitybot.database.get_redis_connection() as conn:
-            war_records = await conn.hgetall("war_records")
+            war_records = await conn.   hgetall("war_records")
             for war_id, record in war_records.items():
                 record_data = pickle.loads(record)
                 if galaxy.id in [record_data["winner"], record_data["loser"]]:
@@ -828,6 +830,8 @@ class Galaxies(commands.Cog):
     @galaxy.sub_command_group(name="raid")
     async def raid(self, Interaction: disnake.CommandInteraction):
         pass
+    
+    @galaxy_rank_check(minimum_rank=GalaxyRank.STAR)
     @raid.sub_command(name="start", description="Start a raid and try to win items and characters")
     async def start(self, Interaction: disnake.CommandInteraction):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)

@@ -1205,7 +1205,7 @@
             "name": "Dummy",
             "rarity": "SSR",
             "special_description": "Is really strong",
-            "special_url":"None",
+            "special_url":"None ",
             "base_hp": 300,
             "base_damage": 75,
             "base_speed": 10,

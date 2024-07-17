@@ -117,12 +117,11 @@ class Items(commands.Cog):
     @item.sub_command(name="unequip", description="unequip an item")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def unequip(self, Interaction: disnake.ApplicationCommandInteraction):
-        # translation
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
         embed = disnake.Embed(
-            "Choose a character to unequip an item from", color=disnake.Color.dark_purple()
+            title="Choose a character to unequip an item from", color=disnake.Color.dark_purple()
         )
         view = CharacterSelectDropdown(Interaction, user.main_characters)
         
@@ -155,12 +154,11 @@ class Items(commands.Cog):
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def unequip_all(self, Interaction: disnake.ApplicationCommandInteraction):
         # translation
-        translation = await self.singularitybot.database.get_interaction_lang(Interaction)
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
         embed = disnake.Embed(
-            "Choose a character to unequip an item from", color=disnake.Color.dark_purple()
+            title="Choose a character to unequip an item from", color=disnake.Color.dark_purple()
         )
         view = CharacterSelectDropdown(Interaction, user.main_characters)
         
