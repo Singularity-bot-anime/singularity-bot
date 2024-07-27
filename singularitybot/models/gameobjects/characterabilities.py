@@ -1,6 +1,6 @@
 import random
 from typing import TYPE_CHECKING, List
-from singularitybot.models.gameobjects.effects import Effect, EffectType
+from singularitybot.models.gameobjects.effects import Effect, EffectType,NEGATIVE_EFFECTS
 
 if TYPE_CHECKING:
     from singularitybot.models.gameobjects.character import Character
@@ -672,7 +672,7 @@ def fushiguro_special(character: "Character", allied_characters: List["Character
         if ally.current_armor < ally.start_armor:
             ally.current_armor = ally.start_armor
     
-        message = f"{character.name} summons Mahoraga and makes the team adapt to negative effects."
+    message = f"{character.name} summons Mahoraga and makes the team adapt to negative effects."
     return payload, message
 
 specials["59"] = fushiguro_special
