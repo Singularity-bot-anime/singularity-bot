@@ -70,7 +70,7 @@ class Adventure(commands.Cog):
         name="tutorial",
         description="Get a tutorial on how to play the bot!",
     )
-    async def tutorial(self):
+    async def tutorial(self, Interaction: disnake.ApplicationCommandInteraction):
         embed=disnake.Embed(title="Welcome to the singularity", description="This give you the basic commands and mechanics of the bot, if you want to see this again use `/adventure tutorial` use `/profile` to see your status", color=disnake.Color.dark_purple())
         embed.add_field(name="Get new characters ✨", value="Summoning new character require super fragments, use `/banner view` to see the current active banners. And use `/banner pull [name of the banner]` to pull a new character", inline=True)
         embed.add_field(name="Repeatable pve 🧟", value="Some pve commands can be used every so often, use `/wormehole` to face random ennemies based on your level. Towers are based of anime or banners. They are a trial of endurance. The Higher you go in the tower the better the rewards use `/tower` to acces one", inline=True)
