@@ -30,19 +30,19 @@ class Adventure(commands.Cog):
     )
     async def begin(self, Interaction: disnake.ApplicationCommandInteraction):
         # page 1
-        embed1 = disnake.Embed()
+        embed1 = disnake.Embed(color=disnake.Color.dark_purple())
         embed1.set_image(url="https://media.singularityapp.online/images/quests/begin/1.jpg")
         # page 2
-        embed2 = disnake.Embed()
+        embed2 = disnake.Embed(color=disnake.Color.dark_purple())
         embed2.set_image(url="https://media.singularityapp.online/images/quests/begin/2.jpg")
         # page 3
-        embed3 = disnake.Embed()
+        embed3 = disnake.Embed(color=disnake.Color.dark_purple())
         embed3.set_image(url="https://media.singularityapp.online/images/quests/begin/3.jpg")
         # page 4
-        embed4 = disnake.Embed()
+        embed4 = disnake.Embed(color=disnake.Color.dark_purple())
         embed4.set_image(url="https://media.singularityapp.online/images/quests/begin/4.jpg")
         # page 5
-        embed5 = disnake.Embed()
+        embed5 = disnake.Embed(color=disnake.Color.dark_purple())
         embed5.set_image(url="https://media.singularityapp.online/images/quests/begin/5.jpg")
 
         # add user 
@@ -56,7 +56,30 @@ class Adventure(commands.Cog):
 
         await Interaction.response.send_message(embed=embed1,view=Menu([embed1, embed2,embed3,embed4,embed5]))
 
+        embed=disnake.Embed(title="Welcome to the singularity", description="This give you the basic commands and mechanics of the bot, if you want to see this again use `/adventure tutorial` use `/profile` to see your status", color=disnake.Color.dark_purple())
+        embed.add_field(name="Get new characters ✨", value="Summoning new character require super fragments, use `/banner view` to see the current active banners. And use `/banner pull [name of the banner]` to pull a new character", inline=True)
+        embed.add_field(name="Repeatable pve 🧟", value="Some pve commands can be used every so often, use `/wormehole` to face random ennemies based on your level. Towers are based of anime or banners. They are a trial of endurance. The Higher you go in the tower the better the rewards use `/tower` to acces one", inline=True)
+        embed.add_field(name="Manage your characters 📦", value="Managing your team is essential to win. use the `/character` command to manage your characters, `/items` to manage items", inline=True)
+        embed.add_field(name="Team up 👥", value="The bot has a ''Clan'' system called galaxies, create or join one using `/galaxy create` or `/galaxy join` you will gain acces to new rewards and Galaxy wars !", inline=True)
+        embed.set_footer(text="Good luck !")
+
+        await Interaction.channel.send(embed=embed)
     
+
+    @adventure.sub_command(
+        name="tutorial",
+        description="Get a tutorial on how to play the bot!",
+    )
+    async def tutorial(self):
+        embed=disnake.Embed(title="Welcome to the singularity", description="This give you the basic commands and mechanics of the bot, if you want to see this again use `/adventure tutorial` use `/profile` to see your status", color=disnake.Color.dark_purple())
+        embed.add_field(name="Get new characters ✨", value="Summoning new character require super fragments, use `/banner view` to see the current active banners. And use `/banner pull [name of the banner]` to pull a new character", inline=True)
+        embed.add_field(name="Repeatable pve 🧟", value="Some pve commands can be used every so often, use `/wormehole` to face random ennemies based on your level. Towers are based of anime or banners. They are a trial of endurance. The Higher you go in the tower the better the rewards use `/tower` to acces one", inline=True)
+        embed.add_field(name="Manage your characters 📦", value="Managing your team is essential to win. use the `/character` command to manage your characters, `/items` to manage items", inline=True)
+        embed.add_field(name="Team up 👥", value="The bot has a ''Clan'' system called galaxies, create or join one using `/galaxy create` or `/galaxy join` you will gain acces to new rewards and Galaxy wars !", inline=True)
+        embed.set_footer(text="Good luck !")
+    
+        await Interaction.send(embed=embed)
+
     @adventure.sub_command(
         name="daily",
         description="Claim your daily rewards!",
@@ -109,25 +132,14 @@ class Adventure(commands.Cog):
                 name="You have won ...", value=f" `1` {CustomEmoji.SUPER_FRAGMENTS}"
             )
             user.super_fragements += 1
-        await Interaction.send(embed=embed)
+        await        Interaction.send(embed=embed)
         await user.update()
-    """
-    @adventure.sub_command(
-        name="fight",
-        description="Fight against monsters!",
-    )
-    async def fight(self, Interaction: disnake.ApplicationCommandInteraction):
-        await Interaction.response.send_message("You are in a fight!")
-
     @adventure.sub_command(
         name="move",
         description="Move to a new location!"
     )
-    async def move(
-        self,
-        Interaction: disnake.ApplicationCommandInteraction,
-    ):
-        await Interaction.response.send_message(f"You are moving to {destination}!")
-    """
+    async def move(self, interaction: disnake.ApplicationCommandInteraction):
+        view = MoveView(self.map_instance)
+        await interaction.response.send_message("Choose a direction to move:", view=view)
 def setup(bot: SingularityBot):
     bot.add_cog(Adventure(bot))
