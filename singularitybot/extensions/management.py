@@ -87,7 +87,7 @@ class management(commands.Cog):
                 title="Your storage is empty",
                 color=disnake.Color.purple(),
             )
-            embed.set_image(url="https://media.singularityapp.online/images/assets/pfpsister.png")
+            embed.set_image(url=self.singularitybot.avatar_url)
             if Interaction.response.is_done():
                 await Interaction.send(embed=embed)
                 return
@@ -164,7 +164,7 @@ class management(commands.Cog):
                 title="Your storage is empty",
                 color=disnake.Color.purple(),
             )
-            embed.set_image(url="https://media.singularityapp.online/images/assets/pfpsister.png")
+            embed.set_image(url=self.singularitybot.avatar_url)
             if Interaction.response.is_done():
                 await Interaction.send(embed=embed)
                 return
@@ -210,7 +210,7 @@ class management(commands.Cog):
                 title="Your storage is empty",
                 color=disnake.Color.purple(),
             )
-            embed.set_image(url="https://media.singularityapp.online/images/assets/pfpsister.png")
+            embed.set_image(url=self.singularitybot.avatar_url)
             if Interaction.response.is_done():
                 await Interaction.send(embed=embed)
                 return
@@ -595,5 +595,7 @@ class management(commands.Cog):
             print(f"Error during trade: {e}")
         finally:
             self.active_trades.discard((user1.id, user2.id))
+
+    
 def setup(client: SingularityBot):
     client.add_cog(management(client))

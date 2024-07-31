@@ -256,6 +256,58 @@ class Items(commands.Cog):
     async def autocomplete_recipe_name(self, Interaction: disnake.ApplicationCommandInteraction, current: str):
         return [recipe["name"] for recipe in recipes if current.lower() in recipe["name"].lower()]
 
+    @item.sub_command(name="use", description="Use an item from your inventory")
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
+    async def use(self, Interaction: disnake.ApplicationCommandInteraction, item_name: str):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user.discord = Interaction.author
 
+        # Find the item in the user's inventory
+        item = next((i for i in user.items if i.name.lower() == item_name.lower()), None)
+        
+        if item is None:
+            embed = disnake.Embed(
+                title="Error",
+                description="Item not found in your inventory.",
+                color=disnake.Color.red()
+            )
+            await Interaction.send(embed=embed, ephemeral=True)
+            return
+
+        if not item.is_active:
+            embed = disnake.Embed(
+                title="Item Unusable",
+                description=f"{item.name} cannot be used.",
+                color=disnake.Color.red()
+            )
+            await Interaction.send(embed=embed, ephemeral=True)
+            return
+
+        # Item usage logic
+        if item.id == 22:
+            # Add 10 energy to the user
+            user.energy += 10
+            await user.update()  # Update user data in the database
+            embed = disnake.Embed(
+                title="Item Used",
+                description=f"You used {item.name} and gained 10 energy!",
+                color=disnake.Color.green()
+            )
+        else:
+            # General item usage logic (if any)
+            embed = disnake.Embed(
+                title="Item Used",
+                description=f"You used {item.name}!",
+                color=disnake.Color.green()
+            )
+
+        await Interaction.send(embed=embed, ephemeral=True)
+
+    @use.autocomplete("item_name")
+    async def autocomplete_use_item(self, Interaction: disnake.ApplicationCommandInteraction, current: str):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        usable_items = [item.name for item in user.items if item.is_active]
+        return [item for item in usable_items if current.lower() in item.lower()]
+        
 def setup(singularitybot: SingularityBot):
     singularitybot.add_cog(Items(singularitybot))

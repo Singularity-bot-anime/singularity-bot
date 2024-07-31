@@ -59,7 +59,7 @@ main_extension = {
     "extensions.shop"
 }
 
-# This suppres most errors and show informations to the user
+# This suppress most errors and show informations to the user
 # This also logs errors in the database instead of the Terminal
 if not DEBUG:
     main_extension.add("extensions.topgg")

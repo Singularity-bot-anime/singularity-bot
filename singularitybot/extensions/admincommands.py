@@ -52,10 +52,6 @@ class admincommands(commands.Cog):
     @commands.slash_command(
         name="admincommands",
         description="reserved to admins",
-        guild_ids=[
-            1097995244336848928,
-            1086875022808854528,
-        ],
     )
     async def admin(self, Interaction: disnake.ApplicationCommandInteraction):
         pass

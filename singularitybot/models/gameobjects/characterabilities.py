@@ -858,18 +858,13 @@ def yuta_special(character: "Character", allied_characters: List["Character"], e
 
 specials["75"] = yuta_special
 
-def geto_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
+def dummy_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    
-    for enemy in enemy_characters:
-        if not enemy.is_alive():
-            continue
-    
-        dmg = character.attack(enemy,multiplier=0.25)["damage"]
-        message = f"{character.name} controls curses to attack enemies, dealing {dmg} damage to each enemy."
+    character.current_hp = character.start_hp
+    message = "Huuu hit harder ?"
     return payload, message
 
-specials["76"] = geto_special
+specials["76"] = dummy_special
 
 def the_world(
     character: "Character", allied_characters: List["Character"], ennemy_character: List["Character"]

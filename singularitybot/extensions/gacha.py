@@ -57,7 +57,7 @@ class Banners(commands.Cog):
         for banner in enabled_banners:
             embed = disnake.Embed(
                 title=banner["name"],
-                description=f"Draw odds | {CustomEmoji.R_R}:80% {CustomEmoji.R_SR}:15% {CustomEmoji.R_SSR}:4% {CustomEmoji.R_UR}:1% | cost: {banner['cost']}{CustomEmoji.SUPER_FRAGMENTS}| pity:{user.pity}/100",
+                description=f"Draw odds | {CustomEmoji.R_R}:80% {CustomEmoji.R_SR}:19% {CustomEmoji.R_SSR}:0.9% {CustomEmoji.R_UR}:0.1% | cost: {banner['cost']}{CustomEmoji.SUPER_FRAGMENTS}| pity:{user.pity}/100",
                 color=disnake.Color.dark_purple()
             )
             embed.set_image(url=f"https://media.singularityapp.online/images/banners/banner_{banner['id']}.jpg")
@@ -190,10 +190,10 @@ class Banners(commands.Cog):
         #pity system
         if user.pity >= 100:
             user.pity = 0
-            rarity = "UR"
+            rarity = random.choice(["UR","SSR"])
         else:
             _rarities = ["R","SR","SSR","UR"]
-            weights = [0.8,0.15,0.04,0.01]
+            weights = [0.8,0.19,0.009,0.001]
             rarity = random.choices(_rarities,weights=weights,k=1)[0]
         character_template = random.choice([self.singularitybot.character_file[char-1] for char in banner["cards"] if self.singularitybot.character_file[char-1]["rarity"] == rarity])
         

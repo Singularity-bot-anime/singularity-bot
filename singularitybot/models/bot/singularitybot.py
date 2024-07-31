@@ -156,3 +156,10 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             await message.delete()
             response = {'message_id': message.id, 'fight_id': data['fight_id']}
             await self.database.publish(f"{data['fight_id']}_delete_response",response)
+
+async def handle_error(coro):
+    """Handle exceptions in coroutines."""
+    try:
+        await coro
+    except Exception:
+        print(f"An error occurred in the event loop: {traceback.format_exc()}")

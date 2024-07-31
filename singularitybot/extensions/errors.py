@@ -115,7 +115,7 @@ class ErrorHandle(commands.Cog):
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://media.singularityapp.online/images/assets/pfpsister.png"
+                url=self.singularitybot.avatar_url
             )
             embed.add_field(
                 name="Permission Error",
@@ -132,7 +132,7 @@ class ErrorHandle(commands.Cog):
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://media.singularityapp.online/images/assets/pfpsister.png"
+                url=self.singularitybot.avatar_url
             )
             embed.set_footer(text="Please check your permissions and try again.")
             await self.try_sending_message(Interaction, embed)
@@ -145,7 +145,7 @@ class ErrorHandle(commands.Cog):
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://media.singularityapp.online/images/assets/pfpsister.png"
+                url=self.singularitybot.avatar_url
             )
             embed.set_footer(text="Please provide all required arguments and try again.")
             await self.try_sending_message(Interaction, embed)
@@ -158,7 +158,7 @@ class ErrorHandle(commands.Cog):
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://media.singularityapp.online/images/assets/pfpsister.png"
+                url=self.singularitybot.avatar_url
             )
             embed.set_footer(text="Please wait for the current command to finish.")
             await self.try_sending_message(Interaction, embed)
@@ -171,7 +171,7 @@ class ErrorHandle(commands.Cog):
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://media.singularityapp.online/images/assets/pfpsister.png"
+                url=self.singularitybot.avatar_url
             )
             embed.set_footer(text="Please try again later.")
             await self.try_sending_message(Interaction, embed)
@@ -184,7 +184,7 @@ class ErrorHandle(commands.Cog):
                 color=disnake.Color.red(),
             )
             embed.set_thumbnail(
-                url="https://media.singularityapp.online/images/assets/pfpsister.png"
+                url=self.singularitybot.avatar_url
             )
             embed.set_footer(text="Please try again.")
             await self.try_sending_message(Interaction, embed)

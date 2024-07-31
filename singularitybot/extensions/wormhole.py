@@ -66,7 +66,7 @@ class Wormhole(commands.Cog):
                 ),
                 color=disnake.Color.red(),
             )
-            embed.set_thumbnail(url="https://media.singularityapp.online/images/assets/pfpsister.png")
+            embed.set_thumbnail(url=self.singularitybot.avatar_url)
             await Interaction.send(embed=embed)
             return
         
@@ -121,7 +121,7 @@ class Wormhole(commands.Cog):
             embed = disnake.Embed(
                 title="The wormhole spits you out, without any rewards", color=disnake.Color.purple()
             )
-            embed.set_thumbnail(url="https://media.singularityapp.online/images/assets/pfpsister.png")
+            embed.set_thumbnail(url=self.singularitybot.avatar_url)
             await Interaction.channel.send(embed=embed)
             await user.update()
             return
@@ -142,7 +142,7 @@ class Wormhole(commands.Cog):
         )
         item_roll = random.randint(1, 100)
         if item_roll <= 5:
-            id = random.choice([1, 2, 3])
+            id = random.choice([1, 2, 3,22])
             item = item_from_dict(get_item_from_template({"id": id}))
             embed.add_field(
                 name="You have won an item", value=f"`{item.name}|`{item.emoji}"

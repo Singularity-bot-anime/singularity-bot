@@ -277,6 +277,12 @@ async def fight_loop(
                             break
                         
                         await edit_ui(player.message, shards[turn % 2], channels[turn % 2], embed, {'type': 'placeholder'}, fight_id)
+                        if value == "error":
+                            if not ranked:
+                                await stop_fight(fight_id, None, combat_log)
+                                return
+                            await stop_rank(database, winner.id, winner.id, combat_log)
+                            return
                         if value == "ff":
                             for i in player.main_characters:
                                 i.current_hp = 0
@@ -426,8 +432,8 @@ async def fight_loop(
             looser.global_elo = 0
         await winner.update()
         await looser.update()
-        await stop_rank(database, winner.id, winner.id.id, combat_log)
-        await stop_rank(database, looser.id, winner.id.id, combat_log)
+        await stop_rank(database, winner.id, winner.id, combat_log)
+        await stop_rank(database, looser.id, winner.id, combat_log)
         return 
     except Exception as error:
         if ranked:

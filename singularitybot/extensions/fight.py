@@ -20,11 +20,19 @@ MATCHMAKING_QUEUE = "matchmaking_requests"
 class fight(commands.Cog):
     def __init__(self, singularitybot: SingularityBot):
         self.singularitybot:disnake.AutoShardedClient = singularitybot
-
+    
     @commands.slash_command(name="fight", description="fight someone in your server")
     @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    @database_check()
     async def fight(
+        self,
+        Interaction: disnake.ApplicationCommandInteraction,
+    ):
+        pass
+
+
+    @fight.sub_command(name="local", description="fight someone in your server")
+    @database_check()
+    async def local(
         self,
         Interaction: disnake.ApplicationCommandInteraction,
         ennemy: disnake.Member,
@@ -68,7 +76,7 @@ class fight(commands.Cog):
         channels = [Interaction.channel.id,Interaction.channel.id]
         shards = [self.singularitybot.shard_id,self.singularitybot.shard_id]
         names = [Interaction.author.display_name,ennemy.display_name]
-        match_request = create_fight_handler_request(players,channels,shards)
+        match_request = create_fight_handler_request(players,channels,shards,names)
         winner,combat_log = await wait_for_fight_end(self.singularitybot.database,match_request)
         
         # cleanup & end
@@ -86,8 +94,7 @@ class fight(commands.Cog):
         await Interaction.channel.send(embed=win_embed)
         await Interaction.channel.send(embed=embeds[0], view=final_view)
 
-    @commands.slash_command(name="ranked", description="Start a ranked fight")
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
+    @fight.sub_command(name="ranked", description="Start a ranked fight")
     @database_check()
     async def ranked(self, interaction: disnake.ApplicationCommandInteraction):
         user = await self.singularitybot.database.get_user_info(interaction.author.id)
@@ -111,14 +118,14 @@ class fight(commands.Cog):
 
         match_found = await wait_for_match(self.singularitybot.database, interaction)
 
-        if not match_found:         
-            embed = disnake.Embed(title="Matchmaking Queue", description=f"MATCH CANCELED", color=disnake.Color.dark_purple())
+        if not match_found:        
+            embed = disnake.Embed(title="Matchmaking Queue", description=f"You have left the queue", color=disnake.Color.dark_purple())
             embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
             await interaction.edit_original_message(embed=embed,view=None)
             return
         await interaction.delete_original_message()
         winner,combat_log = await wait_for_ranked_stop(self.singularitybot.database,interaction.author.id)
-        # cleanup & end
+        # cleanup & end 
         winner = await self.singularitybot.fetch_user(int(winner.id))
         file_= await get_win_image(winner)
         win_embed = disnake.Embed(color=disnake.Colour.dark_purple())
@@ -128,7 +135,42 @@ class fight(commands.Cog):
         await Interaction.channel.send(embed=win_embed)
         await Interaction.channel.send(embed=embeds[0], view=final_view)
 
-            
+
+    @fight.sub_command(name="test", description="fight a target dummy")
+    @database_check()
+    async def test(
+        self,
+        Interaction: disnake.ApplicationCommandInteraction,
+    ):
+        
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user.discord = Interaction.author
+        if not   user.main_characters:
+            embed = disnake.Embed(title=f"Test fight    ",color=disnake.Colour.dark_purple())
+            embed.add_field(name="ERROR",value=f"You need to have main characters to fight use `/character main`")
+            await Interaction.send(embed=embed)
+            return
+
+        await Interaction.delete_original_message()
+        
+        ennemy_data = {
+            "name":"Dummy",
+            "avatar": None,
+            "main_characters": [
+                { "id": 76, "xp": 100, "types":[],"qualities":[],"awaken": 0, "items": [{ "id": 5 }] }
+            ],
+        }
+        players = [user.id, "0101"] 
+        channels = [Interaction.channel.id]*2
+        shards = [self.singularitybot.shard_id]*2
+        names = [user.discord.display_name,ennemy_data["name"]]
+        match_request = create_fight_handler_request(players,channels,shards,names)
+        match_request["IA_DATA"] = ennemy_data
+        winner,combat_log = await wait_for_fight_end(self.singularitybot.database,match_request)
+        
+        embeds = format_combat_log(combat_log)
+        final_view = Menu(embeds)
+        await Interaction.channel.send(embed=embeds[0], view=final_view)
 
 
 def setup(client: SingularityBot):
