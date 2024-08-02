@@ -290,7 +290,7 @@ class Items(commands.Cog):
             await user.update()  # Update user data in the database
             embed = disnake.Embed(
                 title="Item Used",
-                description=f"You used {item.name} and gained 10 energy!",
+                description=f"You used {item.name}{item.emoji} and gained 5 energy!",
                 color=disnake.Color.green()
             )
         else:

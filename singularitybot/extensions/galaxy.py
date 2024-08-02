@@ -717,14 +717,11 @@ class Galaxies(commands.Cog):
         last_war_record = None
         async with await self.singularitybot.database.get_redis_connection() as conn:
             war_records = await conn.hgetall("war_records")
-            print("Before")
-            print(len(war_records))
             for war_id, record in war_records.items():
                 record_data = pickle.loads(record)
                 if galaxy.id in [record_data["winner"], record_data["loser"]]:
                     if not last_war_record or record_data["timestamp"] > last_war_record["timestamp"]:
-                        last_war_record = record_data
-        print("After")                      
+                        last_war_record = record_data                 
         if not last_war_record:
             embed = disnake.Embed(
                 title="No recent war records found for your galaxy.",

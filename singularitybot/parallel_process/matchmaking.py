@@ -22,15 +22,15 @@ async def main():
 
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(MATCHMAKING_QUEUE, MATCHLEAVE_REQUEST)
-        future = asyncio.create_task(reader(pubsub, requests, leave_requests))
-
+        task = asyncio.create_task(reader(pubsub, requests, leave_requests))
+        
         while True:
-            # Check for leave requests
-            while not leave_requests.empty():
+            # Check for leave requests  
+            while leave_requests.qsize():
                 leave_request = await leave_requests.get()
                 player_to_remove = pickle.loads(leave_request["data"])
                 temp_queue = asyncio.Queue()
-                while not requests.empty():
+                while requests.qsize():
                     player = await requests.get()
                     player = pickle.loads(player["data"])
                     if player["player"] != player_to_remove["player"]:
@@ -38,13 +38,19 @@ async def main():
                 requests = temp_queue
 
             # Wait for at least two players in the queue
-            if requests.qsize() < 2:
+            if requests.qsize() >= 2:
                 
                 player1 = await requests.get()
                 player2 = await requests.get()
 
                 player1 = pickle.loads(player1["data"])
                 player2 = pickle.loads(player2["data"])
+                
+                # prevent same channel fight
+                if player1["channel"] == player2["channel"]:
+                    await requests.put(pickle.dumps(player1))
+                    await requests.put(pickle.dumps(player2))
+
                 # Create and start the match (non-blocking)
                 match_request = create_fight_handler_request(
                     [player1["player"], player2["player"]],
@@ -53,12 +59,13 @@ async def main():
                     [player1["name"], player2["name"]],
                     ranked=True,
                 )
-                asyncio.create_task(wait_for_fight_end(database, match_request))  # Non-blocking task
 
-                await redis_con.publish(f"{player1['player']}_match_found", "match_found")
-                await redis_con.publish(f"{player2['player']}_match_found", "match_found")
-            await asyncio.sleep(0.5)  # Check every second
+                await database.publish(f"{player1['player']}_match_found", "match_found")
+                await asyncio.sleep(0.5)
+                await database.publish(f"{player2['player']}_match_found", "match_found")
+                await database.create_fight(match_request)
 
+            await asyncio.sleep(0.5)
 # reader 
 async def reader(channel: redis.client.PubSub, requests: asyncio.Queue, leave_requests: asyncio.Queue):
     while True:

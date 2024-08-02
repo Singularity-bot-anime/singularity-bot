@@ -23,6 +23,9 @@ from singularitybot.models.database.maindatabase import Database
 from singularitybot.globals.emojis import CustomEmoji,converter
 from singularitybot.ui.cancelbutton import Cancel
 
+MATCHLEAVE_REQUEST = "matchleave_requests"
+
+
 # playing one or multiple file a better version of playfile bassicly
 async def play_files(
     ctx: Union[commands.Context, disnake.ApplicationCommandInteraction],
@@ -78,6 +81,8 @@ def get_character_status(character: "Character") -> str:
     status = ""
     if not character.effects:
         status = " `✔️` "
+        if character.taunt:
+            status = "🎯"
     else:
         status = ""
         if character.taunt:
@@ -315,6 +320,7 @@ async def wait_for_fight_end(database:Database,match_request:dict):
             message = await pubsub.get_message(ignore_subscribe_messages=True)
             if message is not None:
                 break
+
     fight_results = pickle.loads(message["data"])
     combat_log = fight_results["combat_log"]
     winner = fight_results["winner"]
@@ -327,10 +333,13 @@ async def wait_for_fight_end(database:Database,match_request:dict):
     return winner,combat_log
 
 async def reader(channel: redis.client.PubSub, requests: asyncio.Queue):
-    while True:
-        message = await channel.get_message(ignore_subscribe_messages=True)
-        if message is not None:
-            await requests.put(message)
+    try:
+        while True: 
+            message = await channel.get_message(ignore_subscribe_messages=True)
+            if message is not None:
+                await requests.put(message)
+    except asyncio.CancelledError:
+        return None
 
 async def wait_for_match(database: Database, interaction: disnake.ApplicationCommandInteraction) -> bool:
     """Waits for a match to be found or cancellation.
@@ -346,8 +355,7 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
     """
     channel_name = f"{interaction.author.id}_match_found"
     redis_con = Redis(connection_pool=database.redis_pool)
-    MATCHLEAVE_REQUEST = "matchleave_requests"
-
+    
     view = Cancel(interaction, timeout=0)
     embed = disnake.Embed(title="Matchmaking Queue", description="Looking for an opponent", color=disnake.Color.dark_purple())
     embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
@@ -356,8 +364,9 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(channel_name)
         requests = asyncio.Queue()
-        asyncio.create_task(reader(pubsub, requests))
-
+        reader_task = asyncio.create_task(reader(pubsub, requests))
+        # Let the reader start up
+        await asyncio.sleep(1)
         start_time = asyncio.get_event_loop().time()
         timeout = 60 * 5  # 5 minutes
 
@@ -365,13 +374,18 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
             elapsed_time = asyncio.get_event_loop().time() - start_time
             if elapsed_time > timeout:
                 await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))
+                reader_task.cancel()
                 return False  # Timeout
-            
-            if not requests.empty():
+        
+            if requests.qsize():
+                reader_task.cancel()
+                interaction = view.interaction
+                await interaction.delete_original_message()
                 return True  # Match found     
 
-            if view.value is False:  # The view has been interacted with and cancel button was pressed
+            if view.value is True:  # The view has been interacted with and cancel button was pressed
                 await redis_con.publish(MATCHLEAVE_REQUEST, pickle.dumps({"player": interaction.author.id}))
+                reader_task.cancel()
                 return False  # User canceled
 
             await asyncio.sleep(0.5)  # Small sleep to prevent tight loop

@@ -172,12 +172,12 @@ async def delete_all(messages: List[int],shards:list[int],channels:list[int],fig
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(f"{fight_id}_delete_response")
         for message,shard,channel_id in zip(messages,shards,channels):
-            await database.publish(f'shard-{shard}', {
+            await database.publish(f'shard-{shard}',{
                 'action': 'delete',
                 'channel_id':channel_id,
                 'message_id': message,
                 'fight_id':fight_id
-            })
+            } )
             while True:
                 message = await pubsub.get_message(ignore_subscribe_messages=True)
                 if message is not None:

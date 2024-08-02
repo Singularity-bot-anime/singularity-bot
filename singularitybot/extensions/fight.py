@@ -117,23 +117,22 @@ class fight(commands.Cog):
         await self.singularitybot.database.publish(MATCHMAKING_QUEUE, match_request)
 
         match_found = await wait_for_match(self.singularitybot.database, interaction)
-
-        if not match_found:        
+        if not match_found:
             embed = disnake.Embed(title="Matchmaking Queue", description=f"You have left the queue", color=disnake.Color.dark_purple())
             embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
             await interaction.edit_original_message(embed=embed,view=None)
             return
-        await interaction.delete_original_message()
+        
         winner,combat_log = await wait_for_ranked_stop(self.singularitybot.database,interaction.author.id)
-        # cleanup & end 
+        # cleanup & end    
         winner = await self.singularitybot.fetch_user(int(winner.id))
         file_= await get_win_image(winner)
         win_embed = disnake.Embed(color=disnake.Colour.dark_purple())
         win_embed.set_image(file=file_) 
         embeds = format_combat_log(combat_log)
         final_view = Menu(embeds)
-        await Interaction.channel.send(embed=win_embed)
-        await Interaction.channel.send(embed=embeds[0], view=final_view)
+        await interaction.channel.send(embed=win_embed)
+        await interaction.channel.send(embed=embeds[0], view=final_view)
 
 
     @fight.sub_command(name="test", description="fight a target dummy")

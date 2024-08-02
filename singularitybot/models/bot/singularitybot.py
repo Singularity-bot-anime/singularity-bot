@@ -115,17 +115,19 @@ class SingularityBot(commands.AutoShardedInteractionBot):
                 asyncio.create_task( self.handle_delete(data) )
 
     async def handle_send(self, data: dict):
-        channel = await self.fetch_channel(data['channel_id'])
+        channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
+            print(data)
             embed = data["embed"]
             message = await channel.send(embed=embed)
             response = {'messages': message.id, 'fight_id': data['fight_id']}
             await self.database.publish(f"{data['fight_id']}_message_response", response)
 
     async def handle_edit(self, data: dict):
-        channel = await self.fetch_channel(data['channel_id'])
+        channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            message =await channel.fetch_message(data["message_id"])
+            print(data)
+            message = channel.get_partial_message(data["message_id"])
             embed = data["embed"]
             embed.set_image(url=data["url"])
             await message.edit(embed=embed)
@@ -133,9 +135,10 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             await self.database.publish(f"{data['fight_id']}_edit_response", response)
 
     async def handle_edit_ui(self, data: dict):
-        channel = await self.fetch_channel(data['channel_id'])
+        channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            message = await channel.fetch_message(data["message_id"])
+            print(data)
+            message = channel.get_partial_message(data["message_id"])
             embed = data["embed"] 
             if data["view"]["type"] == "FightUi":
                 watcher_characters = data["view"]["watcher_characters"]
@@ -150,9 +153,10 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             await self.database.publish(f"{data['fight_id']}_ui_response", response)
 
     async def handle_delete(self, data: dict):
-        channel = await self.fetch_channel(data['channel_id'])
+        channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            message = await channel.fetch_message(data["message_id"])
+            print(data)
+            message = channel.get_partial_message(data["message_id"])
             await message.delete()
             response = {'message_id': message.id, 'fight_id': data['fight_id']}
             await self.database.publish(f"{data['fight_id']}_delete_response",response)

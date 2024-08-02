@@ -201,9 +201,10 @@ class Adventure(commands.Cog):
             dungeon_map.move_player(view.value)     
             
             Interaction = view.interaction
+            energy -= 1
             if not dungeon_map.player_position in visited:
-                energy -= 1
-                visited.add(dungeon_map.player_position)
+                #visited.add(dungeon_map.player_position)
+                pass
             trigger = dungeon_map.trigger_event()
 
             if trigger:
@@ -226,17 +227,18 @@ class Adventure(commands.Cog):
                     for char in user.main_characters:
                         char.xp += CHARACTER_XPGAINS
                     if not winner.is_human:
-                        energy -= 1
-                        message = "You have lost and lost 1 ⚡"
+                        energy -= 2
+                        message = "You have lost and lost 2 ⚡"
                     else:
-                        energy += 4
-                        message = "You have won and gained 4 ⚡"
+                        energy += 2
+                        message = "You have won and gained 2 ⚡"
                 elif trigger == 2: # Chest
                     item = random.choices(data["rewards"],weights=data["weights"],k=1)[0]
-                    item = item_from_dict(item)
+                    item = item_from_dict(get_item_from_template(item))
                     user.items.append(item)
                     message = f"You have won {item.name}{item.emoji}!"
                 elif trigger == 3: # Bombs
+                    energy -= 1
                     message = "You walked on a bomb and lost 1 ⚡"
                 elif trigger == 4: # Exit
                     break
@@ -245,7 +247,7 @@ class Adventure(commands.Cog):
 
         user.energy += energy
 
-        if energy == 0:
+        if energy <= 0:
             embed = disnake.Embed(title="You have no more energy", description="To get to the next dungeon finish this one by reaching the ladder")
             await Interaction.response.edit_message(embed=embed,view=PlaceHolder())
             return
