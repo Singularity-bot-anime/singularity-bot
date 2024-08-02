@@ -80,7 +80,7 @@ class Adventure(commands.Cog):
         description="Get a tutorial on how to play the bot!",
     )
     async def tutorial(self, Interaction: disnake.ApplicationCommandInteraction     ):
-        await Interaction.defer()
+        await Interaction.response.defer()
 
         await Interaction.send(embed=turorial_embed)
 
