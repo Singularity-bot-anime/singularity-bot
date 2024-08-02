@@ -70,7 +70,7 @@ class Adventure(commands.Cog):
         
         await user.update()
 
-        await Interaction.response.send_message(embed=embed1,view=Menu([embed1, embed2,embed3,embed4,embed5]))
+        await Interaction.send(embed=embed1,view=Menu([embed1, embed2,embed3,embed4,embed5]))
 
         await Interaction.channel.send(embed=turorial_embed)
     
