@@ -16,6 +16,16 @@ from singularitybot.ui.paginator import Menu
 from singularitybot.ui.pve.mapmove import MoveView
 from singularitybot.ui.place_holder import PlaceHolder
 
+turorial_embed=disnake.Embed(title="Welcome to the singularity", description="This give you the basic commands and mechanics of the bot, if you want to see this again use `/adventure tutorial` use `/profile` to see your status", color=disnake.Color.dark_purple())
+turorial_embed.add_field(name=f"Get new characters ✨", value=f"Summoning new character require super fragments {CustomEmoji.SUPER_FRAGMENTS}, use `/banner view` to see the current active banners. And use `/banner pull [name of the banner]` to pull a new character", inline=True)
+turorial_embed.add_field(name=f"Repeatable pve 🧟", value=f"Some pve commands can be used every so often, use `/wormehole` to face random ennemies based on your level. Towers are based of anime or banners. They are a trial of endurance. The Higher you go in the tower the better the rewards use `/tower` to acces one", inline=True)
+turorial_embed.add_field(name=f"Manage your characters 📦", value=f"Managing your team is essential to win. use the `/character` command to manage your characters, `/items` to manage items", inline=True)
+turorial_embed.add_field(name=f"Team up 👥", value=f"The bot has a ''Clan'' system called galaxies, create or join one using `/galaxy create` or `/galaxy join` you will gain acces to new rewards and Galaxy wars !", inline=True)
+turorial_embed.add_field(name=f"fight players ⚔️", value=f"The goal of the bot is to create a meaningfull pvp experience. We have 3 fight command `/fight local [tag someone]` to fight your friends, `/fight ranked` to fight somone from a different server, and `/fight test` where you fight a target dummy to test you team", inline=True)
+turorial_embed.add_field(name=f"Item up 💰", value=f"The `/item` commands allow you to equip unequip and see your items. to farm up some items use `/adventure enter` wager your energy in exange for moves.", inline=True)
+
+turorial_embed.set_footer(text="Good luck !")
+
 class Adventure(commands.Cog):
     """Adventure commands"""
 
@@ -34,6 +44,7 @@ class Adventure(commands.Cog):
         description="Begin your adventure!",
     )
     async def begin(self, Interaction: disnake.ApplicationCommandInteraction):
+        await Interaction.defer()
         # page 1
         embed1 = disnake.Embed(color=disnake.Color.dark_purple())
         embed1.set_image(url="https://media.singularityapp.online/images/quests/begin/1.jpg")
@@ -61,17 +72,7 @@ class Adventure(commands.Cog):
 
         await Interaction.response.send_message(embed=embed1,view=Menu([embed1, embed2,embed3,embed4,embed5]))
 
-        embed=disnake.Embed(title="Welcome to the singularity", description="This give you the basic commands and mechanics of the bot, if you want to see this again use `/adventure tutorial` use `/profile` to see your status", color=disnake.Color.dark_purple())
-        embed.add_field(name="Get new characters ✨", value="Summoning new character require super fragments, use `/banner view` to see the current active banners. And use `/banner pull [name of the banner]` to pull a new character", inline=True)
-        embed.add_field(name="Repeatable pve 🧟", value="Some pve commands can be used every so often, use `/wormehole` to face random ennemies based on your level. Towers are based of anime or banners. They are a trial of endurance. The Higher you go in the tower the better the rewards use `/tower` to acces one", inline=True)
-        embed.add_field(name="Manage your characters 📦", value="Managing your team is essential to win. use the `/character` command to manage your characters, `/items` to manage items", inline=True)
-        embed.add_field(name="Team up 👥", value="The bot has a ''Clan'' system called galaxies, create or join one using `/galaxy create` or `/galaxy join` you will gain acces to new rewards and Galaxy wars !", inline=True)
-        embed.add_field(name=f"fight players ⚔️", value=f"The goal of the bot is to create a meaningfull pvp experience. We have 3 fight command `/fight local [tag someone]` to fight your friends, `/fight ranked` to fight somone from a different server, and `/fight test` where you fight a target dummy to test you team", inline=True)
-        embed.add_field(name=f"Item up 💰", value=f"The `/item` commands allow you to equip unequip and see your items. to farm up some items use `/adventure enter` wager your energy in exange for moves.", inline=True)
-        
-        embed.set_footer(text="Good luck !")
-
-        await Interaction.channel.send(embed=embed)
+        await Interaction.channel.send(embed=turorial_embed)
     
 
     @adventure.sub_command(
@@ -79,17 +80,9 @@ class Adventure(commands.Cog):
         description="Get a tutorial on how to play the bot!",
     )
     async def tutorial(self, Interaction: disnake.ApplicationCommandInteraction     ):
-        embed=disnake.Embed(title="Welcome to the singularity", description="This give you the basic commands and mechanics of the bot, if you want to see this again use `/adventure tutorial` use `/profile` to see your status", color=disnake.Color.dark_purple())
-        embed.add_field(name=f"Get new characters ✨", value=f"Summoning new character require super fragments {CustomEmoji.SUPER_FRAGMENTS}, use `/banner view` to see the current active banners. And use `/banner pull [name of the banner]` to pull a new character", inline=True)
-        embed.add_field(name=f"Repeatable pve 🧟", value=f"Some pve commands can be used every so often, use `/wormehole` to face random ennemies based on your level. Towers are based of anime or banners. They are a trial of endurance. The Higher you go in the tower the better the rewards use `/tower` to acces one", inline=True)
-        embed.add_field(name=f"Manage your characters 📦", value=f"Managing your team is essential to win. use the `/character` command to manage your characters, `/items` to manage items", inline=True)
-        embed.add_field(name=f"Team up 👥", value=f"The bot has a ''Clan'' system called galaxies, create or join one using `/galaxy create` or `/galaxy join` you will gain acces to new rewards and Galaxy wars !", inline=True)
-        embed.add_field(name=f"fight players ⚔️", value=f"The goal of the bot is to create a meaningfull pvp experience. We have 3 fight command `/fight local [tag someone]` to fight your friends, `/fight ranked` to fight somone from a different server, and `/fight test` where you fight a target dummy to test you team", inline=True)
-        embed.add_field(name=f"Item up 💰", value=f"The `/item` commands allow you to equip unequip and see your items. to farm up some items use `/adventure enter` wager your energy in exange for moves.", inline=True)
-        
-        embed.set_footer(text="Good luck !")
-    
-        await Interaction.send(embed=embed)
+        await Interaction.defer()
+
+        await Interaction.send(embed=turorial_embed)
 
     @adventure.sub_command(
         name="daily",
