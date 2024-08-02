@@ -274,7 +274,7 @@ class Items(commands.Cog):
             await Interaction.send(embed=embed, ephemeral=True)
             return
 
-        if not item.is_active:
+        if not item.is_usable:
             embed = disnake.Embed(
                 title="Item Unusable",
                 description=f"{item.name} cannot be used.",
@@ -287,6 +287,7 @@ class Items(commands.Cog):
         if item.id == 22:
             # Add 10 energy to the user
             user.energy += 10
+            user.items.remove(item)
             await user.update()  # Update user data in the database
             embed = disnake.Embed(
                 title="Item Used",
@@ -306,7 +307,7 @@ class Items(commands.Cog):
     @use.autocomplete("item_name")
     async def autocomplete_use_item(self, Interaction: disnake.ApplicationCommandInteraction, current: str):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        usable_items = [item.name for item in user.items if item.is_active]
+        usable_items = [item.name for item in user.items if item.is_usable]
         return [item for item in usable_items if current.lower() in item.lower()]
         
 def setup(singularitybot: SingularityBot):

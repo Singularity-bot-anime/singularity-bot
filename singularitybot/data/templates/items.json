@@ -13,6 +13,7 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": true,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -29,6 +30,7 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": true,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -45,6 +47,7 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": true,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -61,6 +64,7 @@
             "is_equipable": true,
             "is_active": true,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"https://media1.tenor.com/m/18lhv0R4JOQAAAAC/madara-uchiha-madara.gif",
             "turn_for_ability": 0
         },
@@ -77,6 +81,7 @@
             "is_equipable": true,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -93,6 +98,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -109,6 +115,7 @@
             "is_equipable": true,
             "is_active": true,
             "prurchasable": true,
+            "is_usable":false,
             "special_image":"https://media1.tenor.com/m/GZ7U7-D6aasAAAAC/mahoraga-mahora-ga.gif",
             "turn_for_ability": 2
         },
@@ -125,6 +132,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -141,6 +149,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -157,6 +166,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -173,6 +183,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -189,6 +200,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -205,6 +217,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -221,6 +234,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -237,6 +251,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -253,6 +268,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -269,6 +285,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -285,6 +302,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -301,6 +319,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": true,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -317,6 +336,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 0
         },
@@ -333,6 +353,7 @@
             "is_equipable": true,
             "is_active": true,
             "prurchasable": true,
+            "is_usable":false,
             "special_image":"",
             "turn_for_ability": 4
         },
@@ -349,6 +370,7 @@
             "is_equipable": false,
             "is_active": false,
             "prurchasable": false,
+            "is_usable":true,
             "special_image":"",
             "turn_for_ability": 0
         }

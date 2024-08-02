@@ -28,6 +28,7 @@ class Item:
         self.emoji = item_file[self.id-1]["emoji"]
         self.is_equipable = item_file[self.id-1]["is_equipable"]
         self.is_active = item_file[self.id-1]["is_active"]
+        self.is_usable = item_file[self.id-1]["is_usable"]
         self.turn_for_ability = item_file[self.id-1]["turn_for_ability"]
         self.special_image = item_file[self.id-1]["special_image"]
         # Variable
