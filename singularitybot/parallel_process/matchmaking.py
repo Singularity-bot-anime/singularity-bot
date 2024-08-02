@@ -45,11 +45,6 @@ async def main():
 
                 player1 = pickle.loads(player1["data"])
                 player2 = pickle.loads(player2["data"])
-                
-                # prevent same channel fight
-                if player1["channel"] == player2["channel"]:
-                    await requests.put(pickle.dumps(player1))
-                    await requests.put(pickle.dumps(player2))
 
                 # Create and start the match (non-blocking)
                 match_request = create_fight_handler_request(
