@@ -44,7 +44,7 @@ class Adventure(commands.Cog):
         description="Begin your adventure!",
     )
     async def begin(self, Interaction: disnake.ApplicationCommandInteraction):
-        await Interaction.defer()
+        await Interaction.response.defer()
         # page 1
         embed1 = disnake.Embed(color=disnake.Color.dark_purple())
         embed1.set_image(url="https://media.singularityapp.online/images/quests/begin/1.jpg")
