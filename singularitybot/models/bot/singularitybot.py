@@ -117,7 +117,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
     async def handle_send(self, data: dict):
         channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            print(data)
             embed = data["embed"]
             message = await channel.send(embed=embed)
             response = {'messages': message.id, 'fight_id': data['fight_id']}
@@ -126,7 +125,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
     async def handle_edit(self, data: dict):
         channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            print(data)
             message = channel.get_partial_message(data["message_id"])
             embed = data["embed"]
             embed.set_image(url=data["url"])
@@ -137,7 +135,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
     async def handle_edit_ui(self, data: dict):
         channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            print(data)
             message = channel.get_partial_message(data["message_id"])
             embed = data["embed"] 
             if data["view"]["type"] == "FightUi":
@@ -155,7 +152,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
     async def handle_delete(self, data: dict):
         channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            print(data)
             message = channel.get_partial_message(data["message_id"])
             await message.delete()
             response = {'message_id': message.id, 'fight_id': data['fight_id']}
