@@ -40,7 +40,6 @@ async def main():
 
             # Wait for at least two players in the queue
             if requests.qsize() >= 2:
-                print("Got rq !")
                 player1 = await requests.get()
                 player2 = await requests.get()
 
@@ -56,6 +55,8 @@ async def main():
                     ranked=True,
                 )
 
+                # Wait for the command and readers to be ready to see the match_found signal
+                await asyncio.sleep(0.5)
                 await database.publish(f"{player1['player']}_match_found", "match_found")
                 await asyncio.sleep(0.5)
                 await database.publish(f"{player2['player']}_match_found", "match_found")
