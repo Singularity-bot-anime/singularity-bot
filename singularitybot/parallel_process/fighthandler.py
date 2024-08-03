@@ -64,7 +64,7 @@ async def reader(channel: redis.client.PubSub,requests:asyncio.Queue):
 
 async def main_loop():
     requests = asyncio.Queue()
-    redis_con = Redis(connection_pool=database.redis_pool)
+    redis_con = await database.get_redis_connection()
     async with redis_con.pubsub() as pubsub:
         # Handle the match creation request
         await pubsub.subscribe(MATCH_QUEUE)

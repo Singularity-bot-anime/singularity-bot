@@ -153,6 +153,6 @@ class SingularityBot(commands.AutoShardedInteractionBot):
 
     async def get_or_fetch_message(self,    message_id):
         message = self.get_message(message_id)
-        if message is None:
+        if message is None: 
             await self.fetch_message(message_id)
         return message

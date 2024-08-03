@@ -18,7 +18,7 @@ CURRENT_WAR = "active_wars"
 
 async def main():
     requests = asyncio.Queue()
-    redis_con = Redis(connection_pool=database.redis_pool)
+    redis_con = await database.get_redis_connection()
     
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(MATCHMAKING_QUEUE)

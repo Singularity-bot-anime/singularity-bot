@@ -8,6 +8,7 @@ from redis.asyncio import Redis, ConnectionPool
 
 from singularitybot.models.database.maindatabase import Database
 from singularitybot.models.gameobjects.galaxy import Galaxy
+from singularitybot.globals.variables import FRAGMENTSGAIN,CHARACTER_XPGAINS
 
 with open("singularitybot/data/raids/current_raid.json") as file:
     current_raid = json.load(file)

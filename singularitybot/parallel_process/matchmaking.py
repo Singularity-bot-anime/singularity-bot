@@ -18,7 +18,7 @@ MATCHLEAVE_REQUEST = "matchleave_requests"
 async def main():
     requests = asyncio.Queue()
     leave_requests = asyncio.Queue()
-    redis_con = Redis(connection_pool=database.redis_pool)
+    redis_con = await database.get_redis_connection()
 
     async with redis_con.pubsub() as pubsub:
         await pubsub.subscribe(MATCHMAKING_QUEUE, MATCHLEAVE_REQUEST)

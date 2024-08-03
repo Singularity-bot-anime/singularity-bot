@@ -311,8 +311,7 @@ async def wait_for_fight_end(database:Database,match_request:dict):
     id = match_request["match_id"]
     # send the request to the fight handler
     await database.create_fight(match_request)
-    
-    redis_con = Redis(connection_pool=database.redis_pool)
+    redis_con = await database.get_redis_connection()
     async with redis_con.pubsub() as pubsub:
     #Wait for the fight to end and it's results
         await pubsub.subscribe(f"{id}_stop")
@@ -338,8 +337,8 @@ async def reader(channel: redis.client.PubSub, requests: asyncio.Queue):
             message = await channel.get_message(ignore_subscribe_messages=True)
             if message is not None:
                 await requests.put(message)
-    except asyncio.CancelledError:
-        return None
+    except (asyncio.CancelledError,redis.ConnectionError):
+        return None 
 
 async def wait_for_match(database: Database, interaction: disnake.ApplicationCommandInteraction) -> bool:
     """Waits for a match to be found or cancellation.
