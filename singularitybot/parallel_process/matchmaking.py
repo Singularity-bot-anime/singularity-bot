@@ -26,17 +26,17 @@ async def main():
         
         while True:
             # Check for leave requests  
-            while leave_requests.qsize():
-                print("got leave rq")
+            while not leave_requests.empty():
                 leave_request = await leave_requests.get()
                 player_to_remove = pickle.loads(leave_request["data"])
                 temp_queue = asyncio.Queue()
-                while requests.qsize():
+                while not requests.empty():
                     player = await requests.get()
                     player = pickle.loads(player["data"])
                     if player["player"] != player_to_remove["player"]:
                         await temp_queue.put(pickle.dumps(player))
-                requests = temp_queue
+                while not temp_queue.empty():
+                    await requests.put(await temp_queue.get())
 
             # Wait for at least two players in the queue
             if requests.qsize() >= 2:
@@ -59,20 +59,18 @@ async def main():
                 await database.publish(f"{player1['player']}_match_found", "match_found")
                 await asyncio.sleep(0.5)
                 await database.publish(f"{player2['player']}_match_found", "match_found")
+                await asyncio.sleep(0.5)
                 await database.create_fight(match_request)
 
             await asyncio.sleep(0.5)
-# reader 
+# reader
 async def reader(channel: redis.client.PubSub, requests: asyncio.Queue, leave_requests: asyncio.Queue):
     while True:
         message = await channel.get_message(ignore_subscribe_messages=True)
         if message is not None:
             if message["channel"].decode() == MATCHLEAVE_REQUEST:
                 await leave_requests.put(message)
-                print(message)
             else:
                 await requests.put(message)
-                print(message)
-
 if __name__ =="__main__":
     asyncio.run(main())
