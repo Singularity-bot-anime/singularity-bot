@@ -27,6 +27,7 @@ async def main():
         while True:
             # Check for leave requests  
             while leave_requests.qsize():
+                print("got leave rq")
                 leave_request = await leave_requests.get()
                 player_to_remove = pickle.loads(leave_request["data"])
                 temp_queue = asyncio.Queue()
@@ -39,7 +40,7 @@ async def main():
 
             # Wait for at least two players in the queue
             if requests.qsize() >= 2:
-                
+                print("Got rq !")
                 player1 = await requests.get()
                 player2 = await requests.get()
 
@@ -68,8 +69,10 @@ async def reader(channel: redis.client.PubSub, requests: asyncio.Queue, leave_re
         if message is not None:
             if message["channel"].decode() == MATCHLEAVE_REQUEST:
                 await leave_requests.put(message)
+                print(message)
             else:
                 await requests.put(message)
+                print(message)
 
 if __name__ =="__main__":
     asyncio.run(main())

@@ -36,7 +36,7 @@ async def process_raid_end(galaxy: Galaxy):
 
     if raid_successful:
         for reward in current_raid["rewards"]:
-            galaxy.items.append({"id": reward})
+            galaxy.items.append(Item({"id": reward}))
         for user_id in galaxy.raid_attacks:
             user = await database.get_user_info(user_id)
             user.fragments += FRAGMENTSGAIN
