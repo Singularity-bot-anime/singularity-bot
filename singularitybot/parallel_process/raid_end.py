@@ -8,6 +8,7 @@ from redis.asyncio import Redis, ConnectionPool
 
 from singularitybot.models.database.maindatabase import Database
 from singularitybot.models.gameobjects.galaxy import Galaxy
+from singularitybot.models.gameobjects.items import Item
 from singularitybot.globals.variables import FRAGMENTSGAIN,CHARACTER_XPGAINS
 
 with open("singularitybot/data/raids/current_raid.json") as file:
@@ -35,7 +36,7 @@ async def process_raid_end(galaxy: Galaxy):
 
     if raid_successful:
         for reward in current_raid["rewards"]:
-            galaxy.items.append(reward)
+            galaxy.items.append({"id": reward})
         for user_id in galaxy.raid_attacks:
             user = await database.get_user_info(user_id)
             user.fragments += FRAGMENTSGAIN
