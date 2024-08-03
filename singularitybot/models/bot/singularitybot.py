@@ -123,43 +123,36 @@ class SingularityBot(commands.AutoShardedInteractionBot):
             await self.database.publish(f"{data['fight_id']}_message_response", response)
 
     async def handle_edit(self, data: dict):
-        channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
-        if channel:
-            message = channel.get_partial_message(data["message_id"])
-            embed = data["embed"]
-            embed.set_image(url=data["url"])
-            await message.edit(embed=embed)
-            response = {'message_id': message.id, 'fight_id': data['fight_id']}
-            await self.database.publish(f"{data['fight_id']}_edit_response", response)
+        message = await self.get_or_fetch_message(data["message_id"])
+        embed = data["embed"]
+        embed.set_image(url=data["url"])
+        await message.edit(embed=embed)
+        response = {'message_id': message.id, 'fight_id': data['fight_id']}
+        await self.database.publish(f"{data['fight_id']}_edit_response", response)
 
     async def handle_edit_ui(self, data: dict):
-        channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
-        if channel:
-            message = channel.get_partial_message(data["message_id"])
-            embed = data["embed"] 
-            if data["view"]["type"] == "FightUi":
-                watcher_characters = data["view"]["watcher_characters"]
-                player_characters = data["view"]["player_characters"]
-                view = FightUi(int(data["view"]["user_id"]),watcher_characters,player_characters)
-                await message.edit(embed=embed, view=view)
-                await view.wait()
-            elif data["view"]["type"] == "placeholder":
-                view = PlaceHolder()
-                await message.edit(embed=embed, view=view)
-            response = {'message_id': message.id, 'fight_id': data['fight_id'],"value":view.value}
-            await self.database.publish(f"{data['fight_id']}_ui_response", response)
+        message = await self.get_or_fetch_message(data["message_id"])
+        embed = data["embed"] 
+        if data["view"]["type"] == "FightUi":
+            watcher_characters = data["view"]["watcher_characters"]
+            player_characters = data["view"]["player_characters"]
+            view = FightUi(int(data["view"]["user_id"]),watcher_characters,player_characters)
+            await message.edit(embed=embed, view=view)
+            await view.wait()
+        elif data["view"]["type"] == "placeholder":
+            view = PlaceHolder()
+            await message.edit(embed=embed, view=view)
+        response = {'message_id': message.id, 'fight_id': data['fight_id'],"value":view.value}
+        await self.database.publish(f"{data['fight_id']}_ui_response", response)
 
     async def handle_delete(self, data: dict):
-        channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
-        if channel:
-            message = channel.get_partial_message(data["message_id"])
-            await message.delete()
-            response = {'message_id': message.id, 'fight_id': data['fight_id']}
-            await self.database.publish(f"{data['fight_id']}_delete_response",response)
+        message = await self.get_or_fetch_message(data["message_id"])
+        await message.delete()
+        response = {'message_id': message.id, 'fight_id': data['fight_id']}
+        await self.database.publish(f"{data['fight_id']}_delete_response",response)
 
-async def handle_error(coro):
-    """Handle exceptions in coroutines."""
-    try:
-        await coro
-    except Exception:
-        print(f"An error occurred in the event loop: {traceback.format_exc()}")
+    async def get_or_fetch_message(self,    message_id):
+        message = self.get_message(message_id)
+        if message is None:
+            await self.fetch_message(message_id)
+        return message

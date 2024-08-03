@@ -94,7 +94,7 @@ class fight(commands.Cog):
         await Interaction.channel.send(embed=win_embed)
         await Interaction.channel.send(embed=embeds[0], view=final_view)
 
-    """
+    
     @fight.sub_command(name="ranked", description="Start a ranked fight")
     @database_check()
     async def ranked(self, interaction: disnake.ApplicationCommandInteraction):
@@ -134,7 +134,7 @@ class fight(commands.Cog):
         final_view = Menu(embeds)
         await interaction.channel.send(embed=win_embed)
         await interaction.channel.send(embed=embeds[0], view=final_view)
-    """
+    
 
     @fight.sub_command(name="test", description="fight a target dummy")
     @database_check()

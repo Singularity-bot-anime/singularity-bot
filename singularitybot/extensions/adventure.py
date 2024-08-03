@@ -84,7 +84,7 @@ class Adventure(commands.Cog):
 
         await Interaction.send(embed=turorial_embed)
 
-    @adventure.sub_command(
+    @adventure.sub_command( 
         name="daily",
         description="Claim your daily rewards!",
     )
