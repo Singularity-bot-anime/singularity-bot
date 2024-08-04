@@ -287,6 +287,15 @@ class Database:
             _id = document["_id"]
             await conn.hset("galaxies", _id, pickle.dumps(document))
 
+    async def delete_galaxy(self, galaxy_id: str) -> None:
+        """Delete a galaxy from the database.
+
+        Args:
+            galaxy_id (str): The ID of the galaxy to delete.
+        """
+        async with await self.get_redis_connection() as conn:
+            await conn.hdel("galaxies", galaxy_id)
+
     async def close(self):
         pool = await self.get_redis_connection()
         await pool.close()

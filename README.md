@@ -1,6 +1,12 @@
-# Singularity bot
+<p align='center'>
+    <img src='https://filebrowser.singularityapp.online/files/assets/discordbanner.jpg' align='center'/>
+</p>
+<h1 align="center">SINGULARITY BOT 🪐</h1>
+
+
 
 Singularity is an RPG discord bot with gacha features
+
 
 ## External Dependencies
 - Redis database

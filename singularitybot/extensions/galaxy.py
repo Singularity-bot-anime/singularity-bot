@@ -152,7 +152,47 @@ class Galaxies(commands.Cog):
         await user.update()
 
         await Interaction.send(embed=embed)
-                    
+
+    @galaxy_check()
+    @galaxy.sub_command(name="leave", description="Leave your current galaxy")
+    async def leave(self, Interaction: disnake.CommandInteraction):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user.discord = Interaction.author
+
+        galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
+
+        if galaxy.ranks[user.id] == GalaxyRank.BOSS:
+            if len(galaxy.users) == 1:
+                # Only member, can leave and disband the galaxy
+                galaxy.users.remove(user.id)
+                user.galaxy_id = None
+                await user.update()
+                await self.singularitybot.database.delete_galaxy(user.galaxy_id)
+                embed = disnake.Embed(
+                    title="You have left and disbanded the galaxy.",
+                    color=disnake.Color.dark_purple(),
+                )
+            else:
+                embed = disnake.Embed(
+                    title="You are the leader of the galaxy. You must promote someone else to leader before leaving.",
+                    color=disnake.Color.dark_purple(),
+                )
+            await Interaction.send(embed=embed)
+            return
+
+        # Non-leader member can leave freely
+        galaxy.users.remove(user.id)
+        del galaxy.ranks[user.id]
+        user.galaxy_id = None
+        await user.update()
+        await galaxy.update()
+
+        embed = disnake.Embed(
+            title="You have left the galaxy.",
+            color=disnake.Color.dark_purple(),
+        )
+        await Interaction.send(embed=embed)
+             
     @galaxy_check()
     @galaxy.sub_command(name="show", description="Show your galaxy info")
     async def show(self, Interaction: disnake.CommandInteraction):
