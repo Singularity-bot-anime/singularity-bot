@@ -121,19 +121,19 @@ class Adventure(commands.Cog):
 
         if roll < 101:
             embed.add_field(
-                name="You have won some fragments", value=f"`{bonus_fragments}` {CustomEmoji.FRAGMENTS}"
+                name="➥You have won some fragments", value=f"`{bonus_fragments}` {CustomEmoji.FRAGMENTS}"
             )
             user.fragments += bonus_fragments
         if roll < 50:
             id = 22
             item = item_from_dict(get_item_from_template({"id": id}))
             embed.add_field(
-                name="You have won an item", value=f"`{item.name}`|{item.emoji}"
+                name="➥You have won an item", value=f"`{item.name}`|{item.emoji}"
             )
             user.items.append(item)
         if roll < 2:
             embed.add_field(
-                name="You have won ...", value=f" `1` {CustomEmoji.SUPER_FRAGMENTS}"
+                name="➥You have won ...", value=f" `1` {CustomEmoji.SUPER_FRAGMENTS}"
             )
             user.super_fragements += 1
         await Interaction.send(embed=embed)

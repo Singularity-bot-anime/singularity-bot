@@ -81,22 +81,26 @@ class Wormhole(commands.Cog):
         await Interaction.send(embed=embed)
 
         user.last_wormhole = datetime.datetime.now() + datetime.timedelta(hours=2)
-
+        multi = 1
         if user.level < 5:
             rarity = "R"
             n = random.randint(1, 2)
         elif 5 <= user.level < 25:
             rarity = "SR"
             n = random.randint(1, 1)
+            multi = 2
         elif 25 <= user.level < 50:
             rarity = "SSR"
             n = random.randint(2, 3)
+            multi = 3
         elif 50 <= user.level < 75:
             rarity = "UR"
             n = 3
+            multi = 3
         elif user.level >= 75:
             rarity = "LR"
             n = 3
+            multi = 4
         names = ["Megalo", "Mr Davelo", "Vince", "Icarus", "Arkkos", "Yoshikage Ramsay","Keyshiwo","EIRBLAST","Obama","Mizu","ft.fate"]
         ennemy_data = {
             "name": f"{random.choice(names)}'s Soul",
@@ -129,9 +133,9 @@ class Wormhole(commands.Cog):
         user = winner
         # Guarented drops and stuff
         user.xp += PLAYER_XPGAINS
-        user.fragments += FRAGMENTSGAIN
+        user.fragments += FRAGMENTSGAIN * multi
         for char in user.main_characters:
-            char.xp += CHARACTER_XPGAINS
+            char.xp += CHARACTER_XPGAINS * multi
         embed = disnake.Embed(
             title="You vanquished the wormhole !", color=disnake.Color.dark_purple()
         )

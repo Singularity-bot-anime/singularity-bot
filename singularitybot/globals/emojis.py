@@ -43,3 +43,10 @@ converter = {
     "UR":CustomEmoji.R_UR,
     "LR":CustomEmoji.R_LR,
 }
+converter_exclame = {
+    "R":"",
+    "SR":"",
+    "SSR":"❗",
+    "UR":"‼️",
+    "LR":"⁉️",
+}

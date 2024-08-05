@@ -11,7 +11,7 @@ from singularitybot.ui.paginator import Menu
 from singularitybot.ui.confirmation import Confirm
 from singularitybot.ui.place_holder import PlaceHolder
 from singularitybot.models.gameobjects.character import Character, character_from_dict,get_character_from_template, Types, Qualities
-from singularitybot.globals.emojis import CustomEmoji,converter
+from singularitybot.globals.emojis import CustomEmoji,converter,converter_exclame
 
 banners_test = ["banners1","banners2","banners3"]
 
@@ -57,7 +57,7 @@ class Banners(commands.Cog):
         for banner in enabled_banners:
             embed = disnake.Embed(
                 title=banner["name"],
-                description=f"Draw odds | {CustomEmoji.R_R}:80% {CustomEmoji.R_SR}:19% {CustomEmoji.R_SSR}:0.9% {CustomEmoji.R_UR}:0.1% | cost: {banner['cost']}{CustomEmoji.SUPER_FRAGMENTS}| pity:{user.pity}/100",
+                description=f"➥__Draw odds__ : {CustomEmoji.R_R} `80%` {CustomEmoji.R_SR} `19%` {CustomEmoji.R_SSR} `0.9%` {CustomEmoji.R_UR} `0.1%` \n➥__cost__ `{banner['cost']}`{CustomEmoji.SUPER_FRAGMENTS}\n➥__pity__ `{user.pity}`/100",
                 color=disnake.Color.dark_purple()
             )
             embed.set_image(url=f"https://media.singularityapp.online/images/banners/banner_{banner['id']}.jpg")
@@ -106,16 +106,17 @@ class Banners(commands.Cog):
                 break
 
         if (banner['cost'] > user.super_fragements):
-            embed = disnake.Embed(title=f"You don't have enoug{CustomEmoji.SUPER_FRAGMENTS}, the banner cost {banner['cost']} {CustomEmoji.SUPER_FRAGMENTS} you have {user.super_fragements}{CustomEmoji.SUPER_FRAGMENTS} ",color=disnake.Color.purple())
+            embed = disnake.Embed(title=f"You don't have enoug {CustomEmoji.SUPER_FRAGMENTS}, the banner cost `{banner['cost']}` {CustomEmoji.SUPER_FRAGMENTS} you have `{user.super_fragements}`{CustomEmoji.SUPER_FRAGMENTS} ",color=disnake.Color.purple())
             await Interaction.send(embed=embed)
             return
 
         view = Confirm(Interaction)
-        embed = disnake.Embed(title=f"Are you sure you want to use {banner['cost']} {CustomEmoji.SUPER_FRAGMENTS} you have {user.super_fragements}{CustomEmoji.SUPER_FRAGMENTS} ",
-                                description=f"Pity {user.pity}/100 | You gain a 50% {CustomEmoji.R_UR} at 100",
+        embed = disnake.Embed(title=f"Are you sure you want to use `{banner['cost']}`{CustomEmoji.SUPER_FRAGMENTS} you have `{user.super_fragements}`{CustomEmoji.SUPER_FRAGMENTS} ",
+                                description=f"➥Pity `{user.pity}`/100\n➥You gain a **50% chance** to gain a {CustomEmoji.R_UR} at `100` pity",
                                 color=disnake.Color.dark_purple())
         embed.set_image(url=f"https://media.singularityapp.online/images/banners/banner_{banner['id']}.jpg")
         
+        original_embed = embed
         await Interaction.send(embed=embed,view=view)
         await wait_for(view)
 
@@ -127,14 +128,19 @@ class Banners(commands.Cog):
         user.super_fragements -= 1
         drawn_characters = []
         pulled_rarities=[]
-        draw_embed = disnake.Embed(title="Drawn Characters",color=disnake.Color.dark_purple())
+        draw_embed = disnake.Embed(title="🪐 This characters have emerged from the singularity 🪐",
+                                    description="*Note :All characters have their own innate qualities, symbolized by the emojis in their description*",
+                                    color=disnake.Color.dark_purple())
         for _ in range(10):
             char_template,types,qualities = self.generate_character_data(banner,user)
             character = get_character_from_template(char_template,types, qualities)
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
-                typequal+=f"{_t.emoji} {_q.emoji}\n"
-            draw_embed.add_field(name=f"{character.name}{converter[character.rarity]}",value=typequal)
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            draw_embed.add_field(name=f"`{character.name}`{converter_exclame[character.rarity]}",value=field_value,inline=False)
             msg = add_to_available_storage(user,character,skip_main=True)
             pulled_rarities.append(character.rarity)
             if not msg:
@@ -147,10 +153,17 @@ class Banners(commands.Cog):
         await user.update()
         pulled_rarities.sort(key=rarity_prio)
         embed = disnake.Embed(color=disnake.Color.dark_purple())
-        embed.set_image(url=f"https://media.singularityapp.online/images/animations/{pulled_rarities[0]}.png")
-        await Interaction.send(embed=embed)
-        await asyncio.sleep(4)
-        await Interaction.send(embed=draw_embed)
+        drop_images = {
+            "R":"https://media1.tenor.com/m/wVOgdD9hHrEAAAAC/anime-treasure.gif ",
+            "SR":"https://media1.tenor.com/m/5fcHd-HY1HAAAAAd/one-piece-gol.gif",
+            "SSR":"https://media1.tenor.com/m/HqIie-lYQ0IAAAAd/arrow-giorno-giovanna.gif",
+            "UR":"https://media1.tenor.com/m/lVEvDN0kw9gAAAAd/luffy-luffy-gear-5.gif",
+        }
+        embed.set_image(url=drop_images[pulled_rarities[0]])
+        await Interaction.edit_original_message(embed=original_embed,view=None)
+        await Interaction.channel.send(embed=embed)
+        await asyncio.sleep(5)
+        await Interaction.channel.send(embed=draw_embed)
 
     def generate_character_data(self,banner:dict,user:User):
         #get types and qualities

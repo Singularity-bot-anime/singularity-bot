@@ -210,10 +210,15 @@ def character_field(character: "Character", embed: disnake.Embed):
     _rarity = converter[character.rarity] + "🌟" * character.awaken
     typequal=""
     for _t,_q in zip(character.etypes,character.equalities):
-        typequal+=f"{_q.name}{_q.emoji} {_t.name}{_t.emoji}\n"
+        typequal+=f"{_t.emoji}{_q.emoji}  "
+    field_value = (     f"➥ __Name__ **[ **{character.name} **]**\n"+
+                        f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
     embed.add_field(
         name="▬▬▬`CHARACTER`▬▬▬",
-        value=f"name:`{character.name}`" +f"{_rarity}\n"+typequal + "    ▬▬▬▬▬▬▬▬▬",
+        value=field_value + "▬▬▬▬▬▬▬▬▬",
         
     )
     embed.add_field(
@@ -222,12 +227,11 @@ def character_field(character: "Character", embed: disnake.Embed):
         + f"DAMAGE:`{int(character.current_damage)}⚔️`\n"
         + f"ARMOR:`{int(character.current_armor)}🛡️`\n"
         + f"SPEED:`{int(character.current_speed)}💨`\n"
-        + f"LEVEL:`{int(character.level)}`\n"
-        + f"XP:`{int(character.xp)}`\n    ▬▬▬▬▬▬▬▬▬",
+        + f"XP:`{int(character.xp)}`\n▬▬▬▬▬▬▬▬▬",
     )
     embed.add_field(
         name="▬▬`SPECIAL`▬▬",
-        value=character.special_description + "\n     ▬▬▬▬▬▬▬▬▬",
+        value=character.special_description + "\n▬▬▬▬▬▬▬▬▬",
     )
     if character.taunt:
         embed.add_field(
@@ -356,7 +360,7 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
     redis_con = Redis(connection_pool=database.redis_pool)
     
     view = Cancel(interaction, timeout=0)
-    embed = disnake.Embed(title="Matchmaking Queue", description="Looking for an opponent", color=disnake.Color.dark_purple())
+    embed = disnake.Embed(title=f"Matchmaking Queue {CustomEmoji.LOADING_ICON}", description="Looking for an opponent", color=disnake.Color.dark_purple())
     embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
     await interaction.edit_original_message(embed=embed, view=view)
 
@@ -380,6 +384,8 @@ async def wait_for_match(database: Database, interaction: disnake.ApplicationCom
                 reader_task.cancel()
                 interaction = view.interaction
                 await interaction.delete_original_message()
+                embed.add_field(name=f"{interaction.author.mention}",value="A match was found")
+                await interaction.channel.send(embed=embed)
                 return True  # Match found     
 
             if view.value is True:  # The view has been interacted with and cancel button was pressed

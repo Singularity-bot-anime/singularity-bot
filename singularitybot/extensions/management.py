@@ -100,8 +100,12 @@ class management(commands.Cog):
         for character in user.character_storage:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
-                typequal+=f"{_t.emoji} {_q.emoji}\n"
-            embed.add_field(name=f"{character.name}{converter[character.rarity]}{int(character.level)}",value=typequal)
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
         
         view = CharacterSelectDropdown(Interaction, storage,max_value=len(storage))
         if Interaction.response.is_done():
@@ -117,10 +121,15 @@ class management(commands.Cog):
         for character in [user.character_storage[i] for i in range(len(user.character_storage)) if i in view.value ]:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
-                typequal+=f"{_t.emoji} {_q.emoji}\n"
-            embed.add_field(name=f"{character.name}{converter[character.rarity]}{int(character.level)}",value=typequal)
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
         view = Confirm(Interaction)
-        await Interaction.channel.send(embed=embed, view=view)
+        Interaction = view.interaction  
+        await Interaction.edit_original_message(embed=embed, view=view)
         await wait_for(view)
         Interaction = view.interaction
         if view.value:
@@ -177,8 +186,12 @@ class management(commands.Cog):
         for character in user.character_storage:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
-                typequal+=f"{_t.emoji} {_q.emoji}\n"
-            embed.add_field(name=f"{character.name}{converter[character.rarity]}",value=typequal)
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
         if Interaction.response.is_done():
             await Interaction.send(embed=embed)
             return
@@ -224,8 +237,13 @@ class management(commands.Cog):
         for character in storage:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
-                typequal+=f"{_t.emoji} {_q.emoji}\n"
-            embed.add_field(name=f"{character.name}{converter[character.rarity]}",value=typequal)
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
+        
         view = CharacterSelectDropdown(Interaction, storage)
         if Interaction.response.is_done():
             await Interaction.send(embed=embed, view=view)
@@ -297,8 +315,13 @@ class management(commands.Cog):
         for character in user.main_characters:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
-                typequal+=f"{_t.emoji} {_q.emoji}\n"
-            embed.add_field(name=f"{character.name}{converter[character.rarity]}",value=typequal)
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            embed.add_field(name=f"`{character.name}`",value=field_value,inline=False)
+        
         view = CharacterSelectDropdown(Interaction, user.main_characters)
         await Interaction.send(embed=embed, view=view)
         await wait_for(view)
@@ -330,6 +353,16 @@ class management(commands.Cog):
         embed = disnake.Embed(
             title="Select a character to awake", color=disnake.Color.dark_purple()
         )
+        for character in user.main_characters:
+            typequal = ""
+            for _t,_q in zip(character.etypes,character.equalities):
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            embed.add_field(name=f"`{character.name}`",value=field_value,inline=False)
+        
         view = CharacterSelectDropdown(Interaction, user.main_characters)
 
         await Interaction.send(embed=embed, view=view)

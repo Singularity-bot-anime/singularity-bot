@@ -50,6 +50,7 @@ class Character:
         self.special_url:str = character_file[self.id-1]["special_url"]
         self.taunt: bool = character_file[self.id-1]["taunt"]
         self.items: List[Item] = [item_from_dict(s) for s in data["items"]]
+        self.universe: str = character_file[self.id-1]["universe"]
         self.level: int = min(MAX_LEVEL, self.xp // STXPTOLEVEL)
 
         # Compute the starting Items and XP scaling.

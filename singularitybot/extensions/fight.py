@@ -3,6 +3,10 @@ import asyncio
 
 from redis.asyncio import Redis
 from disnake.ext import commands
+
+#globl
+
+from singularitybot.globals.emojis import CustomEmoji
 # ui
 from singularitybot.ui.confirmation import Confirm
 from singularitybot.ui.paginator import Menu
@@ -119,7 +123,7 @@ class fight(commands.Cog):
 
         match_found = await wait_for_match(self.singularitybot.database, interaction)
         if not match_found:
-            embed = disnake.Embed(title="Matchmaking Queue", description=f"You have left the queue", color=disnake.Color.dark_purple())
+            embed = disnake.Embed(title=f"Matchmaking Queue", description=f"You have left the queue", color=disnake.Color.dark_purple())
             embed.set_image(url="https://media1.tenor.com/m/2OA-uQTBCBQAAAAd/detective-conan-case-closed.gif")
             await interaction.edit_original_message(embed=embed,view=None)
             return

@@ -63,7 +63,6 @@ async def process_raid_end(galaxy: Galaxy):
 
     # Update the galaxy info
     await galaxy.update()
-    print("Rewarded galaxy: ",galaxy.name)
 
 if __name__ == "__main__":
     asyncio.run(main())
