@@ -223,16 +223,15 @@ class Adventure(commands.Cog):
                         energy -= 2
                         message = "You have lost and lost 2 ⚡"
                     else:
-                        energy += 2
-                        message = "You have won and gained 2 ⚡"
+                        message = "You have defeated the monsters"
                 elif trigger == 2: # Chest
                     item = random.choices(data["rewards"],weights=data["weights"],k=1)[0]
                     item = item_from_dict(get_item_from_template(item))
                     user.items.append(item)
                     message = f"You have won {item.name}{item.emoji}!"
                 elif trigger == 3: # Bombs
-                    energy -= 1
-                    message = "You walked on a bomb and lost 1 ⚡"
+                    energy -= 2
+                    message = "You walked on a bomb and lost 2 ⚡"
                 elif trigger == 4: # Exit
                     break
                 else:

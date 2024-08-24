@@ -240,6 +240,7 @@ async def fight_loop(
             for character in player.main_characters:
                 if not game(players[0].main_characters, players[1].main_characters):
                     break
+                # Basic attacks
                 if character.is_alive() and not character.is_stunned():
                     embed = disnake.Embed(
                         title="Fight",
@@ -345,6 +346,7 @@ async def fight_loop(
                     )
                     url = f"https://media.singularityapp.online/images/cards/{character.id}.png"  
                     await edit(messages_2, shards, channels, embed, url, fight_id)
+                # Special attacks
                 if character.is_alive() and not (character.is_stunned()) and character.as_special():
                     payload, message = character.special(player.main_characters, watcher.main_characters)
                     if payload["is_a_special"]:
@@ -357,6 +359,7 @@ async def fight_loop(
                         await edit(messages_2, shards, channels, embed, url, fight_id)
                         await asyncio.sleep(1)
                         king_crimson |= payload["king_crimson"]
+                # Item special
                 if character.is_alive():
                     for item in character.items:
                         if item.as_special():
@@ -371,7 +374,7 @@ async def fight_loop(
                                     title=message, color=disnake.Color.dark_purple()
                                 )  
                                 url = item.special_image
-
+                                await asyncio.sleep(2)
                                 await edit(messages_2, shards, channels, embed, url, fight_id)
                                 await asyncio.sleep(2)
                             else:

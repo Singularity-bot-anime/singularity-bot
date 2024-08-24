@@ -37,12 +37,32 @@ class User:
         ]
         self.galaxy_id: Optional[str] = data["galaxy_id"]
         self.shop_id : Optional[str] = data["shop_id"]
-        self.character_storage: List[Character] = [
-            character_from_dict(s) for s in data["character_storage"]
+        self.character_storage_1: List[Character] = [
+            character_from_dict(s) for s in data["character_storage_1"]
         ]
-        self.pcharacter_storage: List[Character] = [
-            character_from_dict(s) for s in data["pcharacter_storage"]
+        self.character_storage_2: List[Character] = [
+            character_from_dict(s) for s in data["character_storage_2"]
         ]
+        self.character_storage_3: List[Character] = [
+            character_from_dict(s) for s in data["character_storage_3"]
+        ]
+        self.character_storage_4: List[Character] = [
+            character_from_dict(s) for s in data["character_storage_4"]
+        ]
+        self.pcharacter_storage_1: List[Character] = [
+            character_from_dict(s) for s in data["pcharacter_storage_1"]
+        ]
+        self.pcharacter_storage_2: List[Character] = [
+            character_from_dict(s) for s in data["pcharacter_storage_2"]
+        ]
+        self.pcharacter_storage_3: List[Character] = [
+            character_from_dict(s) for s in data["pcharacter_storage_3"]
+        ]
+        self.pcharacter_storage_4: List[Character] = [
+            character_from_dict(s) for s in data["pcharacter_storage_4"]
+        ]
+        self.character_storage_list: List[List[Character]] = [self.character_storage_1, self.character_storage_2, self.character_storage_3, self.character_storage_4]
+        self.pcharacter_storage_list: List[List[Character]] = [self.pcharacter_storage_1, self.pcharacter_storage_2, self.pcharacter_storage_3, self.pcharacter_storage_4]
         self.items: List[Item] = [item_from_dict(s) for s in data["items"]]
         self.achievements: List[int] = data["achievements"]
         self.galaxies_invites: List[int] = data["galaxies_invites"]
@@ -87,7 +107,20 @@ class User:
         )
         # answer
         return status
-
+    
+    def add_to_available_storage(self, character: "Character", skip_main:bool=False):
+        if len(self.main_characters) < 3 and not skip_main:
+            self.main_characters.append(character)
+            return "Main Characters Storage"
+        for i,storage in enumerate(self.character_storage_list):
+            if len(storage) < 25:
+                storage.append(character)
+                return f"Storage n°{i}"
+        for i,storage in enumerate(self.pcharacter_storage_list):
+            if len(storage) < 25:
+                storage.append(character)
+                return f"Premium Storage n°{i}"
+        return False
     def to_dict(self) -> dict:
         """Convert Class to storable data
 
@@ -97,8 +130,14 @@ class User:
         self.data["main_characters"] = [s.to_dict() for s in self.main_characters]
         self.data["galaxy_id"] = self.galaxy_id
         self.data["shop_id"] = self.shop_id
-        self.data["character_storage"] = [s.to_dict() for s in self.character_storage]
-        self.data["pcharacter_storage"] = [s.to_dict() for s in self.pcharacter_storage]
+        self.data["character_storage_1"] = [s.to_dict() for s in self.character_storage_1]
+        self.data["character_storage_2"] = [s.to_dict() for s in self.character_storage_2]
+        self.data["character_storage_3"] = [s.to_dict() for s in self.character_storage_3]
+        self.data["character_storage_4"] = [s.to_dict() for s in self.character_storage_4]
+        self.data["pcharacter_storage_1"] = [s.to_dict() for s in self.pcharacter_storage_1]
+        self.data["pcharacter_storage_2"] = [s.to_dict() for s in self.pcharacter_storage_2]
+        self.data["pcharacter_storage_3"] = [s.to_dict() for s in self.pcharacter_storage_3]
+        self.data["pcharacter_storage_4"] = [s.to_dict() for s in self.pcharacter_storage_4]
         self.data["items"] = [s.to_dict() for s in self.items]
         self.data["achievements"] = self.achievements
         self.data["galaxies_invites"] = self.galaxies_invites
@@ -134,8 +173,14 @@ def create_user(user_id: str):
         "galaxy_id": None,
         "shop_id":None,
         "main_characters": [],
-        "character_storage": [],
-        "pcharacter_storage": [],
+        "character_storage_1": [],
+        "character_storage_2": [],
+        "character_storage_3": [],
+        "character_storage_4": [],
+        "pcharacter_storage_1": [],
+        "pcharacter_storage_2": [],
+        "pcharacter_storage_3": [],
+        "pcharacter_storage_4": [],
         "items": [],
         "achievements": [],
         "galaxies_invites": [],

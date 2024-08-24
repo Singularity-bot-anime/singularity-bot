@@ -56,6 +56,7 @@ main_extension = {
     "extensions.wormhole",
     "extensions.tower",
     "extensions.galaxy",
+    "extensions.listeners",
     "extensions.shop"
 }
 
@@ -64,6 +65,8 @@ main_extension = {
 if not DEBUG:
     main_extension.add("extensions.topgg")
     main_extension.add("extensions.errors")
+else:
+    main_extension.add("extensions.test")
 
 # loads file and stuff
 for file in main_extension:
@@ -87,6 +90,7 @@ async def on_shard_ready(shard_id: int):
         # Only one fight handler need to be started
         # This will propably need to be more scalable
         # TODO: add workers for better scalability
+        # Use redis pubsub "shard" system
         if shard_id == 0:
             # Handle fight logic
             Client.start_fight_handler()

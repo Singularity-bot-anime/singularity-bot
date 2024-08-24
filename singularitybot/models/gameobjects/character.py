@@ -12,7 +12,7 @@ from singularitybot.models.gameobjects.characterabilities import (
 from typing import List, TypeVar
 
 
-HPSCALING = 1
+HPSCALING = 5
 DAMAGESCALING = 1
 SPEEDSCALING = 1
 CRITICALSCALING = 1
@@ -54,11 +54,11 @@ class Character:
         self.level: int = min(MAX_LEVEL, self.xp // STXPTOLEVEL)
 
         # Compute the starting Items and XP scaling.
-        bonus_hp = 0
+        bonus_hp = (100 * self.taunt) * 100 # Give taunting characters more effective health
         bonus_damage = 0
         bonus_speed = 0
         bonus_critical = 0
-        bonus_armor = 0 + (50 * self.taunt)
+        bonus_armor = (100 * self.taunt) # Give taunting characters more effective health
         for item in self.items:
             bonus_hp += item.bonus_hp
             bonus_damage += item.bonus_damage
@@ -66,15 +66,15 @@ class Character:
             bonus_critical += item.bonus_critical
             bonus_armor += item.bonus_armor
         # LEVEL SCALING
-        bonus_hp += (
-            (self.level // LEVEL_TO_STAT_INCREASE)
-            * self.base_damage
-            * (HPSCALING / 100)
-        )
         bonus_damage += (
             (self.level // LEVEL_TO_STAT_INCREASE)
-            * self.base_hp
+            * self.base_damage
             * (DAMAGESCALING / 100)
+        )
+        bonus_hp += (
+            (self.level // LEVEL_TO_STAT_INCREASE)
+            * self.base_hp
+            * (HPSCALING / 100)
         )
         bonus_speed += (
             (self.level // LEVEL_TO_STAT_INCREASE)

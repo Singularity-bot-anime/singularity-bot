@@ -12,4 +12,6 @@ requests
 topggpy
 redis==5.0.6
 motor==3.4.0
+disstat
+psutil
 -e .

@@ -142,7 +142,7 @@ class Wormhole(commands.Cog):
         embed.set_image(url=WORMHOLEURL)
         embed.add_field(
             name="You gained fragments",
-            value=f"`{FRAGMENTSGAIN}`{CustomEmoji.FRAGMENTS}",
+            value=f"`{FRAGMENTSGAIN*multi}`{CustomEmoji.FRAGMENTS}",
         )
         item_roll = random.randint(1, 100)
         if item_roll <= 5:
