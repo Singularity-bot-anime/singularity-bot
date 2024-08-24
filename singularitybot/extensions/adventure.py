@@ -245,11 +245,17 @@ class Adventure(commands.Cog):
 
         if energy <= 0:
             embed = disnake.Embed(title="You have no more energy", description="To get to the next dungeon finish this one by reaching the ladder")
-            await Interaction.response.edit_message(embed=embed,view=PlaceHolder())
+            if Interaction.response.is_done():
+                await Interaction.edit_original_message(embed=embed,view=PlaceHolder())
+            else:
+                await Interaction.response.edit_message(embed=embed,view=PlaceHolder())
             return
 
         embed = disnake.Embed(title="You have finished the dungeon", description="If a new dungeon is available you can select it !")
-        await Interaction.response.edit_message(embed=embed,view=PlaceHolder())
+        if Interaction.response.is_done():
+            await Interaction.edit_original_message(embed=embed,view=PlaceHolder())
+        else:
+            await Interaction.response.edit_message(embed=embed,view=PlaceHolder())
         await user.update()
 
 def setup(bot: SingularityBot):

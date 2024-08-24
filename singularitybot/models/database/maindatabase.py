@@ -481,17 +481,16 @@ async def add_field(
 
 if __name__ == "__main__":
     import redis
-    
     # Connect to Redis
     r = redis.Redis.from_url(REDIS_URL, decode_responses=False)
 
     def migrate_user_data(user_id):
         # Fetch the old data
-        old_data = r.hgetall(f"user:{user_id}")
+        old_data = pickle.loads(r.hget("users", user_id))
 
         # Prepare the new data structure
         new_data = {
-            "_id": user_id,
+            "_id": str(user_id),
             "galaxy_id": old_data.get("galaxy_id"),
             "shop_id": old_data.get("shop_id"),
             "main_characters": old_data.get("main_characters", []),
@@ -532,11 +531,12 @@ if __name__ == "__main__":
         }
 
         # Store the new data in the database
-        r.hmset(f"user:{user_id}", new_data)
+        r.hset("users",user_id, pickle.dumps(new_data))
 
     def migrate_all_users():
         # Assuming you have a way to list all user_ids
-        user_ids = r.keys("user:*")
+        user_ids = r.hkeys("users")
+        print( user_ids)
         for user_id in user_ids:
             migrate_user_data(user_id)
 

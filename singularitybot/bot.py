@@ -57,7 +57,7 @@ main_extension = {
     "extensions.tower",
     "extensions.galaxy",
     "extensions.listeners",
-    "extensions.shop"
+    #"extensions.shop"
 }
 
 # This suppress most errors and show informations to the user
