@@ -201,6 +201,7 @@ def add_to_available_storage(user: User, character: "Character", skip_main:bool=
         if len(storage) < 25:
             storage.append(character)
             return f"Storage n°{i+1}"
+    user.update_storage(storage,i)
     return False
 
 
@@ -234,7 +235,7 @@ def character_field(character: "Character", embed: disnake.Embed):
                         f"➥ __Level__ **[ **{character.level} **]**\n"+
                         f"➥ __Rarity__ **[ **{_rarity} **]**\n"+
                         f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
-                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+                        f"➥ __Universe__ **[ **{character.universe}** ]**\n")
     embed.add_field(
         name="▬▬▬`CHARACTER`▬▬▬",
         value=field_value + "▬▬▬▬▬▬▬▬▬",
