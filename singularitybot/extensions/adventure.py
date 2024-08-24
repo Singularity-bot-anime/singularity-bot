@@ -45,6 +45,10 @@ class Adventure(commands.Cog):
     )
     async def begin(self, Interaction: disnake.ApplicationCommandInteraction):
         await Interaction.response.defer()
+        if await self.singularitybot.database.user_in_database(Interaction.author.id):
+            embed = disnake.Embed(color=disnake.Color.dark_purple(),title="You are already registered !")
+            await Interaction.send(embed=embed)
+            return
         # page 1
         embed1 = disnake.Embed(color=disnake.Color.dark_purple())
         embed1.set_image(url="https://media.singularityapp.online/images/quests/begin/1.jpg")

@@ -5,26 +5,23 @@ import uuid
 import pickle
 import datetime
 import traceback
-from redis.asyncio import Redis, ConnectionPool
+from redis.asyncio import Redis
 
 import redis.asyncio as redis
 
 from typing import List, Union, Tuple, Dict
 from singularitybot.globals.emojis import converter
-from singularitybot.ui.fight.fight_ui import FightUi
 from singularitybot.models.database.maindatabase import Database
 from singularitybot.utils.functions import (
     game,
     get_character_status,
     get_turn_special,
     win,
-    format_combat_log,
 )
 from singularitybot.globals.variables import (
     PLAYER_XPGAINS,
     CHARACTER_XPGAINS
 )
-from singularitybot.utils.image_generators import get_win_image
 from singularitybot.models.gameobjects.character import Character
 from singularitybot.models.gameobjects.ia import Ia
 from singularitybot.models.database.user import User
@@ -75,11 +72,12 @@ async def main_loop():
             request = pickle.loads(request["data"])
             await create_match(request)
 
-async def stop_fight(fight_id:uuid.UUID,winner_id:int,combat_log:list[str]):
+async def stop_fight(fight_id:uuid.UUID,winner_id:int,combat_log:list[str],users_datas:list[dict]=None):
     await database.publish(f'{fight_id}_stop', {
         'fight_id':fight_id,
         'winner':winner_id,
-        'combat_log':combat_log
+        'combat_log':combat_log,
+        'users_datas':users_datas
     })
 
 async def stop_rank(database: Database, user_id: int,winner_id:int,combat_log:list[str]):
@@ -102,7 +100,7 @@ async def edit_ui(message: int,shard:int,channel_id:int, embed: disnake.Embed, v
         'action': 'edit_ui',
         'channel_id':channel_id,
         'message_id': message,
-        'embed': embed,
+        'embed': embed.to_dict(),
         'view': view,
         'fight_id':fight_id
     })
@@ -127,7 +125,7 @@ async def edit(messages: List[int],shards:list[int],channels:List[int] ,embed: d
                 'action': 'edit',
                 'channel_id': channel_id,
                 'message_id' :message ,
-                'embed': embed,
+                'embed': embed.to_dict(),
                 'url':url,
                 'fight_id':fight_id
             })
@@ -149,7 +147,7 @@ async def send_all(embed: disnake.Embed, channels: List[int],shards:list[int], f
         for channel_id,shard in zip(channels,shards):
             await database.publish(f'shard-{shard}', {
                 'action': 'send',
-                'embed': embed,
+                'embed': embed.to_dict(),
                 'channel_id': channel_id,
                 'fight_id': fight_id
             })
@@ -200,7 +198,7 @@ async def fight_loop(
         )
         messages_1 = await send_all(embed, channels, shards, fight_id)
         # Message used to display specials
-        embed = disnake.Embed(colour=disnake.Colour.dark_purple())
+        embed = disnake.Embed(title="Let the fight begin",colour=disnake.Colour.dark_purple())
         image_list = [
             "https://media1.tenor.com/m/43hSW7CM0UoAAAAC/anime-come.gif",
             "https://c.tenor.com/B_J3xedKvA8AAAAC/jojo-anime.gif",
@@ -392,6 +390,12 @@ async def fight_loop(
         await delete_all(messages_1, shards, channels, fight_id)
         await delete_all(messages_2, shards, channels, fight_id)
         
+        winner = win(players)
+        if winner == players[0]:
+            looser = players[1]
+        else:
+            looser = players[0]
+        users_datas = [winner.data,looser.data]
         if galaxy_fight:
             ia = players[0] if not players[0].is_human else players[1]
             
@@ -401,7 +405,7 @@ async def fight_loop(
             pourcentage = int((dead_char / number_of_char) * 100)
 
             combat_log.append(pourcentage)
-            await stop_fight(fight_id, win(players).id, combat_log)
+            await stop_fight(fight_id, winner.id, combat_log, users_datas=users_datas)
             return
         
         if galaxy_raid:
@@ -409,18 +413,14 @@ async def fight_loop(
             damage = calculate_team_damage(ia.main_characters)
 
             combat_log.append(damage)
-            await stop_fight(fight_id, win(players).id, combat_log)
+            await stop_fight(fight_id, winner.id, combat_log, users_datas=users_datas)
             return
         
         if not ranked:
-            await stop_fight(fight_id, win(players).id, combat_log)
+            await stop_fight(fight_id, winner.id, combat_log, users_datas=users_datas)
             return
          
-        winner = win(players)
-        if winner == players[0]:
-            looser = players[1]
-        else:
-            looser = players[0]
+        
         winner.xp += PLAYER_XPGAINS * 3
         for character in winner.main_characters:
             character.xp += CHARACTER_XPGAINS * 3

@@ -10,7 +10,7 @@ import redis.asyncio as redis
 
 from singularitybot.utils.functions import wait_for
 from singularitybot.models.database.maindatabase import Database
-from singularitybot.models.gameobjects.character import character_from_dict
+from singularitybot.models.gameobjects.character import get_character_from_template
 from singularitybot.ui.fight.fight_ui import FightUi
 from singularitybot.ui.place_holder import PlaceHolder
 
@@ -36,6 +36,8 @@ class SingularityBot(commands.AutoShardedInteractionBot):
         self.database: Database = Database(loop)
         with open("singularitybot/data/templates/characters.json", "r") as item:
             self.character_file: dict = json.load(item)["characters"]
+        empty_list = [[] for _ in range(len(self.character_file))]
+        self.obj_characters = list(map(get_character_from_template,self.character_file,empty_list,empty_list))
         self.avatar_url = "https://media.singularityapp.online/images/assets/pfpsister.png"
         self.bot_init = False
     async def refresh_msg(self, msg: disnake.Message) -> disnake.Message:
@@ -117,14 +119,14 @@ class SingularityBot(commands.AutoShardedInteractionBot):
     async def handle_send(self, data: dict):
         channel = self.get_partial_messageable(data['channel_id'],type=disnake.ChannelType.text)
         if channel:
-            embed = data["embed"]
+            embed = disnake.Embed.from_dict(data["embed"])
             message = await channel.send(embed=embed)
             response = {'messages': message.id, 'fight_id': data['fight_id']}
             await self.database.publish(f"{data['fight_id']}_message_response", response)
 
     async def handle_edit(self, data: dict):
         message = await self.get_or_fetch_message(data["message_id"])
-        embed = data["embed"]
+        embed = disnake.Embed.from_dict(data["embed"])
         embed.set_image(url=data["url"])
         await message.edit(embed=embed)
         response = {'message_id': message.id, 'fight_id': data['fight_id']}
@@ -132,7 +134,7 @@ class SingularityBot(commands.AutoShardedInteractionBot):
 
     async def handle_edit_ui(self, data: dict):
         message = await self.get_or_fetch_message(data["message_id"])
-        embed = data["embed"] 
+        embed = disnake.Embed.from_dict(data["embed"]) 
         if data["view"]["type"] == "FightUi":
             watcher_characters = data["view"]["watcher_characters"]
             player_characters = data["view"]["player_characters"]

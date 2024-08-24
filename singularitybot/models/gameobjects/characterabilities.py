@@ -302,7 +302,7 @@ def freezer_final_form_special(character: "Character", allied_characters: List["
     payload = get_payload()
     
     for enemy in enemy_characters:
-        if not enemy.is_alive():
+        if enemy.is_alive():
             continue
     
         aoe_damage = character.base_damage * 0.5
@@ -314,17 +314,17 @@ specials["27"] = freezer_final_form_special
 
 def goku_ssj1_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    character.current_damage *= 1.5
-    character.current_speed *= 1.2
-    message = f"{character.name} uses Saiyan Rage, increasing damage by 50% and speed by 20%."
+    character.current_damage *= 2
+    character.current_speed *= 2
+    message = f"{character.name} transforms boost his stats over 3 turns"
     return payload, message
 
 specials["28"] = goku_ssj1_special 
 
 def goku_ssj1_transforming_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    character.current_damage *= 2
-    character.current_speed *= 2
+    character.current_damage *= 1.2
+    character.current_speed *= 1.2
     message = f"{character.name} transforms, boosting stats over 3 turns."
     return payload, message
 

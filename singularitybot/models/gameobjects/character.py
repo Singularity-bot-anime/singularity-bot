@@ -54,7 +54,7 @@ class Character:
         self.level: int = min(MAX_LEVEL, self.xp // STXPTOLEVEL)
 
         # Compute the starting Items and XP scaling.
-        bonus_hp = (100 * self.taunt) * 100 # Give taunting characters more effective health
+        bonus_hp = (100 * self.taunt) + 100 # Give taunting characters more effective health
         bonus_damage = 0
         bonus_speed = 0
         bonus_critical = 0

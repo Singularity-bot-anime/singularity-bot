@@ -5,8 +5,7 @@ import asyncio
 # utils
 from singularitybot.utils.decorators import database_check
 from singularitybot.utils.functions import (
-    play_files,
-    sign,
+    storage_from_autocomplete,
     wait_for,
     add_to_available_storage,
     character_field
@@ -15,7 +14,7 @@ from singularitybot.utils.functions import (
 
 # character model
 from singularitybot.models.bot.singularitybot import SingularityBot
-from singularitybot.models.gameobjects.character import Character, Types, Qualities
+from singularitybot.models.gameobjects.character import Character, Types, Qualities,STXPTOLEVEL,MAX_LEVEL
 
 # specific class import
 from disnake.ext import commands
@@ -24,7 +23,6 @@ from singularitybot.globals.emojis import converter,CustomEmoji
 from singularitybot.ui.place_holder import PlaceHolder
 from singularitybot.ui.confirmation import Confirm
 from singularitybot.ui.CharacterSelect import CharacterSelectDropdown
-from singularitybot.ui.storage.ChooseDonor import ChooseStorage
 
 
 class management(commands.Cog):
@@ -62,25 +60,12 @@ class management(commands.Cog):
             embed = character_field(character,embed)
             await Interaction.channel.send(embed=embed)
 
-
-    @character.sub_command(name="remove", description="Remove a character from your storage")
-    async def remove(self, Interaction: disnake.ApplicationCommandInteraction):
+    @character.sub_command(name="fuse", description="fuse two of the same character")
+    async def fuse(self, Interaction:disnake.ApplicationCommandInteraction,storage):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        storage = user.character_storage
-        premium = False
-        if user.is_donator():
-            embed = disnake.Embed(
-                title="Choose a storage", color=disnake.Color.purple()
-            )
-            view = ChooseStorage(Interaction)
-            await Interaction.send(embed=embed, view=view)
-            await wait_for(view)
-            Interaction = view.interaction
-            if view.value:
-                premium = True
-                storage = user.pcharacter_storage
+        storage,id = storage_from_autocomplete(storage,user)
 
         if storage == []:
             embed = disnake.Embed(
@@ -88,16 +73,102 @@ class management(commands.Cog):
                 color=disnake.Color.purple(),
             )
             embed.set_image(url=self.singularitybot.avatar_url)
-            if Interaction.response.is_done():
-                await Interaction.send(embed=embed)
-                return
-            await Interaction.channel.send(embed=embed)
+            await Interaction.send(embed=embed)
             return
+
         embed = disnake.Embed(
             title=f"{user.discord.display_name} character's storage",
             color=disnake.Color.purple(),
         )
-        for character in user.character_storage:
+        for character in storage:
+            typequal = ""
+            for _t,_q in zip(character.etypes,character.equalities):
+                typequal+=f"{_t.emoji}{_q.emoji}  "
+            field_value = (f"➥ __Level__ **[ **{character.level} **]**\n"+
+                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
+                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+            embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
+
+        view = CharacterSelectDropdown(Interaction, storage)
+        await Interaction.send(embed=embed, view=view)
+        await wait_for(view)
+        character: Character = storage.pop(view.value)
+        
+        # make an embed and find a dupe of the character in the storage if not send en error message
+        embed = disnake.Embed(title="Select the **same** character (This character will lose all it's items they will be stored in your inventory)",color=disnake.Color.purple())
+        embed = character_field(character,embed)
+    
+        view = CharacterSelectDropdown(Interaction, storage)
+        await Interaction.edit_original_message(embed=embed, view=view)
+        await wait_for(view)
+        character2: Character = storage.pop(view.value)
+        # fuse the two characters
+        if character.id == character2.id:
+            embed = disnake.Embed(title="The characters have been fused",color=disnake.Color.purple())
+            # Save the items
+            for item in character2.items:
+                user.items.append(item)
+            character.xp += character2.xp
+            character.xp += 50 * STXPTOLEVEL
+            if character.awaken < 3:
+                character.awaken += 1
+            embed = character_field(character,embed)
+            storage.append(character)
+            user.update_storage(storage,id)
+            await user.update()
+            await Interaction.edit_original_message(embed=embed)
+            return
+
+        embed = disnake.Embed(title="You need to select the SAME character",color=disnake.Color.red())
+        embed = character_field(character,embed)
+        await Interaction.edit_original_message(embed=embed)
+        
+          
+    @character.sub_command(name="lookup", description="Lookup a character by name")
+    async def lookup(self, Interaction: disnake.ApplicationCommandInteraction, name: str):
+        character = next(
+            (c for c in self.singularitybot.obj_characters if c.name.lower() == name.lower()), 
+            None
+        )
+        
+        if character is None:
+            await Interaction.send(f"No character found with the name `{name}`.")
+            return
+
+        embed = disnake.Embed(color=disnake.Color.purple())
+        embed = character_field(character, embed)
+        await Interaction.send(embed=embed)
+    
+    @lookup.autocomplete("name")
+    async def autocomplete_characters(self,interaction: disnake.ApplicationCommandInteraction, search: str):
+        return [
+            character.name
+            for character in self.singularitybot.obj_characters
+            if search.lower() in character.name.lower()
+        ][:25]  # Return only up to 25 results
+
+    @character.sub_command(name="remove", description="Remove a character from your storage")
+    async def remove(self, Interaction: disnake.ApplicationCommandInteraction,storage: str ):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user.discord = Interaction.author
+
+        storage,id = storage_from_autocomplete(storage,user)
+
+        if storage == []:
+            embed = disnake.Embed(
+                title="Your storage is empty",
+                color=disnake.Color.purple(),
+            )
+            embed.set_image(url=self.singularitybot.avatar_url)
+            await Interaction.send(embed=embed)
+            return
+
+        embed = disnake.Embed(
+            title=f"{user.discord.display_name} character's storage",
+            color=disnake.Color.purple(),
+        )
+        for character in storage:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
                 typequal+=f"{_t.emoji}{_q.emoji}  "
@@ -108,17 +179,14 @@ class management(commands.Cog):
             embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
         
         view = CharacterSelectDropdown(Interaction, storage,max_value=len(storage))
-        if Interaction.response.is_done():
-            await Interaction.send(embed=embed, view=view)
-        else:
-            await Interaction.channel.send(embed=embed, view=view)
+        await Interaction.send(embed=embed, view=view)
         await wait_for(view)
-        storage = [storage[c] for c in range(len(storage)) if not c in view.value ]
+       
         embed = disnake.Embed(
             title="Do you want to remove these characters ? They can't be retreived",
             color=disnake.Color.dark_purple(),
         )
-        for character in [user.character_storage[i] for i in range(len(user.character_storage)) if i in view.value ]:
+        for character in [storage[c] for c in range(len(storage)) if c in view.value ]:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
                 typequal+=f"{_t.emoji}{_q.emoji}  "
@@ -127,6 +195,7 @@ class management(commands.Cog):
                         f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
                         f"➥ __Universe__ **[ **{character.universe}** ]**")
             embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
+        storage = [storage[c] for c in range(len(storage)) if not c in view.value ]
         view = Confirm(Interaction)
         Interaction = view.interaction  
         await Interaction.edit_original_message(embed=embed, view=view)
@@ -137,10 +206,7 @@ class management(commands.Cog):
                 title="The characters were removed",
                 color=disnake.Color.purple(),
             )
-            if premium:
-                user.pcharacter_storage = storage
-            else:
-                user.character_storage = storage
+            user.update_storage(storage,id)
             await user.update()
             await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
             return
@@ -151,22 +217,11 @@ class management(commands.Cog):
         await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
 
     @character.sub_command(name="storage", description="show your character storage")
-    async def storage(self, Interaction: disnake.ApplicationCommandInteraction):
+    async def storage(self, Interaction: disnake.ApplicationCommandInteraction,storage: str  ):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        storage = user.character_storage
-
-        if user.is_donator():
-            embed = disnake.Embed(
-                title="Choose a storage", color=disnake.Color.purple()
-            )
-            view = ChooseStorage(Interaction)
-            await Interaction.send(embed=embed, view=view)
-            await wait_for(view)
-            Interaction = view.interaction
-            if view.value:
-                storage = user.pcharacter_storage
+        storage,id = storage_from_autocomplete(storage,user)
 
         if storage == []:
             embed = disnake.Embed(
@@ -174,16 +229,14 @@ class management(commands.Cog):
                 color=disnake.Color.purple(),
             )
             embed.set_image(url=self.singularitybot.avatar_url)
-            if Interaction.response.is_done():
-                await Interaction.send(embed=embed)
-                return
-            await Interaction.channel.send(embed=embed)
+            await Interaction.send(embed=embed)
             return
+
         embed = disnake.Embed(
             title=f"{user.discord.display_name} character's storage",
             color=disnake.Color.purple(),
         )
-        for character in user.character_storage:
+        for character in storage:
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
                 typequal+=f"{_t.emoji}{_q.emoji}  "
@@ -192,31 +245,17 @@ class management(commands.Cog):
                         f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
                         f"➥ __Universe__ **[ **{character.universe}** ]**")
             embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
-        if Interaction.response.is_done():
-            await Interaction.send(embed=embed)
-            return
-        await Interaction.channel.send(embed=embed)
+        await Interaction.send(embed=embed)
+
 
     @character.sub_command(
         name="main", description="move a character from storage to your main character"
     )
-    async def maincharacter(self, Interaction: disnake.ApplicationCommandInteraction):
+    async def maincharacter(self, Interaction: disnake.ApplicationCommandInteraction,storage: str ):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
-        storage = user.character_storage
-        premium = False
-        if user.is_donator():
-            embed = disnake.Embed(
-                title="Choose a storage", color=disnake.Color.purple()
-            )
-            view = ChooseStorage(Interaction)
-            await Interaction.send(embed=embed, view=view)
-            await wait_for(view)
-            Interaction = view.interaction
-            if view.value:
-                premium = True
-                storage = user.pcharacter_storage
+        storage,id = storage_from_autocomplete(storage,user)
 
         if not storage:
             embed = disnake.Embed(
@@ -224,11 +263,9 @@ class management(commands.Cog):
                 color=disnake.Color.purple(),
             )
             embed.set_image(url=self.singularitybot.avatar_url)
-            if Interaction.response.is_done():
-                await Interaction.send(embed=embed)
-                return
-            await Interaction.channel.send(embed=embed)
+            await Interaction.send(embed=embed)
             return
+
 
         embed = disnake.Embed(
             title="Choose a character to make your main",
@@ -245,10 +282,7 @@ class management(commands.Cog):
             embed.add_field(name=f"`{character.name}`",value=field_value,inline=True)
         
         view = CharacterSelectDropdown(Interaction, storage)
-        if Interaction.response.is_done():
-            await Interaction.send(embed=embed, view=view)
-        else:
-            await Interaction.channel.send(embed=embed, view=view)
+        await Interaction.send(embed=embed, view=view)
         await wait_for(view)
         character = storage.pop(view.value)
         embed = disnake.Embed(
@@ -273,10 +307,7 @@ class management(commands.Cog):
                 title=f"{character.name} has been set as your main character.",
                 color=disnake.Color.purple(),
             )
-            if premium:
-                user.pcharacter_storage = storage
-            else:
-                user.character_storage = storage
+            user.update_storage(storage,id)
             user.main_characters.append(character)
             await user.update()
             await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
@@ -290,23 +321,26 @@ class management(commands.Cog):
         await wait_for(view)
         character2 = user.main_characters.pop(view.value)
         storage.append(character2)
-        if premium:
-            user.pcharacter_storage = storage
-        else:
-            user.character_storage = storage
+        
         user.main_characters.append(character)
         embed = disnake.Embed(
             title=f"{character.name} has replaced {character2.name} as your main character.",
             color=disnake.Color.purple(),
         )
+        user.update_storage(storage,id)
         await user.update()
         await Interaction.channel.send(embed=embed)
 
     @character.sub_command(name="store", description="store a main character into storage")
-    async def store(self, Interaction: disnake.ApplicationCommandInteraction):
+    async def store(self, Interaction: disnake.ApplicationCommandInteraction,storage: str ):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
 
+        if not user.main_characters:
+            embed = disnake.Embed(title="You need to have main characters to use this command use `/character main`",colour=disnake.Colour.dark_purple())
+            embed.set_image(url=self.singularitybot.avatar_url)
+            await Interaction.send(embed=embed)
+            return
         
         embed = disnake.Embed(
             title="Choose a main character to store",
@@ -628,7 +662,24 @@ class management(commands.Cog):
             print(f"Error during trade: {e}")
         finally:
             self.active_trades.discard((user1.id, user2.id))
+    
+    @remove.autocomplete("storage")
+    @storage.autocomplete("storage")
+    @maincharacter.autocomplete("storage")
+    @store.autocomplete("storage")
+    @fuse.autocomplete("storage")
+    async def storage_autocomplete(self,inter: disnake.ApplicationCommandInteraction, current: str):
+        # Simulate fetching the user from the database
+        User = await self.singularitybot.database.get_user_info(inter.author.id)
+        
+        storages = []
+        
+        for i,storage in enumerate(User.character_storage_list + User.pcharacter_storage_list *  User.is_donator()):
+            storages.append(f"Storage n°{i+1}")
 
+        storages = [s for s in storages if current.lower() in s.lower()]
+        
+        return storages[:25]
     
 def setup(client: SingularityBot):
     client.add_cog(management(client))

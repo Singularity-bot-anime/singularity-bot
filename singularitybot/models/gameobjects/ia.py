@@ -7,6 +7,7 @@ from singularitybot.models.gameobjects.character import Character, character_fro
 
 class Ia:
     def __init__(self, data: dict):
+        self.data = data
         self.avatar = data["avatar"]
 
         class d:

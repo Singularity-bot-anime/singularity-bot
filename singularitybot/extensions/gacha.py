@@ -134,14 +134,16 @@ class Banners(commands.Cog):
         for _ in range(10):
             char_template,types,qualities = self.generate_character_data(banner,user)
             character = get_character_from_template(char_template,types, qualities)
+            msg = add_to_available_storage(user,character,skip_main=True)
             typequal = ""
             for _t,_q in zip(character.etypes,character.equalities):
                 typequal+=f"{_t.emoji}{_q.emoji}  "
             field_value = (f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
                         f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
-                        f"➥ __Universe__ **[ **{character.universe}** ]**")
+                        f"➥ __Universe__ **[ **{character.universe}** ]**\n"+
+                        f"➥ __Storage__ **[ **{msg}** ]**")
             draw_embed.add_field(name=f"`{character.name}`{converter_exclame[character.rarity]}",value=field_value,inline=False)
-            msg = add_to_available_storage(user,character,skip_main=True)
+            
             pulled_rarities.append(character.rarity)
             if not msg:
                 embed = disnake.Embed(title=f"Your character storage is full ! you need at least 10 free slots",color=disnake.Color.dark_purple())

@@ -67,13 +67,13 @@ def sign(x: int):
         return ""
 
 #Determine if a fight should keep going or not
-def game(stand1: List["Stand"], stand2: List["Stand"]) -> bool:
+def game(characters1: List["Character"], characters2: List["Character"]) -> bool:
     result = False
-    for stand in stand1:
-        result |= stand.is_alive()
+    for character in characters1:
+        result |= character.is_alive()
     result2 = False
-    for stand in stand2:
-        result2 |= stand.is_alive()
+    for character in characters2:
+        result2 |= character.is_alive()
     return result and result2
 
 #get a list of effect emojis
@@ -169,7 +169,7 @@ async def wait_for(view: disnake.ui.View):
 
 
 # get a drop from a list
-def get_drop_from_list(stand_list: List["Stand"], number_of_drop: int = 1) -> list:
+def get_drop_from_list(stand_list: List["Character"], number_of_drop: int = 1) -> list:
     stand_list = [stand for stand in stand_list if stand.stars != 10]
     # count the stand per star category
     nums = [1, 1, 1, 1, 1, 1]
@@ -197,23 +197,42 @@ def add_to_available_storage(user: User, character: "Character", skip_main:bool=
     if len(user.main_characters) < 3 and not skip_main:
         user.main_characters.append(character)
         return "Main Characters Storage"
-    if len(user.character_storage) < 25:
-        user.character_storage.append(character)
-        return "Character storage"
-    if len(user.pcharacter_storage) < 25 and user.is_donator():
-        user.pcharacter_storage.append(character)
-        return "Premium Character storage"
+    for i,storage in enumerate(user.character_storage_list + user.pcharacter_storage_list *  user.is_donator()):
+        if len(storage) < 25:
+            storage.append(character)
+            return f"Storage n°{i+1}"
     return False
 
 
 def character_field(character: "Character", embed: disnake.Embed):
+    """
+    This function generates a disnake embed for a character.
+
+    It takes two parameters:
+        character: A Character object containing the character's information.
+        embed: A disnake Embed object to be populated with the character's information.
+
+    The function returns the populated disnake Embed object.
+
+    The embed includes the following fields:
+        CHARACTER: The character's name, level, rarity, qualities, and universe.
+        STATS: The character's current HP, damage, armor, speed, and XP.
+        SPECIAL: The character's special description.
+        TAUNT: A message indicating that the character will take damage first from basic attacks (if applicable).
+        ITEMS: A list of the character's items (if applicable).
+
+    The embed also includes an image of the character's card.
+    """
     _rarity = converter[character.rarity] + "🌟" * character.awaken
     typequal=""
-    for _t,_q in zip(character.etypes,character.equalities):
-        typequal+=f"{_t.emoji}{_q.emoji}  "
+    if character.etypes:
+        for _t,_q in zip(character.etypes,character.equalities):
+            typequal+=f"{_t.emoji}{_q.emoji}  "
+    else:
+        typequal = "None"
     field_value = (     f"➥ __Name__ **[ **{character.name} **]**\n"+
                         f"➥ __Level__ **[ **{character.level} **]**\n"+
-                        f"➥ __Rarity__ **[ **{converter[character.rarity]} **]**\n"+
+                        f"➥ __Rarity__ **[ **{_rarity} **]**\n"+
                         f"➥ __Qualities__ **[ **{typequal}** ]**\n"+
                         f"➥ __Universe__ **[ **{character.universe}** ]**")
     embed.add_field(
@@ -236,7 +255,7 @@ def character_field(character: "Character", embed: disnake.Embed):
     if character.taunt:
         embed.add_field(
             name="▬▬`TAUNT`▬▬",
-            value="🎯 this character will take damage first from basic attack before it's teamate" + "\n     ▬▬▬▬▬▬▬▬▬",
+            value="🎯 this character will take damage first from basic attack before it's teamate, they also gain 50 🛡️" + "\n     ▬▬▬▬▬▬▬▬▬",
         )
     if len(character.items) != 0:
         item = ""
@@ -327,9 +346,10 @@ async def wait_for_fight_end(database:Database,match_request:dict):
     fight_results = pickle.loads(message["data"])
     combat_log = fight_results["combat_log"]
     winner = fight_results["winner"]
+    winner_data = fight_results["users_datas"][0]
 
     if str(winner).startswith('0101') :
-        winner = Ia(match_request["IA_DATA"])
+        winner = Ia(winner_data)
     else:
         winner = await database.get_user_info(winner)
 
@@ -418,9 +438,10 @@ async def wait_for_ranked_stop(database:Database,user_id:int):
     fight_results = pickle.loads(message["data"])
     combat_log = fight_results["combat_log"]
     winner = fight_results["winner"]
+    users_data = fight_results["users_data"]
 
     if str(winner).startswith('0101') :
-        winner = Ia(match_request["IA_DATA"])
+        winner = Ia(users_data[0])
     else:
         winner = await database.get_user_info(winner)
 
@@ -449,3 +470,10 @@ async def view_timeout(interaction: disnake.ApplicationCommandInteraction):
         except:
             pass
         pass
+
+def storage_from_autocomplete(storage:str,user:User)->list["Character"]:
+    storage_list = (user.character_storage_list + user.pcharacter_storage_list *  user.is_donator())
+    storage_name = storage
+    id = int(storage_name[-1])-1
+    storage = storage_list[id]
+    return storage,id

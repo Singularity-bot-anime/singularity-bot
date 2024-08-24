@@ -16,8 +16,8 @@ from singularitybot.ui.galaxy.galaxy_creation_prompt import GalaxyModal
 from singularitybot.ui.galaxy.galaxy_join_select import GalaxySelectDropdown
 
 # utils
-from singularitybot.utils.decorators import database_check,energy_check, galaxy_check, galaxy_rank_check
-from singularitybot.utils.functions import format_combat_log,wait_for, add_to_available_storage, is_url_image, create_fight_handler_request, wait_for_fight_end
+from singularitybot.utils.decorators import database_check, galaxy_check, galaxy_rank_check
+from singularitybot.utils.functions import format_combat_log,wait_for, add_to_available_storage, is_url_image, create_fight_handler_request, wait_for_fight_end, storage_from_autocomplete
 
 # singularitybot model
 from singularitybot.models.bot.singularitybot import SingularityBot
@@ -270,11 +270,13 @@ class Galaxies(commands.Cog):
 
     @galaxy_check()
     @character.sub_command(name="add", description="Add a character to guard your galaxy")
-    async def add(self, Interaction: disnake.CommandInteraction):
+    async def add(self, Interaction: disnake.CommandInteraction,storage:str):
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
         user.discord = Interaction.author
         galaxy = await self.singularitybot.database.get_galaxy_info(user.galaxy_id)
 
+        storage,id = storage_from_autocomplete(storage,user)
+        
         if galaxy.characters == 3:
             embed = disnake.Embed(
                 title="You cannot add anymore characters to defend your galaxy",
@@ -284,7 +286,7 @@ class Galaxies(commands.Cog):
             await Interaction.send(embed=embed)
             return
 
-        if len(user.character_storage) == 0 and len(user.pcharacter_storage) == 0:
+        if not storage:
             embed = disnake.Embed(
                 title="Your storage is empty",
                 color=disnake.Color.dark_purple(),
@@ -293,31 +295,15 @@ class Galaxies(commands.Cog):
             await Interaction.send(embed=embed)
             return
 
-        storage = user.character_storage
-        premium = False
-        if user.is_donator():
-            embed = disnake.Embed(
-                title="Choose your storage", color=disnake.Color.dark_purple()
-            )
-            view = ChooseStorage(Interaction)
-            await Interaction.send(embed=embed, view=view)
-            await wait_for(view)
-            Interaction = view.interaction  # type: ignore
-            if view.value:
-                premium = True
-                storage = user.pcharacter_storage
-
         if len(storage) == 0:
             embed = disnake.Embed(
                 title="Your storage is empty",
                 color=disnake.Color.dark_purple(),
             )
             embed.set_image(url=galaxy.image_url)
-            if Interaction.response.is_done():
-                await Interaction.send(embed=embed)
-                return
-            await Interaction.channel.send(embed=embed)
-            return
+            
+            await Interaction.send(embed=embed)
+                
 
         view = CharacterSelectDropdown(Interaction, storage)
         embed = disnake.Embed(
@@ -329,12 +315,7 @@ class Galaxies(commands.Cog):
         await wait_for(view)
         character = storage.pop(view.value)  # type: ignore
         galaxy.characters.append(character)
-
-        if premium:
-            user.pcharacter_storage = storage
-        else:
-            user.character_storage = storage
-
+        user.update_storage(storage,id)
         embed = disnake.Embed(
             title=f"{character.name} will now be defending your galaxy",
             color=disnake.Color.dark_purple(),

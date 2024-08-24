@@ -95,6 +95,44 @@ class User:
         self.message: Optional[disnake.Message] = None
         self.is_human = True  # used in fight to determine who is human
 
+    def update_storage(self, storage: List[Character], storage_id: int) -> None:
+        """
+        Directly modifies the specified storage list with the provided storage.
+
+        Args:
+            storage (List[Character]): The new list of characters to replace the old one.
+            storage_id (int): The index of the storage list to update.
+
+        Returns:
+            None
+        """
+        # Determine which storage lists to consider based on the user's donator status
+        
+        if storage_id == 0:
+            self.character_storage_1 = storage
+            return
+        if storage_id == 1:
+            self.character_storage_2 = storage
+            return
+        if storage_id == 2:
+            self.character_storage_3 = storage
+            return
+        if storage_id == 3:
+            self.character_storage_4 = storage
+            return
+        if storage_id == 4:
+            self.pcharacter_storage_1 = storage
+            return
+        if storage_id == 5:
+            self.pcharacter_storage_2 = storage
+            return
+        if storage_id == 6:
+            self.pcharacter_storage_3 = storage
+            return
+        if storage_id == 7:
+            self.pcharacter_storage_4 = storage
+            return
+    
     async def update(self) -> None:
         """Update the user info in the database"""
         await self.database.update_user(self.to_dict())

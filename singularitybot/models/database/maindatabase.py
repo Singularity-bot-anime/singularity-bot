@@ -3,11 +3,10 @@ import os
 import pickle
 import random
 import datetime
-import disnake
 import aiohttp
 import io
 
-from PIL import Image, ImageDraw,ImageFont
+from PIL import Image
 
 from typing import Union, List, Dict, Callable, Any
 from redis.asyncio import Redis, ConnectionPool
@@ -163,24 +162,6 @@ class Database:
                 guild_id = str(guild_id)
             return await conn.hexists("guilds", guild_id)
 
-    async def get_interaction_lang(
-        self, Interaction: disnake.ApplicationCommandInteraction
-    ) -> Dict[str, Dict[str, str]]:
-        """Get the localization file from the database
-
-        Args:
-            Interaction (disnake.ApplicationCommandInteraction): Interaction
-
-        Returns:
-            dict: the localization file as json
-        """
-        id = Interaction.guild.id
-        if not await self.guild_in_database(id):
-            await self.add_guild(id)
-        guild = await self.get_guild_info(id)
-        with open(f"stfubot/lang/{guild.lang}.json", "r", encoding="utf8") as item:
-            translation = json.load(item)
-        return translation
 
     async def add_shop(self, name: str, description: str, user_id: str) -> str:
         """Add a shop into the database
@@ -499,16 +480,65 @@ async def add_field(
             print(f"Updated {key}")
 
 if __name__ == "__main__":
+    import redis
     
-    async def main():
-        loop = asyncio.get_event_loop()
-        db = Database(loop)
-        fields = [
-            "shop_id",
-        ]
-        values = [None]
-        await add_field(db.redis_pool, "users", fields, values)
-    
-    loop = asyncio.get_event_loop()
-    db = Database(loop)
-    loop.run_until_complete(main())
+    # Connect to Redis
+    r = redis.Redis.from_url(REDIS_URL, decode_responses=False)
+
+    def migrate_user_data(user_id):
+        # Fetch the old data
+        old_data = r.hgetall(f"user:{user_id}")
+
+        # Prepare the new data structure
+        new_data = {
+            "_id": user_id,
+            "galaxy_id": old_data.get("galaxy_id"),
+            "shop_id": old_data.get("shop_id"),
+            "main_characters": old_data.get("main_characters", []),
+            "character_storage_1": old_data.get("character_storage", []),  # Renamed
+            "character_storage_2": [],
+            "character_storage_3": [],
+            "character_storage_4": [],
+            "pcharacter_storage_1": old_data.get("pcharacter_storage", []),  # Renamed
+            "pcharacter_storage_2": [],
+            "pcharacter_storage_3": [],
+            "pcharacter_storage_4": [],
+            "items": old_data.get("items", []),
+            "achievements": old_data.get("achievements", []),
+            "galaxies_invites": old_data.get("galaxies_invites", []),
+            "custom_character": old_data.get("custom_character"),
+            "fragments": int(old_data.get("fragments", 0)),
+            "super_fragements": int(old_data.get("super_fragements", 0)),
+            "pity": int(old_data.get("pity", 0)),
+            "xp": int(old_data.get("xp", 0)),
+            "energy": int(old_data.get("energy", 10)),
+            "job": old_data.get("job"),
+            "prestige": int(old_data.get("prestige", 0)),
+            "global_elo": int(old_data.get("global_elo", 0)),
+            "missions_level": int(old_data.get("missions_level", 0)),
+            "tower_level": int(old_data.get("tower_level", 0)),
+            "map_position": old_data.get("map_position", [0, 0]),
+            "profile_image": old_data.get("profile_image", "https://i.pinimg.com/originals/77/ba/e4/77bae4f9d1c02f732e9271976539ed48.gif"),
+            "join_date": old_data.get("join_date", (datetime.datetime.now() + datetime.timedelta(hours=2))),
+            "last_full_energy": old_data.get("last_full_energy", (datetime.datetime.now() + datetime.timedelta(hours=2))),
+            "last_missions": old_data.get("last_missions", datetime.datetime.min),
+            "last_adventure": old_data.get("last_adventure", datetime.datetime.min),
+            "last_vote": old_data.get("last_vote", datetime.datetime.min),
+            "last_job": old_data.get("last_job", datetime.datetime.min),
+            "last_advert": old_data.get("last_advert", datetime.datetime.min),
+            "last_wormhole": old_data.get("last_wormhole", datetime.datetime.min),
+            "donor_status": old_data.get("donor_status", datetime.datetime.min),
+            "early_supporter": old_data.get("early_supporter", False)
+        }
+
+        # Store the new data in the database
+        r.hmset(f"user:{user_id}", new_data)
+
+    def migrate_all_users():
+        # Assuming you have a way to list all user_ids
+        user_ids = r.keys("user:*")
+        for user_id in user_ids:
+            migrate_user_data(user_id)
+
+    # Call the migration function
+    migrate_all_users()
