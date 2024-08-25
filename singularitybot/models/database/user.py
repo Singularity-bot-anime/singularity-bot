@@ -32,6 +32,8 @@ class User:
         self.database: "Database" = database
         # Inerant variables
         self.id: str = data["_id"]
+        if self.id.startswith('b'):
+            self.id = self.id[2:-1]
         self.main_characters: List[Character] = [
             character_from_dict(s) for s in data["main_characters"]
         ]
