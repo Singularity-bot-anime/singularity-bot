@@ -27,8 +27,6 @@ class Banners(commands.Cog):
 
     def __init__(self, bot: SingularityBot):
         self.singularitybot = bot
-        with open('singularitybot/data/banners/banners_data.json', 'r') as f:
-            BANNERS = json.load(f)["banners"]
 
     @commands.slash_command(
         name="banner",

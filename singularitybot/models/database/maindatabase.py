@@ -494,11 +494,11 @@ if __name__ == "__main__":
             "galaxy_id": old_data.get("galaxy_id"),
             "shop_id": old_data.get("shop_id"),
             "main_characters": old_data.get("main_characters", []),
-            "character_storage_1": old_data.get("character_storage", []),  # Renamed
+            "character_storage_1": old_data.get("character_storage_1", []),  # Renamed
             "character_storage_2": [],
             "character_storage_3": [],
             "character_storage_4": [],
-            "pcharacter_storage_1": old_data.get("pcharacter_storage", []),  # Renamed
+            "pcharacter_storage_1": old_data.get("pcharacter_storage_1", []),  # Renamed
             "pcharacter_storage_2": [],
             "pcharacter_storage_3": [],
             "pcharacter_storage_4": [],
@@ -535,10 +535,15 @@ if __name__ == "__main__":
 
     def migrate_all_users():
         # Assuming you have a way to list all user_ids
-        user_ids = r.hkeys("users")
+        user_ids = [id.decode('utf8') for id in r.hkeys("users")]
         print( user_ids)
-        for user_id in user_ids:
-            migrate_user_data(user_id)
+        """for user_id in user_ids:
+            if user_id.startswith('b'):
+                r.hdel("users",user_id)
+                print("deleted ", user_id)
+            else:
+                migrate_user_data(user_id)"""
+            
 
     # Call the migration function
     migrate_all_users()

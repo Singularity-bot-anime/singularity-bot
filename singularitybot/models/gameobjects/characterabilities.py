@@ -210,22 +210,28 @@ specials["18"] = tsunade_special
 
 def hiruzen_sarutobi_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    enemy = random.choice(enemy_characters)
-    if enemy.current_hp > character.current_hp:
-        enemy.current_hp /= 2
-    else:    
-        enemy.current_hp = character.current_hp
-    message = f"{character.name} drops {enemy.name}'s health to his own."
+    if enemy_characters:
+        enemy = random.choice(enemy_characters)
+        if enemy.current_hp > character.current_hp:
+            enemy.current_hp /= 2
+        else:    
+            enemy.current_hp = character.current_hp
+        message = f"{character.name} drops {enemy.name}'s health to his own."
+    else:
+        message = f"{character.name} has no enemies to heal."
     return payload, message
 
 specials["19"] = hiruzen_sarutobi_special
 
 def itachi_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    enemy = random.choice(enemy_characters)
-    stun_effect = Effect(EffectType.STUN, duration=2, value=0)
-    enemy.effects.append(stun_effect)
-    message = f"{character.name} stuns {enemy.name} for 2 rounds."
+    if enemy_characters:
+        enemy = random.choice(enemy_characters)
+        stun_effect = Effect(EffectType.STUN, duration=2, value=0)
+        enemy.effects.append(stun_effect)
+        message = f"{character.name} stuns {enemy.name} for 2 rounds."
+    else:
+        message = f"{character.name} has no enemies to stun."
     return payload, message
 
 specials["20"] = itachi_special
@@ -302,7 +308,7 @@ def freezer_final_form_special(character: "Character", allied_characters: List["
     payload = get_payload()
     
     for enemy in enemy_characters:
-        if enemy.is_alive():
+        if not enemy.is_alive():
             continue
     
         aoe_damage = character.base_damage * 0.5
@@ -557,10 +563,13 @@ def issho_special(character: "Character", allied_characters: List["Character"], 
 specials["50"] = issho_special
 def jinbei_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    enemy = random.choice(enemy_characters)
-    extra_damage = character.base_damage * 2
-    enemy.current_hp -= extra_damage
-    message = f"{character.name} uses Fish-Man Karate, dealing extra damage to {enemy.name}."
+    if enemy_characters:
+        enemy = random.choice(enemy_characters)
+        extra_damage = character.base_damage * 1.5
+        enemy.current_hp -= extra_damage
+        message = f"{character.name} uses Fish-Man Karate, dealing extra damage to {enemy.name}."
+    else:
+        message = f"{character.name} uses Fish-Man Karate, but there are no enemies to attack."
     return payload, message
 
 specials["51"] = jinbei_special
