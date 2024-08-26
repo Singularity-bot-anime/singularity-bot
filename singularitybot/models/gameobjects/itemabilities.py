@@ -31,7 +31,8 @@ def explosive_tag(
         target = random.choice(valid_character)
         target.current_hp -= multiplier
         message = f"｢{character.name}｣'s explosive tag detonage on {target.name} for {multiplier} damage"
-    message = f"explosive tag detonage"
+    else:
+        message = f"explosive tag detonage"
     return message
 
 def mahoraga_wheel(
