@@ -24,7 +24,7 @@ class Utils(commands.Cog):
     async def profile(
         self,
         Interaction: disnake.ApplicationCommandInteraction,
-        user: disnake.Member = None
+        user: disnake.User = None
     ):
         await Interaction.response.defer()
         target_user = user if user else Interaction.author

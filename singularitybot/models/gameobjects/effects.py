@@ -15,6 +15,7 @@ Emoji = {
     "WEAKEN": "<:weakened:1096245942736400435>",
     "REGENERATION": "<:slowed:1096245941788483614>",
     "DAMAGEUP":"<:damageboost:1097094159451557999>",
+    "SPEEDUP":"💨",
     "SLOW": "<:slowed:993988645520412702>",
     "BURN":"🔥",
     "BLEED":"🩸",
@@ -29,6 +30,7 @@ class EffectType(Enum):
     REGENERATION = "REGENERATION"
     SLOW = "SLOW"
     DAMAGEUP= "DAMAGEUP"
+    SPEEDUP = "SPEEDUP"
     BURN="BURN"
     BLEED="BLEED"
     HEALTHBOOST="HEALTHBOOST"

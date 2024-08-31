@@ -105,7 +105,7 @@ class management(commands.Cog):
         character2: Character = storage.pop(view.value)
         # fuse the two characters
         if character.id == character2.id:
-            embed = disnake.Embed(title="The characters have been fused",color=disnake.Color.purple())
+            embed = disnake.Embed(title="The characters have been fused",description="Some stats are wrong, Use /character show to see the real stats",color=disnake.Color.purple())
             # Save the items
             for item in character2.items:
                 user.items.append(item)

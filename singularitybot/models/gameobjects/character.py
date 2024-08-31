@@ -202,6 +202,8 @@ class Character:
                 self.current_hp += effect.value
             elif effect.type == EffectType.DAMAGEUP and not effect.used:
                 self.current_damage += effect.value
+            elif effect.type == EffectType.SPEEDUP  and not effect.used:
+                self.current_speed += effect.value
             effect.duration -= 1
             if not effect.used:
                 effect.used = True
@@ -216,6 +218,8 @@ class Character:
                     self.current_hp = max(self.current_hp - effect.value, 1)
                 elif effect.type == EffectType.DAMAGEUP:
                     self.current_damage -= max(self.current_damage - effect.value, 1)
+                elif effect.type == EffectType.SPEEDUP:
+                    self.current_speed -= max(self.current_speed - effect.value, 1)
                 elif effect.type == EffectType.WEAKEN:
                     self.current_armor += max(self.current_armor - effect.value, 1)
                 elif effect.type == EffectType.SLOW:

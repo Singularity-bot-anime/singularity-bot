@@ -132,10 +132,10 @@ def haku_special(character: "Character", allied_characters: List["Character"], e
         if not enemy.is_alive():
             continue
         
-            bleed_effect = Effect(EffectType.BLEED, duration=3, value=15,sender=character)
-            slow_effect = Effect(EffectType.SLOW, duration=3, value=10,sender=character)
-            enemy.effects.append(bleed_effect)
-            enemy.effects.append(slow_effect)
+        bleed_effect = Effect(EffectType.BLEED, duration=3, value=15,sender=character)
+        slow_effect = Effect(EffectType.SLOW, duration=3, value=10,sender=character)
+        enemy.effects.append(bleed_effect)
+        enemy.effects.append(slow_effect)
     message = f"{character.name} uses Needle Drop, causing bleeding and slowing down enemies."
     return payload, message
 
@@ -143,9 +143,9 @@ specials["12"] = haku_special
 
 def kiba_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    for ally in allied_characters:
-        dmg_up= Effect(EffectType.DAMAGEUP,1,character.base_damage,sender=character)
-        character.effects.append(dmg_up)
+    
+    dmg_up= Effect(EffectType.DAMAGEUP,1,character.base_damage,sender=character)
+    character.effects.append(dmg_up)
     message = f"{character.name} increases all allies' speed by 50."
     return payload, message
 
@@ -210,7 +210,7 @@ specials["18"] = tsunade_special
 
 def hiruzen_sarutobi_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    if enemy_characters:
+    if [e for e in enemy_characters if e.is_alive()]:
         enemy = random.choice(enemy_characters)
         if enemy.current_hp > character.current_hp:
             enemy.current_hp /= 2
@@ -218,7 +218,7 @@ def hiruzen_sarutobi_special(character: "Character", allied_characters: List["Ch
             enemy.current_hp = character.current_hp
         message = f"{character.name} drops {enemy.name}'s health to his own."
     else:
-        message = f"{character.name} has no enemies to heal."
+        message = f"{character.name} has no enemies to damage."
     return payload, message
 
 specials["19"] = hiruzen_sarutobi_special
@@ -238,7 +238,7 @@ specials["20"] = itachi_special
 
 def kakashi_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    ur_specials = [goku_ssj1_special,naruto_special, jiraiya_special,freezer_full_power_special]  # Assuming these are UR specials
+    ur_specials = [naruto_special, jiraiya_special]
     special = random.choice(ur_specials)
     special_payload, special_message = special(character, allied_characters, enemy_characters)
     message = f"{character.name} copies a UR special: {special_message}"
@@ -320,8 +320,8 @@ specials["27"] = freezer_final_form_special
 
 def goku_ssj1_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    character.current_damage *= 2
-    character.current_speed *= 2
+    character.effects.append(Effect(EffectType.DAMAGEUP,3,character.current_damage,character))
+    character.effects.append(Effect(EffectType.SPEEDUP,3,character.current_speed,character))
     message = f"{character.name} transforms boost his stats over 3 turns"
     return payload, message
 
@@ -329,8 +329,8 @@ specials["28"] = goku_ssj1_special
 
 def goku_ssj1_transforming_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    character.current_damage *= 1.2
-    character.current_speed *= 1.2
+    character.effects.append(Effect(EffectType.DAMAGEUP,3,character.current_damage*0.2,character))
+    character.effects.append(Effect(EffectType.SPEEDUP,3,character.current_speed*0.2,character))
     message = f"{character.name} transforms, boosting stats over 3 turns."
     return payload, message
 

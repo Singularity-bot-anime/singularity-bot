@@ -439,20 +439,17 @@ async def fight_loop(
         await stop_rank(database, looser.id, winner.id, combat_log)
         return 
     except Exception as error:
-        if ranked:
-            error_traceback = "".join(
-                traceback.format_exception(
-                    type(error), error, error.__traceback__
-                )
+        error_traceback = "".join(
+            traceback.format_exception(
+                type(error), error, error.__traceback__
             )
-            await database.add_log(
-                datetime.datetime.now(),
-                "fight_loop",
-                str(type(error)),
-                str(error_traceback),
-            )
-        else:
-            raise error
+        )
+        await database.add_log(
+            datetime.datetime.now(),
+            f"fight_loop_ranked:{ranked}",
+            str(type(error)),
+            str(error_traceback),
+        )
 
 def view_to_dict_fight(type:str,user_id:int,watcher_characters:list[Character],player_characters:list[Character]) -> dict:
         return {
