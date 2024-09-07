@@ -178,7 +178,7 @@ class admincommands(commands.Cog):
     @debug.sub_command(name="printdata", description="print a user data")
     async def printdata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.Member):
         User = await self.SingularityBot.database.get_user_info(user.id)
-        await Interaction.send(f"```json{User.data}```")
+        await Interaction.send(f"```{User.data}```")
     
 
 

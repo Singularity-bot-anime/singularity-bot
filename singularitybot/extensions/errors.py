@@ -188,7 +188,7 @@ class ErrorHandle(commands.Cog):
             )
             embed.set_footer(text="Please try again.")
             await self.try_sending_message(Interaction, embed)
-            return  # avoid logging
+            #return  # avoid logging
         # log the error and warn
         warning(f'In the "{command}" command got the Exception: {str(type(error))}')
         await self.logger(command, error)
