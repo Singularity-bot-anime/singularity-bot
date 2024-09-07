@@ -161,7 +161,7 @@ class admincommands(commands.Cog):
         )
         await Interaction.send(embed=embed)
     
-    @admin.sub_command(name="debug", description="debug command group")
+    @admin.sub_command_group(name="debug", description="debug command group")
     @inner_permissions(type="developer")
     async def debug(self, Interaction: disnake.ApplicationCommandInteraction):
         pass
