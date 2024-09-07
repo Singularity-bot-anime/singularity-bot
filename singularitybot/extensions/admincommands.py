@@ -1,5 +1,6 @@
 import disnake
 import json
+import io
 from datetime import datetime, timedelta
 
 from singularitybot.models.bot.singularitybot import SingularityBot
@@ -178,9 +179,13 @@ class admincommands(commands.Cog):
     @debug.sub_command(name="printdata", description="print a user data")
     async def printdata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.Member):
         User = await self.SingularityBot.database.get_user_info(user.id)
-        await Interaction.send(f"```{User.data}```")
-    
-
-
+        def serialize_datetime(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            raise TypeError("Type %s not serializable" % type(obj))
+        data_str = json.dumps(User.data, default=serialize_datetime, indent=4)
+        file = disnake.File(io.BytesIO(data_str.encode()), filename="user_data.json")
+        await Interaction.send(file=file)
+        
 def setup(client: SingularityBot):
     client.add_cog(admincommands(client))
