@@ -83,11 +83,14 @@ class admincommands(commands.Cog):
         Interaction: disnake.ApplicationCommandInteraction,
         member: disnake.Member,
         characterid: int,
-        star: int,
+        asc: int,
+        level: int
     ):
         char_template = self.SingularityBot.character_file[characterid - 1]
         character = get_character_from_template(char_template, [], [])
         user = await self.SingularityBot.database.get_user_info(member.id)
+        character.level = level
+        character.awaken = asc
         msg = add_to_available_storage(user, character)
 
         if msg:
@@ -157,6 +160,26 @@ class admincommands(commands.Cog):
             title=f"added {amount}{CustomEmoji.SUPER_FRAGMENTS} to {user.discord.display_name}"
         )
         await Interaction.send(embed=embed)
+    
+    @admin.sub_command(name="debug", description="debug command group")
+    @inner_permissions(type="developer")
+    async def debug(self, Interaction: disnake.ApplicationCommandInteraction):
+        pass
+    
+    @debug.sub_command(name="copydata", description="copy a user data to self")
+    async def copydata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.User):
+        User = await self.SingularityBot.database.get_user_info(user.id)
+        User.discord = user
+        
+        target = await self.SingularityBot.database.get_user_info(Interaction.author.id)
+        target.data = User.data
+        await target.update()
+    
+    @debug.sub_command(name="printdata", description="print a user data")
+    async def printdata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.User):
+        User = await self.SingularityBot.database.get_user_info(user.id)
+        await Interaction.send(f"```{json.dumps(User.data)}```")
+    
 
 
 def setup(client: SingularityBot):

@@ -225,7 +225,7 @@ specials["19"] = hiruzen_sarutobi_special
 
 def itachi_special(character: "Character", allied_characters: List["Character"], enemy_characters: List["Character"]) -> tuple:
     payload = get_payload()
-    if enemy_characters:
+    if [e for e in enemy_characters if e.is_alive()]:
         enemy = random.choice(enemy_characters)
         stun_effect = Effect(EffectType.STUN, duration=2, value=0)
         enemy.effects.append(stun_effect)
