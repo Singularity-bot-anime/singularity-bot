@@ -167,7 +167,7 @@ class admincommands(commands.Cog):
         pass
     
     @debug.sub_command(name="copydata", description="copy a user data to self")
-    async def copydata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.User):
+    async def copydata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.Member):
         User = await self.SingularityBot.database.get_user_info(user.id)
         User.discord = user
         
@@ -176,7 +176,7 @@ class admincommands(commands.Cog):
         await target.update()
     
     @debug.sub_command(name="printdata", description="print a user data")
-    async def printdata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.User):
+    async def printdata(self, Interaction: disnake.ApplicationCommandInteraction, user: disnake.Member):
         User = await self.SingularityBot.database.get_user_info(user.id)
         await Interaction.send(f"```{json.dumps(User.data)}```")
     
