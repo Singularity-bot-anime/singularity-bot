@@ -2,6 +2,7 @@ import disnake
 import datetime
 import random
 import io
+import asyncio
 from PIL import Image, ImageDraw
 from disnake.ext import commands
 
@@ -219,7 +220,17 @@ class Adventure(commands.Cog):
                     names = [user.discord.display_name,ennemy_data["name"]]
                     match_request = create_fight_handler_request(players,channels,shards,names)
                     match_request["IA_DATA"] = ennemy_data
-                    winner,combat_log = await wait_for_fight_end(self.singularitybot.database,match_request)
+                    try:
+                        winner,combat_log = await asyncio.wait_for(wait_for_fight_end(self.singularitybot.database, match_request),timeout=600)
+                    except asyncio.TimeoutError:
+                        # If the fight times out after 10 minutes
+                        embed = disnake.Embed(
+                            title="Fight Timeout",
+                            description="The fight took too long and has been terminated.",
+                            color=disnake.Color.red(),
+                        )
+                        await Interaction.send(embed=embed)
+                        return
                     user.xp += PLAYER_XPGAINS
                     for char in user.main_characters:
                         char.xp += CHARACTER_XPGAINS
