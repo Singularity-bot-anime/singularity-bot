@@ -1,307 +1,131 @@
 import disnake
-
-from singularitybot.globals.variables import SHOPCREATIONCOST, ITEMTYPE, ITEMBYTYPE
-from singularitybot.globals.emojis import CustomEmoji
-
-# utils
-from singularitybot.utils.decorators import database_check, shop_check
-from singularitybot.utils.functions import wait_for, is_url_image
-
-# singularitybot model
-from singularitybot.models.bot.singularitybot import SingularityBot
-from singularitybot.models.gameobjects.shop import Shop
-from singularitybot.models.gameobjects.items import item_from_dict
-
-# specific class import
 from disnake.ext import commands
+import json
 from typing import List
 
-# ui
-from singularitybot.ui.shop.shop_creation_prompt import ShopModal
-from singularitybot.ui.shop.item_select_shop import ShopItemSelectDropdown
-from singularitybot.ui.place_holder import PlaceHolder
-from singularitybot.ui.confirmation import Confirm
-from singularitybot.ui.item_select import ItemSelectDropdown
+from singularitybot.models.bot.singularitybot import SingularityBot
+from singularitybot.models.gameobjects.items import Item
+from singularitybot.globals.emojis import converter,CustomEmoji
 
-
-async def autocomplete_type(inter, string: str) -> List[str]:
-    return [lang for lang in ITEMTYPE if string.lower() in lang.lower()]
-
+# Load the shop catalog from a JSON file (shop_items.json)
+with open(
+    "singularitybot/data/templates/items.json", "r", encoding="utf-8"
+) as item:
+    shop_items = json.load(item)["items"]
 
 class Shop(commands.Cog):
     def __init__(self, singularitybot: SingularityBot):
         self.singularitybot = singularitybot
 
-    @commands.slash_command(
-        name="shop", description="Every command to manage and buy at shops"
-    )
-    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
-    @database_check()
+    @commands.slash_command(name="shop", description="Shop for items")
     async def shop(self, Interaction: disnake.ApplicationCommandInteraction):
         pass
 
-    @shop.sub_command(name="create", description="Create a public shop.")
-    async def create(self, Interaction: disnake.ApplicationCommandInteraction):
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-
-        # Shop already exists
-        if user.shop_id != None:
-            embed = disnake.Embed(
-                title="You already have a shop, leave it to create a new one.",
-                color=disnake.Color.red(),
-            )
-            embed.set_image(url=self.singularitybot.avatar_url)
-            await Interaction.send(embed=embed)
+    ### LOOKUP COMMAND ###
+    @shop.sub_command(name="lookup", description="Lookup an item from the shop")
+    async def lookup(self, Interaction: disnake.ApplicationCommandInteraction, item_name: str):
+        item = next((i for i in shop_items if i["name"].lower() == item_name.lower()), None)
+        
+        if not item:
+            await Interaction.send(f"Item `{item_name}` not found in the shop.", ephemeral=True)
             return
 
+        # Build the item information
         embed = disnake.Embed(
-            title=f"You need to pay {SHOPCREATIONCOST} fragments to create a new shop.",
-            color=disnake.Color.dark_purple(),
+            title=f"🔍 `{item['name']}`{item['emoji']}",
+            description=f"**▬▬▬`STATS`▬▬▬**\n\n"
+                        f"**HP Bonus**➥ {item['bonus_hp']}❤️\n"
+                        f"**Damage Bonus**➥ {item['bonus_damage']}⚔️\n"
+                        f"**Speed Bonus**➥ {item['bonus_speed']}💨\n"
+                        f"**Critical Bonus**➥ {item['bonus_critical']}🍀\n"
+                        f"**Armor Bonus**➥ {item['bonus_armor']}🛡️\n"
+                        f"▬▬▬▬▬▬▬▬▬",
+            color=disnake.Color.dark_purple()
         )
-        embed.set_image(url="https://storage.singularityapp.online/randomAsset/shop.gif")
-        view = Confirm(Interaction)
-        await Interaction.send(embed=embed, view=view)
-        await wait_for(view)
-        Interaction = view.interaction
+        embed.add_field(name="▬▬▬`Equipable`▬▬▬", value=str(item['is_equipable']), inline=True)
+        embed.add_field(name="▬▬▬`Special`▬▬▬", value=item['special_image'], inline=False)
+        embed.set_thumbnail(url=item['special_image'])
 
-        # Refuse to pay the price
-        if not view.value:
-            embed = disnake.Embed(
-                title="You can create a shop anytime.",
-                color=disnake.Color.dark_purple(),
-            )
-            embed.set_image(url="https://storage.singularityapp.online/randomAsset/shop.gif")
-            await Interaction.response.edit_message(embed=embed, view=PlaceHolder())
-            return
-        user.fragments -= SHOPCREATIONCOST
-        modal = ShopModal()
-        await Interaction.response.send_modal(modal=modal)
+        await Interaction.send(embed=embed)
 
-        modal_inter: disnake.ModalInteraction = await self.singularitybot.wait_for(
-            "modal_submit",
-            check=lambda i: i.custom_id == "create_shop"
-            and i.author.id == Interaction.author.id,
-            timeout=300,
-        )
-        shop_name = modal_inter.text_values["shop_name"]
-        shop_description = modal_inter.text_values["shop_description"]
-        id = await self.singularitybot.database.add_shop(shop_name, shop_description, user.id)
-        user.shop_id = id
-        await user.update()
+    @lookup.autocomplete("item_name")
+    async def autocomplete_lookup(self, Interaction: disnake.ApplicationCommandInteraction, current: str):
+        """Autocomplete to search for items."""
+        return [item["name"] for item in shop_items if (current.lower() in item["name"].lower()) and item["prurchasable"]]
 
-    @shop.sub_command(name="sell", description="Sell an item to your shop")
-    @shop_check()
-    async def sell(
-        self, Interaction: disnake.ApplicationCommandInteraction
-    ):
+    ### BUY COMMAND ###
+    @shop.sub_command(name="buy", description="Buy an item from the shop")
+    async def buy(self, Interaction: disnake.ApplicationCommandInteraction, item_name: str):
+        # Fetch the user and item data
         user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
+        item = next((i for i in shop_items if i["name"].lower() == item_name.lower()), None)
 
-        shop = await self.singularitybot.database.get_shop_info(user.shop_id)
-
-        if len(shop.items) >= 24:
-            embed = disnake.Embed(title="Your shop is full. Remove items to add more.")
-            embed.set_image(url=shop.image_url)
-            await Interaction.send(embed=embed)
+        if not item or not item["prurchasable"]:
+            await Interaction.send(f"The item `{item_name}` is not purchasable.", ephemeral=True)
             return
-        if len(user.items) <= 0:
-            embed = disnake.Embed(title="You have no item to sell")
-            embed.set_image(url=shop.image_url)
-            await Interaction.send(embed=embed)
-            return
-        embed = disnake.Embed(title="Select an item to sell in your shop.")
-        embed.set_image(url=shop.image_url)
-        sellables = [i for i in user.items if i.prurchasable]
-        view = ItemSelectDropdown(Interaction,sellables)
-        await Interaction.send(embed=embed, view=view)
-        await wait_for(view)
-        index = view.value
-        item = sellables.pop(index)
-        user.items.remove(sellables)
-        price = item.price  # Assuming intrinsic_value is the sell price
-
-        shop.sell(item, price)
-        await shop.update()
-        await user.update()
-        embed = disnake.Embed(
-            title=f"{item.name} has been added to your shop for {price} fragments."
-        )
-        embed.set_image(url=shop.image_url)
-        await Interaction.channel.send(embed=embed)
-
-    @shop.sub_command(name="remove", description="Remove an item from your shop")
-    @shop_check()
-    async def remove(self, Interaction: disnake.ApplicationCommandInteraction):
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-
-        shop = await self.singularitybot.database.get_shop_info(user.shop_id)
-
-        if len(shop.items) == 0:
-            embed = disnake.Embed(
-                title="Your shop is empty.",
-                color=disnake.Color.dark_purple(),
-            )
-            embed.set_image(url=shop.image_url)
-            await Interaction.send(embed=embed)
+        
+        # Check if the user has enough fragments (assuming 'user.fragments' exists)
+        item_price = item["price"]
+        item_emoji = item["emoji"]
+        if user.fragments < item_price:
+            await Interaction.send(f"You don't have enough fragments to buy {item_name}{item_emoji}.", ephemeral=True)
             return
 
-        view = ShopItemSelectDropdown(Interaction, shop.items, shop.prices)
-        embed = disnake.Embed(
-            title="Select an item to remove from your shop.",
-            color=disnake.Color.dark_purple(),
-        )
-        embed.set_image(url=shop.image_url)
-        await Interaction.send(embed=embed, view=view)
-        await wait_for(view)
-
-        item = shop.items.pop(view.value)
-        price = shop.prices.pop(view.value)
-        user.items.append(item)
-
-        await shop.update()
+        # Deduct price and add item to user
+        user.fragments -= item_price
+        user.items.append(Item(item))
         await user.update()
 
         embed = disnake.Embed(
-            title=f"{item.name} has been removed from your shop.",
-            color=disnake.Color.dark_purple(),
-        )
-        await Interaction.channel.send(embed=embed)
-
-    @shop.sub_command(name="show", description="Show your own shop")
-    @shop_check()
-    async def show(self, Interaction: disnake.ApplicationCommandInteraction):
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-
-        shop = await self.singularitybot.database.get_shop_info(user.shop_id)
-        embed = disnake.Embed(
-            title=f"{user.discord.name}'s Shop",
-            color=disnake.Color.dark_purple(),
-        )
-        embed.add_field(
-            name=shop.name,
-            value=shop.description,
-            inline=False,
-        )
-        embed.add_field(
-            name="Items for Sale:",
-            value="\n           ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
-            inline=False,
-        )
-        for i, item in enumerate(shop.items):
-            embed.add_field(
-                name=f"{item.name}{item.emoji}",
-                value=f"Price: {shop.prices[i]} fragments",
-                inline=True,
-            )
-
-        embed.set_image(url=shop.image_url)
-        await Interaction.send(embed=embed)
-
-    @shop.sub_command(name="changeimage", description="Change the shop image")
-    @shop_check()
-    async def changeimage(
-        self, Interaction: disnake.ApplicationCommandInteraction, url: str
-    ):
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-
-        if not is_url_image(url):
-            embed = disnake.Embed(
-                title="URL Error",
-                description="Please add a valid URL.",
-                color=disnake.Color.red(),
-            )
-            await Interaction.send(embed=embed)
-            return
-
-        shop = await self.singularitybot.database.get_shop_info(user.shop_id)
-
-        shop.image_url = url
-        await shop.update()
-        embed = disnake.Embed(
-            title="Your shop's image was changed.",
-            color=disnake.Color.dark_purple(),
-        )
-        embed.set_image(url=shop.image_url)
-        await Interaction.send(embed=embed)
-
-    @shop.sub_command(
-        name="buy", description="Buy the cheapest items from other players"
-    )
-    async def buy(
-        self,
-        Interaction: disnake.ApplicationCommandInteraction,
-        itemtype: str = commands.Param(autocomplete=autocomplete_type),
-    ):
-        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
-        user.discord = Interaction.author
-        item_list = [item_from_dict(item) for item in ITEMBYTYPE[itemtype]]
-
-        view = ItemSelectDropdown(Interaction, item_list)
-        embed = disnake.Embed(
-            title="Select an item to buy.",
-            color=disnake.Color.dark_purple(),
-        )
-        embed.set_image(url="https://storage.singularityapp.online/randomAsset/shop.gif")
-        await Interaction.send(embed=embed, view=view)
-        await wait_for(view)
-
-        item = item_list[view.value]
-
-        shop, index = await self.singularitybot.database.find_suitable_shop(item, user.shop_id)
-
-        if shop is None:
-            embed = disnake.Embed(
-                title="No suitable shop found.",
-                color=disnake.Color.dark_purple(),
-            )
-            embed.set_image(url="https://storage.singularityapp.online/randomAsset/shop.gif")
-            await Interaction.channel.send(embed=embed)
-            return
-
-        shop_item = shop.items[index]
-        shop_price = shop.prices[index]
-
-        if user.fragments < shop_price:
-            embed = disnake.Embed(
-                title="You don't have enough fragments.",
-                color=disnake.Color.dark_purple(),
-            )
-            embed.set_image(url="https://storage.singularityapp.online/randomAsset/shop.gif")
-            await Interaction.channel.send(embed=embed)
-            return
-
-        embed = disnake.Embed(title=shop.name, description=shop.description)
-        embed.set_image(url=shop.image_url)
-        embed.add_field(
-            name="Item for Sale",
-            value=f"{shop_item.name} for {shop_price} fragments.",
-        )
-        view = Confirm(Interaction)
-        await Interaction.channel.send(embed=embed, view=view)
-        await wait_for(view)
-        Interaction = view.interaction
-        if not view.value:
-            embed = disnake.Embed(title=shop.name, description=shop.description)
-            embed.set_image(url=shop.image_url)
-            embed.add_field(
-                name="Purchase Canceled",
-                value="You did not purchase the item.",
-            )
-            await Interaction.send(embed=embed)
-            return
-        await shop.buy(index, user)
-        embed = disnake.Embed(title=shop.name, description=shop.description)
-        embed.set_image(url=shop.image_url)
-        embed.add_field(
-            name="Purchase Successful",
-            value=f"You bought {shop_item.name}.",
+            title=f"Purchase Successful!",
+            description=f"You bought {item['name']}{item_emoji} for {item_price} {CustomEmoji.FRAGMENTS}!",
+            color=disnake.Color.green()
         )
         await Interaction.send(embed=embed)
 
+    @buy.autocomplete("item_name")
+    async def autocomplete_buy(self, Interaction: disnake.ApplicationCommandInteraction, current: str):
+        """Autocomplete to search for purchasable items."""
+        purchasable_items = [item["name"] for item in shop_items if item["prurchasable"]]
+        return [item for item in purchasable_items if current.lower() in item.lower()]
 
+    ### SELL COMMAND ###
+    @shop.sub_command(name="sell", description="Sell an item from your inventory")
+    async def sell(self, Interaction: disnake.ApplicationCommandInteraction, item_name: str):
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        # Check if the user owns the item
+        item = next((i for i in user.items if i.name.lower() == item_name.lower()), None)
+        
+        if not item:
+            await Interaction.send(f"You don't own the item `{item_name}`.", ephemeral=True)
+            return
+
+        # Sell for 1/10th of its price
+        sell_price = item.price // 10 if item.price else 0
+        item_emoji = item["emoji"]
+        if sell_price == 0:
+            await Interaction.send(f"`{item.name}`{item_emoji} cannot be sold.", ephemeral=True)
+            return
+
+        # Remove the item and add fragments
+        user.items.remove(item)
+        user.fragments += sell_price
+        await user.update()
+
+        embed = disnake.Embed(
+            title=f"Item Sold!",
+            description=f"You sold {item.name}{item_emoji} for {sell_price}  {CustomEmoji.FRAGMENTS}!",
+            color=disnake.Color.orange()
+        )
+        await Interaction.send(embed=embed)
+
+    @sell.autocomplete("item_name")
+    async def autocomplete_sell(self, Interaction: disnake.ApplicationCommandInteraction, current: str):
+        """Autocomplete to search for items in the user's inventory."""
+        user = await self.singularitybot.database.get_user_info(Interaction.author.id)
+        user_items = [item.name for item in user.items]
+        return [item for item in user_items if current.lower() in item.lower()]
+
+# Setup function for the cog
 def setup(singularitybot: SingularityBot):
     singularitybot.add_cog(Shop(singularitybot))
